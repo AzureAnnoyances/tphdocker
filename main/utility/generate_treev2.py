@@ -135,11 +135,20 @@ def find_trunk(pcd, center_coord, r, h):
     cloud.coordsFromNPArray_copy(points)
     
     ransac_params = cc.RANSAC_SD.RansacParams()
+    # Primitives
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CYLINDER,True)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CONE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_PLANE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_SPHERE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
+    
+    # ransac_params.epsilon()
+    # ransac_params.minCylinderRadius()
+    # ransac_params.maxCylinderRadius()
+    # ransac_params.allowSimplification()
+    # ransac_params.probability()
+    # ransac_params.allowFitting()
+    # ransac_params.
     print(ransac_params)
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
