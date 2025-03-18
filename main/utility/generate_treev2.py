@@ -129,6 +129,9 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
     return temp_tree
     
 def find_trunk(pcd, center_coord, r, h):
+    """
+    Find the trunk using the center of the tree via RANSAC
+    """
     # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
     points = np.asarray(pcd.points)
     cloud = cc.ccPointCloud('cloud')
@@ -136,6 +139,7 @@ def find_trunk(pcd, center_coord, r, h):
     
     # RANSAC Parameters
     ransac_params = cc.RANSAC_SD.RansacParams()
+
     # Primitive shape to be detected
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CYLINDER,True)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CONE,False)
@@ -143,16 +147,27 @@ def find_trunk(pcd, center_coord, r, h):
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_SPHERE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
     
+    # RANSAC min N primitive points
+    ransac_params.supportPoints(500)
+
+    # RANSAC max deviation of shape (degress)
+    ransac_params.maxNormalDeviation_deg(25)
+
+    # RANSAC cylinder parameters
+    ransac_params.minCylinderRadius(0.4)
+    ransac_params.maxCylinderRadius(0.7)
+
+    # RANSAC other parameters
     # ransac_params.epsilon()
-    # ransac_params.minCylinderRadius()
-    # ransac_params.maxCylinderRadius()
     # ransac_params.allowSimplification()
     # ransac_params.probability()
     # ransac_params.allowFitting()
     # ransac_params.
-    print(ransac_params)
+
     ransac_params.optimizeForCloud(cloud)
-    meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    # meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    print(type(clouds))
     pass
 
     
