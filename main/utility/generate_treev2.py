@@ -232,7 +232,7 @@ class TreeGen():
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                o3d.visualization.draw_geometries([singular_tree])
+                # o3d.visualization.draw_geometries([singular_tree]) # Kasya: Visualize the tree
                 find_trunk(singular_tree, coord, 3, h)
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
