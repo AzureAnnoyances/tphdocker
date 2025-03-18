@@ -150,8 +150,8 @@ def find_trunk(pcd, center_coord, r, h):
     # RANSAC min N primitive points
     ransac_params.supportPoints = 500
 
-    # RANSAC max deviation of shape (degress)
-    ransac_params.maxNormalDeviation_deg = 25
+    # RANSAC max deviation of shape (degrees)
+    ransac_params.maxNormalDev_deg = 25
 
     # RANSAC cylinder parameters: Oil Palm trunk dia 45-65 cm (https://bioresources.cnr.ncsu.edu/resources/the-potential-of-oil-palm-trunk-biomass-as-an-alternative-source-for-compressed-wood/)
     ransac_params.minCylinderRadius = 0.4
