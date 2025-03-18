@@ -147,13 +147,14 @@ def find_trunk(pcd, center_coord, r, h):
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_SPHERE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
     
-    # RANSAC min N primitive points
-    ransac_params.supportPoints = 500
+    # RANSAC min N primitive points (default 500)
+    ransac_params.supportPoints = 200
 
-    # RANSAC max deviation of shape (degrees)
-    ransac_params.maxNormalDev_deg = 25
+    # RANSAC max deviation of shape (degrees) (default 25)
+    ransac_params.maxNormalDev_deg = 40
 
-    # RANSAC cylinder parameters: Oil Palm trunk dia 45-65 cm (https://bioresources.cnr.ncsu.edu/resources/the-potential-of-oil-palm-trunk-biomass-as-an-alternative-source-for-compressed-wood/)
+    # RANSAC cylinder parameters (default inf, inf) 
+    # Oil Palm trunk dia 45-65 cm (https://bioresources.cnr.ncsu.edu/resources/the-potential-of-oil-palm-trunk-biomass-as-an-alternative-source-for-compressed-wood/)
     ransac_params.minCylinderRadius = 0.4
     ransac_params.maxCylinderRadius = 0.7
 
@@ -249,7 +250,6 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # o3d.visualization.draw_geometries([singular_tree]) # Kasya: Visualize the tree
-                print(type(singular_tree))
                 find_trunk(singular_tree, coord, 3, h)
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
