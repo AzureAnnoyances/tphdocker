@@ -134,8 +134,9 @@ def find_trunk(pcd, center_coord, r, h):
     cloud = cc.ccPointCloud('cloud')
     cloud.coordsFromNPArray_copy(points)
     
+    # RANSAC Parameters
     ransac_params = cc.RANSAC_SD.RansacParams()
-    # Primitives
+    # Primitive shape to be detected
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CYLINDER,True)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CONE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_PLANE,False)

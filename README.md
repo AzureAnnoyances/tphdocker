@@ -4,16 +4,12 @@ Build Docker image
 docker build \
 --ssh github_ssh_key=/home/wawj-u/.ssh/id_ed25519 \
 -t dschng/tph -f Dockerfile .
+
+xhost local:docker
 ```
 
-RUN
+Run Docker container and open the Docker container terminal 
 ```bash
-docker run -it \
--v /var/run/docker.sock:/var/run/docker.sock \
--v /usr/bin/docker:/usr/bin/docker \
---privileged \
-dschng/tph /bin/bash
-
 cd && docker run -it \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /usr/bin/docker:/usr/bin/docker \
@@ -28,24 +24,19 @@ cd && docker run -it \
 --env TERM=xterm-256color \
 -v /home/wawj-u/Documents/datasets/pcd:/root/pcds \
 dschng/tph /bin/bash
+
 ```
 
-<!-- ```bash
-. /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 && python3
-``` -->
+Run the code
 ```bash
 . /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
 cd /root/sdp_tph/main/ && git fetch && git switch testings
-git pull --recurse-submodules
-export DISPLAY=:0 
+git pull --recurse-submodules && python3 main2.py /root/pcds/ p01e_B .las
 
-python3 main2.py /root/pcds/ p01e_B .las
-
-python3 main.py /root/pcds/ p01 .las
 ```
 
 Pushing with lfs
 ```bash
-
 git-lfs push origin testings
 git push
+```
