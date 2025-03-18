@@ -167,7 +167,8 @@ def find_trunk(pcd, center_coord, r, h):
     ransac_params.optimizeForCloud(cloud)
     # meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    print(type(clouds))
+    print(type(clouds)) # tuple
+    print(clouds)
     pass
 
     
@@ -248,6 +249,7 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # o3d.visualization.draw_geometries([singular_tree]) # Kasya: Visualize the tree
+                print(type(singular_tree))
                 find_trunk(singular_tree, coord, 3, h)
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
