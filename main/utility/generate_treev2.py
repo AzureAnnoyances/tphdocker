@@ -195,8 +195,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             "deg": dev_deg,
             "r_min": r_min,
             "r_max": r_max,
-            "num_clouds": 0,
-            "filtered_clouds": 0,
+            "num_clouds": [],
+            "filtered_clouds": [],
             "cloud_center": [],
             "cloud_ground": [],
             "cloud_top": []
@@ -368,20 +368,21 @@ class TreeGen():
                 ratio_max = 0.9
                 ratio_step = 0.3
                 prim_min = 100
-                prim_max = 1000
+                prim_max = 1100
                 prim_step = 100
                 deg_min = 25
-                deg_max = 65
+                deg_max = 75
                 deg_step = 10
                 ransac_results = [{
                             "tree_index": index,
-                            "h_list": h_list,
-                            "h": h,
                             "coord": coord,
+                            "h": h,
+                            "n_points": len(np.asarray(pcd.points)),
+                            "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
-                for prim in np.arange(prim_min, prim_max, prim_step):
-                    for deg in np.arange(deg_min, deg_max, deg_step):
+                for deg in np.arange(deg_min, deg_max, deg_step):
+                    for prim in np.arange(prim_min, prim_max, prim_step):
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                         
