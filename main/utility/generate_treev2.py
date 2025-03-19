@@ -167,8 +167,11 @@ def find_trunk(pcd, center_coord, r, h):
 
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    print(type(meshes), type(clouds)) # tuple
-    print(meshes, clouds) # tuple of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+    print(type(meshes), type(clouds)) # list
+    print(len(meshes), len(clouds)) # tuple of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+    for cloud in clouds:
+        o3d.visualization.draw_geometries([cloud])
+        break
     pass
 
     
