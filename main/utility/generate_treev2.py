@@ -17,6 +17,7 @@ import cloudComPy.RANSAC_SD
 cc.initCC()
 
 # Kasya
+import os
 import logging
 
 """
@@ -130,7 +131,7 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
                 temp_tree+=a
     return temp_tree
     
-def find_trunk(pcd, center_coord, h_list, h, ratio:float = 0.5, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
+def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
     """
     Find the trunk using the center of the tree via RANSAC
 
@@ -139,7 +140,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = 0.5, prim:int = 500, 
         center_coord (tuple): Center coordinate of the tree
         h_list (list): List of heights of the tree from pred
         h (np.float): Height of the tree from pred (seems to not be correct)
-        ratio (float, optional): Ratio for the primitive, ratio of N points from tree. Defaults to 0.5 (50%)
+        ratio (float, optional): Ratio for the primitive, ratio of N points from tree.
         prim (int, optional): Min N points for primitive. Defaults to 500.
         dev_deg (int, optional): Max deviation of shape in degrees. Defaults to 25.
         r_min (float, optional): Min radius of the cylinder. Defaults to 0.4.
@@ -162,7 +163,8 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = 0.5, prim:int = 500, 
     
     # RANSAC min N primitive points (default 500)
     # ratio calculation
-    prim = int(len(points)*ratio)
+    if ratio is not None:
+        prim = int(len(points)*ratio)
     ransac_params.supportPoints = prim
 
     # RANSAC max deviation of shape (degrees) (default 25)
@@ -263,8 +265,9 @@ class TreeGen():
         # self.adTreeCls = AdTree_cls()
 
         # Configure logging
+        os.makedirs(self.sideViewOut, exist_ok=True)
         logging.basicConfig(
-            filename=f"{self.sideViewOut}/ransac_log.log",  # Log file name
+            filename=os.path.join(self.sideViewOut, "ransac_log.log"),  # Log file name
             filemode='w',  # Overwrite the file each time
             format='%(asctime)s - %(message)s',  # Log format
             level=logging.INFO  # Log level
@@ -346,8 +349,9 @@ class TreeGen():
                 deg_min = 25
                 deg_max = 60
                 deg_step = 10
-                for ratio, deg in zip(np.arange(ratio_min, ratio_max, ratio_step), np.arange(deg_min, deg_max, deg_step)):
-                    logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
+                for ratio in zip(np.arange(ratio_min, ratio_max, ratio_step)):
+                    for deg in zip(np.arange(deg_min, deg_max, deg_step)):
+                        logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
 
                 meshes, clouds = find_trunk(singular_tree, coord, h_list, h)
                 if clouds is None:
