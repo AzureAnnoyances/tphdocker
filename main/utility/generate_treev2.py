@@ -17,6 +17,7 @@ import cloudComPy.RANSAC_SD
 cc.initCC()
 
 # Kasya
+import pandas as pd
 import logging
 # Configure logging
 logging.basicConfig(
@@ -152,6 +153,9 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
         r_min (float, optional): Min radius of the cylinder. Defaults to 0.4.
         r_max (float, optional): Max radius of the cylinder. Defaults to 0.7.
     """
+    # Initialize a list to store RANSAC results
+    ransac_results = []
+
     # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
     points = np.asarray(pcd.points)
     cloud = cc.ccPointCloud('cloud')
@@ -187,6 +191,15 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max): {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
+        ransac_results.append({
+            "ratio": ratio,
+            "prim": prim,
+            "deg": dev_deg,
+            "r_min": r_min,
+            "r_max": r_max,
+            "num_clouds": 0,
+            "filtered_clouds": 0
+        })
         return None, None
     
     # Filter the cloud based on the center coordinate and height
@@ -243,6 +256,24 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     logging.info(f'cloud_center: {cloud_center}')
     logging.info(f'cloud_ground: {cloud_ground}')
     logging.info(f'cloud_top: {cloud_top}')
+
+    # Append results to the list
+    ransac_results.append({
+        "ratio": ratio,
+        "prim": prim,
+        "deg": dev_deg,
+        "r_min": r_min,
+        "r_max": r_max,
+        "num_clouds": len(clouds),
+        "filtered_clouds": len(filtered_clouds),
+        "cloud_center": cloud_center,
+        "cloud_ground": cloud_ground,  
+        "cloud_top": cloud_top
+    })
+
+    # Save results to a CSV file
+    results_df = pd.DataFrame(ransac_results)
+    results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False)
     return meshes, filtered_clouds
     
 class TreeGen():
