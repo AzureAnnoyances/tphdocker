@@ -17,8 +17,14 @@ import cloudComPy.RANSAC_SD
 cc.initCC()
 
 # Kasya
-import os
 import logging
+# Configure logging
+logging.basicConfig(
+    filename="ransac_log.log",  # Log file name
+    filemode='w',  # Overwrite the file each time
+    format='%(asctime)s - %(message)s',  # Log format
+    level=logging.INFO  # Log level
+)
 
 """
 1. Bounding Box Done
@@ -263,15 +269,7 @@ class TreeGen():
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
         # self.adTreeCls = AdTree_cls()
-
-        # Configure logging
-        os.makedirs(self.sideViewOut, exist_ok=True)
-        logging.basicConfig(
-            filename=os.path.join(self.sideViewOut, "ransac_log.log"),  # Log file name
-            filemode='w',  # Overwrite the file each time
-            format='%(asctime)s - %(message)s',  # Log format
-            level=logging.INFO  # Log level
-        )
+        print("file_dir:", self.sideViewOut)
     
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         # Init
