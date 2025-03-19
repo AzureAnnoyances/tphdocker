@@ -340,17 +340,23 @@ class TreeGen():
 
                 # Kasya: Find trunk using RANSAC
                 logging.info("Finding trunk using RANSAC")
-                ratio_min = 0.0
+                ratio_min = 0.1
                 ratio_max = 0.9
                 ratio_step = 0.3
+                prim_min = 100
+                prim_max = 1000
+                prim_step = 100
                 deg_min = 25
                 deg_max = 65
                 deg_step = 10
-                for ratio in np.arange(ratio_min, ratio_max, ratio_step):
+                # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
+                for prim in np.arange(prim_min, prim_max, prim_step):
                     for deg in np.arange(deg_min, deg_max, deg_step):
-                        logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
+                        # logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
+                        logging.info(f"RANSAC prim: {prim}, deg: {deg}")
 
-                        meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
+                        # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
+                        meshes, clouds = find_trunk(singular_tree, coord, h_list, h, prim=prim, dev_deg=deg)
                         if clouds is None:
                             continue
 
