@@ -138,7 +138,7 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
                 temp_tree+=a
     return temp_tree
     
-def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
+def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
     """
     Find the trunk using the center of the tree via RANSAC
 
@@ -153,8 +153,6 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
         r_min (float, optional): Min radius of the cylinder. Defaults to 0.4.
         r_max (float, optional): Max radius of the cylinder. Defaults to 0.7.
     """
-    # Initialize a list to store RANSAC results
-    ransac_results = []
 
     # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
     points = np.asarray(pcd.points)
@@ -188,7 +186,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max): {ratio} {prim} {dev_deg} {r_min} {r_max}')
+    logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max):\n {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
         ransac_results.append({
@@ -200,7 +198,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
             "num_clouds": 0,
             "filtered_clouds": 0
         })
-        return None, None
+        return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -271,10 +269,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
         "cloud_top": cloud_top
     })
 
-    # Save results to a CSV file
-    results_df = pd.DataFrame(ransac_results)
-    results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False)
-    return meshes, filtered_clouds
+    return meshes, filtered_clouds, ransac_results
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -360,7 +355,7 @@ class TreeGen():
                 # o3d.visualization.draw_geometries([singular_tree])
                 logging.info(f"\nTree index: {index}")
                 logging.info(f"Tree h detected: {total_detected}")
-                logging.info(f'Tree N points: {len(np.asarray(pcd.points))} {np.asarray(pcd.points).shape}')
+                logging.info(f'Tree N points: {len(np.asarray(pcd.points))}')
                 logging.info(f'h_list: {h} {h_list}')
                 logging.info(f'tree_center_coord {coord}')
 
@@ -375,12 +370,23 @@ class TreeGen():
                 deg_min = 25
                 deg_max = 65
                 deg_step = 10
+                ransac_results = []
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
                 for prim in np.arange(prim_min, prim_max, prim_step):
                     for deg in np.arange(deg_min, deg_max, deg_step):
                         
+                        ransac_results.append({
+                            "tree_index": index,
+                            "h_list": h_list,
+                            "h": h,
+                            "coord": coord,
+                        })
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
-                        meshes, clouds = find_trunk(singular_tree, coord, h_list, h, prim=prim, dev_deg=deg)
+                        meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                        
+                        # Save results to a CSV file
+                        results_df = pd.DataFrame(ransac_results)
+                        results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False, mode='a')
                         if clouds is None:
                             continue
 
