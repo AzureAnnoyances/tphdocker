@@ -18,13 +18,6 @@ cc.initCC()
 
 # Kasya
 import logging
-# Configure logging
-logging.basicConfig(
-    filename='ransac_log.log',  # Log file name
-    filemode='w',  # Overwrite the file each time
-    format='%(asctime)s - %(message)s',  # Log format
-    level=logging.INFO  # Log level
-)
 
 """
 1. Bounding Box Done
@@ -169,8 +162,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = 0.5, prim:int = 500, 
     
     # RANSAC min N primitive points (default 500)
     # ratio calculation
-    print(len(points), ratio)
-    # prim = int(len(points)*ratio)
+    prim = int(len(points)*ratio)
     ransac_params.supportPoints = prim
 
     # RANSAC max deviation of shape (degrees) (default 25)
@@ -184,9 +176,14 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = 0.5, prim:int = 500, 
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    if len(clouds) == 0:
+        print('No trunk found for:')
+        print('Tree N points and ratio:', len(points), ratio)
+        print('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
+        return None, None
 
     # Print Tree data and RANSAC params
-    print('Tree N points:', points.shape)
+    print('Tree N points and ratio:', len(points), ratio)
     print('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
     print('h_list:', h, h_list)
     print('tree_center_coord', center_coord)
@@ -264,6 +261,14 @@ class TreeGen():
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
         # self.adTreeCls = AdTree_cls()
+
+        # Configure logging
+        logging.basicConfig(
+            filename=f"{self.sideViewOut}/ransac_log.log",  # Log file name
+            filemode='w',  # Overwrite the file each time
+            format='%(asctime)s - %(message)s',  # Log format
+            level=logging.INFO  # Log level
+        )
     
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         # Init
@@ -330,8 +335,8 @@ class TreeGen():
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
-                logging.info("Tree index:", index)
-                logging.info("Tree h detected:", total_detected)
+                logging.info(f"Tree index: {index}")
+                logging.info(f"Tree h detected: {total_detected}")
 
                 # Kasya: Find trunk using RANSAC
                 logging.info("Finding trunk using RANSAC")
@@ -345,6 +350,8 @@ class TreeGen():
                     logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
 
                 meshes, clouds = find_trunk(singular_tree, coord, h_list, h)
+                if clouds is None:
+                    continue
 
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
