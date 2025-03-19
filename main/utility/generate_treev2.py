@@ -180,20 +180,40 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     print('pcd min:', points[:,0].min(), points[:,1].min(), points[:,2].min())
     print('pcd max:', points[:,0].max(), points[:,1].max(), points[:,2].max())
     
-    filtered_cloud = {}
+
+    # Filter the cloud based on the center coordinate
+    """
+    Algo:
+    - Iterate clouds
+        - find the cloud with the center coordinate (eliminate leaves)
+        - find the cloud with the closest z to the ground (eliminate leaves close to trunk)
+        - find the cloud with the closest z to the top (closest to crown)
+    """
+    filtered_clouds = {}
+    z_pcd_min = points[:,2].min()
+    xy_tol = 1
+    z_tol = 0.1
+    max_z = 0
     for index, cloud in enumerate(clouds[:-1]):
         print('Cloud:', index)
-        points = cloud.toNpArray()
-        x,y = points[:,0].mean(), points[:,1].mean()
-        tol = 1
-        if (center_coord[0]-tol < abs(x) < center_coord[0]+tol) & (center_coord[1]-tol < abs(y) < center_coord[1]+tol):
+        cloud_pts = cloud.toNpArray()
+        x,y = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
+        if (center_coord[0]-xy_tol < abs(x) < center_coord[0]+xy_tol) & (center_coord[1]-xy_tol < abs(y) < center_coord[1]+xy_tol):
+            print('Cloud close to center')
             print('Tree center (ref):', center_coord)
             print('Tree center (RANSAC):', x, y)
-            print('Cloud z (min, max):', points[:,2].min(), points[:,2].max())
-            print('Cloud z:', points[:,2].max()-points[:,2].min())
-            filtered_cloud[index] = cloud
-    filtered_cloud[index+1] = clouds[-1]
-    return meshes, filtered_cloud
+            print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
+            print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
+            z_min = cloud_pts[:,2].min()
+            z_max = cloud_pts[:,2].max()
+            if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
+                print('Cloud close to ground')
+                if z_max > max_z:
+                    max_z = z_max
+                    print('Cloud w/ tallest height')
+    #         filtered_clouds[index] = cloud
+    # filtered_clouds[index+1] = clouds[-1]
+    return meshes, clouds
 
     
 class TreeGen():
