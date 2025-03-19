@@ -184,19 +184,10 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    if len(clouds) == 0:
-        logging.info(f'No trunk found for:')
-        logging.info(f'Tree N points and ratio: {len(points)} {ratio}')
-        logging.info(f'RANSAC params (prim, deg, r_min, r_max): {prim} {dev_deg} {r_min} {r_max}')
-        return None, None
-
-    # Print Tree data and RANSAC params
-    logging.info(f'Tree N points and ratio: {len(points)} {ratio}')
     logging.info(f'RANSAC params (prim, deg, r_min, r_max): {prim} {dev_deg} {r_min} {r_max}')
-    logging.info(f'h_list: {h} {h_list}')
-    logging.info(f'tree_center_coord {center_coord}')
-    logging.info(f'pcd min (x,y,z): {points[:,0].min()} {points[:,1].min()} {points[:,2].min()}')
-    logging.info(f'pcd max (x,y,z): {points[:,0].max()} {points[:,1].max()} {points[:,2].max()}')
+    if len(clouds) == 0:
+        logging.info(f'No trunk found')
+        return None, None
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -247,9 +238,10 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     filtered_clouds[index+1] = clouds[-1]
 
     # Print RANSAC results and filtered clouds
-    logging.info(f'Total clouds: {len(clouds)}')
-    logging.info(f'cloud_ground: {cloud_ground}')
+    logging.info(f'Trunk found')
+    logging.info(f'Saved clouds, Total clouds: {len(filtered_clouds)} {len(clouds)}')
     logging.info(f'cloud_center: {cloud_center}')
+    logging.info(f'cloud_ground: {cloud_ground}')
     logging.info(f'cloud_top: {cloud_top}')
     return meshes, filtered_clouds
     
@@ -335,8 +327,10 @@ class TreeGen():
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
-                logging.info(f"Tree index: {index}")
+                logging.info(f"\nTree index: {index}")
                 logging.info(f"Tree h detected: {total_detected}")
+                logging.info(f'h_list: {h} {h_list}')
+                logging.info(f'tree_center_coord {coord}')
 
                 # Kasya: Find trunk using RANSAC
                 logging.info("Finding trunk using RANSAC")
@@ -353,8 +347,8 @@ class TreeGen():
                 for prim in np.arange(prim_min, prim_max, prim_step):
                     for deg in np.arange(deg_min, deg_max, deg_step):
                         # logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
-                        logging.info(f"RANSAC prim: {prim}, deg: {deg}")
-
+                        logging.info(f"\nRANSAC prim: {prim}, deg: {deg}")
+                        
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds = find_trunk(singular_tree, coord, h_list, h, prim=prim, dev_deg=deg)
                         if clouds is None:
