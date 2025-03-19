@@ -255,13 +255,14 @@ class TreeGen():
                 meshes, clouds = find_trunk(singular_tree, coord, 3, h)
 
                 # Kasya: Save RANSAC generation
-                print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
-                print(len(meshes), len(clouds)) # list 
-                for index, (mesh, cloud) in enumerate(zip(meshes, clouds)):
-                    # o3d.visualization.draw_geometries([cloud]) # Type error
-                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
-                    cc.SaveMesh(mesh, f"{self.sideViewOut}/{self.pcd_name}_{index}.stl")
-                    break
+                # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+                # print(len(meshes), len(clouds)) # list 
+                for index, cloud in enumerate(clouds):
+                    # Convert cloud to Open3D PointCloud for visualization
+                    o3d_cloud = o3d.geometry.PointCloud()
+                    o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNumpyArray())
+                    o3d.visualization.draw_geometries([o3d_cloud])
+                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/pcd/{self.pcd_name}_{index}.bin")
 
                 # Kasya: kill code
                 import sys 
