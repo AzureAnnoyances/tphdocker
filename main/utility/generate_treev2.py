@@ -175,7 +175,9 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
 
     print('Tree N points:', points.shape)
-    for index, cloud in enumerate(clouds):
+    print('h_list:', h_list)
+    print('h in trunk:', h)
+    for index, cloud in enumerate(clouds[:-1]):
         print('Cloud:', index)
         points = cloud.toNpArray()
         x,y = points[:,0].mean(), points[:,1].mean()
@@ -183,8 +185,6 @@ def find_trunk(pcd, center_coord, r, h, h_list):
         if (center_coord[0]-tol < abs(x) < center_coord[0]+tol) & (center_coord[1]-tol < abs(y) < center_coord[1]+tol):
             print('Tree center (ref):', center_coord)
             print('Tree center (RANSAC):', x, y)
-            print('Cloud z (min,max):', points[:,2].min(), points[:,2].max())
-            print('h_list:', h_list)
             print('Cloud z:', points[:,2].max()-points[:,2].min())
     return meshes, clouds
 
@@ -266,29 +266,27 @@ class TreeGen():
                 print("h_detected",h>0)
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
+                print('h before regen:', h)
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
 
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
+                print('h before trunk:', h)
 
                 meshes, clouds = find_trunk(singular_tree, coord, 3, h, h_list)
 
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
                 # print(len(meshes), len(clouds)) # list 
-                for index, cloud in enumerate(clouds):
+                for sub_index, cloud in enumerate(clouds):
                     # Convert cloud to Open3D PointCloud for visualization
                     # o3d_cloud = o3d.geometry.PointCloud()
                     # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
                     # o3d.visualization.draw_geometries([o3d_cloud])
 
                     # Save cloud to .bin file
-                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
-
-                # Kasya: kill code
-                import sys 
-                sys.exit()
+                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}_{sub_index}.bin")
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
