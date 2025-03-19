@@ -193,25 +193,37 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     xy_tol = 1
     z_tol = 0.1
     max_z = -25
+    cloud_center = []
+    cloud_ground = []
+    cloud_top = []
     for index, cloud in enumerate(clouds[:-1]):
-        print('Cloud:', index)
         cloud_pts = cloud.toNpArray()
         x,y = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
         if (center_coord[0]-xy_tol < abs(x) < center_coord[0]+xy_tol) & (center_coord[1]-xy_tol < abs(y) < center_coord[1]+xy_tol):
-            print('Cloud close to center')
-            print('Tree center (ref):', center_coord)
-            print('Tree center (RANSAC):', x, y)
-            print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
-            print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
+            # print('Cloud close to center')
+            # print('Tree center (ref):', center_coord)
+            # print('Tree center (RANSAC):', x, y)
+            # print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
+            # print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
+            cloud_center.append(index)
+
             z_min = cloud_pts[:,2].min()
             z_max = cloud_pts[:,2].max()
             if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
-                print('Cloud close to ground')
+                # print('Cloud close to ground')
+                cloud_ground.append(index)
+
                 if z_max > max_z:
                     max_z = z_max
-                    print('Cloud w/ tallest height')
+
+                    # print('Cloud w/ tallest height')
+                    cloud_top.append(index)
+                    
         filtered_clouds[index] = cloud
     filtered_clouds[index+1] = clouds[-1]
+    print('cloud_center:', cloud_center)
+    print('cloud_ground:', cloud_ground)
+    print('cloud_top:', cloud_top)
     return meshes, filtered_clouds
 
     
