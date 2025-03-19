@@ -385,9 +385,6 @@ class TreeGen():
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                         
-                        # Save results to a CSV file
-                        results_df = pd.DataFrame(ransac_results)
-                        results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False, mode='a')
                         if clouds is None:
                             continue
 
@@ -403,7 +400,10 @@ class TreeGen():
                             # Save cloud to .bin file
                             # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
                             cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{prim}_{deg}.bin")
-
+                # Save results to a CSV file
+                results_df = pd.DataFrame(ransac_results)
+                results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False, mode='a')
+                
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
                 # self.adTreeCls.segment_tree(singular_tree)
