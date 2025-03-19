@@ -329,6 +329,7 @@ class TreeGen():
                 # o3d.visualization.draw_geometries([singular_tree])
                 logging.info(f"\nTree index: {index}")
                 logging.info(f"Tree h detected: {total_detected}")
+                logging.info(f'Tree N points: {len(np.asarray(pcd.points))} {np.asarray(pcd.points).shape}')
                 logging.info(f'h_list: {h} {h_list}')
                 logging.info(f'tree_center_coord {coord}')
 
