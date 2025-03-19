@@ -358,7 +358,7 @@ class TreeGen():
                 # o3d.visualization.draw_geometries([singular_tree])
                 logging.info(f"\nTree index: {index}")
                 logging.info(f"Tree h detected: {total_detected}")
-                logging.info(f'Tree N points: {len(np.asarray(pcd.points))}')
+                logging.info(f'Tree N points: {len(np.asarray(singular_tree.points))}')
                 logging.info(f'h_list: {h} {h_list}')
                 logging.info(f'tree_center_coord {coord}')
 
@@ -377,7 +377,7 @@ class TreeGen():
                             "tree_index": index,
                             "coord": coord,
                             "h": h,
-                            "n_points": len(np.asarray(pcd.points)),
+                            "n_points": len(np.asarray(singular_tree.points)),
                             "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
