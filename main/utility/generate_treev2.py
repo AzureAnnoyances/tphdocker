@@ -184,7 +184,9 @@ def find_trunk(pcd, center_coord, r, h):
     for index, cloud in enumerate(clouds):
         print('Cloud:', index)
         points = cloud.toNpArray()
-        print(points.shape)
+        print(points[:,0].min, points[:,0].max)
+        print(points[:,1].min, points[:,1].max)
+        print(points[:,2].min, points[:,2].max)
 
     return meshes, clouds
 
@@ -275,14 +277,14 @@ class TreeGen():
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
                 # print(len(meshes), len(clouds)) # list 
-                # for index, cloud in enumerate(clouds):
+                for index, cloud in enumerate(clouds):
                     # Convert cloud to Open3D PointCloud for visualization
                     # o3d_cloud = o3d.geometry.PointCloud()
                     # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
                     # o3d.visualization.draw_geometries([o3d_cloud])
 
                     # Save cloud to .bin file
-                    # cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
+                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
 
                 # Kasya: kill code
                 import sys 
