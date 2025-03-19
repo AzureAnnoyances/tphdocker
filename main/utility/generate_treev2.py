@@ -133,18 +133,11 @@ def find_trunk(pcd, center_coord, r, h):
     Find the trunk using the center of the tree via RANSAC
 
     Args:
-        pcd (?): Filtered tree pcd
-        center_coord (?): Center coordinate of the tree
-        # r (?): Radius of the tree
-        h (?): Height of the tree
+        pcd (open3d.PointCloud): Filtered tree pcd
+        center_coord (tuple): Center coordinate of the tree
+        r (float): Radius of the tree
+        h (np.float): Height of the tree
     """
-    # Know input
-    print(type(pcd))
-    print(type(center_coord))
-    print(type(r))
-    print(type(h))
-    print('Tree height:', h)
-
     # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
     points = np.asarray(pcd.points)
     cloud = cc.ccPointCloud('cloud')
@@ -181,12 +174,15 @@ def find_trunk(pcd, center_coord, r, h):
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
 
+    print('Tree height:', h)
+    print('Tree center:', center_coord)
+    print('Tree N points:', points.shape)
     for index, cloud in enumerate(clouds):
         print('Cloud:', index)
         points = cloud.toNpArray()
-        print(points[:,0].min, points[:,0].max)
-        print(points[:,1].min, points[:,1].max)
-        print(points[:,2].min, points[:,2].max)
+        print(points[:,0].min(), points[:,0].max())
+        print(points[:,1].min(), points[:,1].max())
+        print(points[:,2].min(), points[:,2].max())
 
     return meshes, clouds
 
