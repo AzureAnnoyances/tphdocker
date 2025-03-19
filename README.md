@@ -5,11 +5,12 @@ docker build \
 --ssh github_ssh_key=/home/wawj-u/.ssh/id_ed25519 \
 -t dschng/tph -f Dockerfile .
 
-xhost local:docker
 ```
 
 Run Docker container and open the Docker container terminal 
 ```bash
+xhost local:docker
+
 cd && docker run -it \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /usr/bin/docker:/usr/bin/docker \
