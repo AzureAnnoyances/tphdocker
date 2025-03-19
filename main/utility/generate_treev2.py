@@ -185,18 +185,18 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
-        print('No trunk found for:')
-        print('Tree N points and ratio:', len(points), ratio)
-        print('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
+        logging.info('No trunk found for:')
+        logging.info('Tree N points and ratio:', len(points), ratio)
+        logging.info('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
         return None, None
 
     # Print Tree data and RANSAC params
-    print('Tree N points and ratio:', len(points), ratio)
-    print('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
-    print('h_list:', h, h_list)
-    print('tree_center_coord', center_coord)
-    print('pcd min (x,y,z):', points[:,0].min(), points[:,1].min(), points[:,2].min())
-    print('pcd max (x,y,z):', points[:,0].max(), points[:,1].max(), points[:,2].max())
+    logging.info('Tree N points and ratio:', len(points), ratio)
+    logging.info('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
+    logging.info('h_list:', h, h_list)
+    logging.info('tree_center_coord', center_coord)
+    logging.info('pcd min (x,y,z):', points[:,0].min(), points[:,1].min(), points[:,2].min())
+    logging.info('pcd max (x,y,z):', points[:,0].max(), points[:,1].max(), points[:,2].max())
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -247,10 +247,10 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     filtered_clouds[index+1] = clouds[-1]
 
     # Print RANSAC results and filtered clouds
-    print('Total clouds:', len(clouds))
-    print('cloud_ground:', cloud_ground)
-    print('cloud_center:', cloud_center)
-    print('cloud_top:', cloud_top)
+    logging.info('Total clouds:', len(clouds))
+    logging.info('cloud_ground:', cloud_ground)
+    logging.info('cloud_center:', cloud_center)
+    logging.info('cloud_top:', cloud_top)
     return meshes, filtered_clouds
     
 class TreeGen():
@@ -350,21 +350,21 @@ class TreeGen():
                     for deg in zip(np.arange(deg_min, deg_max, deg_step)):
                         logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
 
-                meshes, clouds = find_trunk(singular_tree, coord, h_list, h)
-                if clouds is None:
-                    continue
+                        meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
+                        if clouds is None:
+                            continue
 
-                # Kasya: Save RANSAC generation
-                # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
-                # print(len(meshes), len(clouds)) # list 
-                for k,v in clouds.items():
-                    # Convert cloud to Open3D PointCloud for visualization
-                    # o3d_cloud = o3d.geometry.PointCloud()
-                    # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
-                    # o3d.visualization.draw_geometries([o3d_cloud])
+                        # Kasya: Save RANSAC generation
+                        # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+                        # print(len(meshes), len(clouds)) # list 
+                        for k,v in clouds.items():
+                            # Convert cloud to Open3D PointCloud for visualization
+                            # o3d_cloud = o3d.geometry.PointCloud()
+                            # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
+                            # o3d.visualization.draw_geometries([o3d_cloud])
 
-                    # Save cloud to .bin file
-                    cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}.bin")
+                            # Save cloud to .bin file
+                            cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
