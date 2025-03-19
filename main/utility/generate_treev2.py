@@ -131,7 +131,20 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
 def find_trunk(pcd, center_coord, r, h):
     """
     Find the trunk using the center of the tree via RANSAC
+
+    Args:
+        pcd (?): Filtered tree pcd
+        center_coord (?): Center coordinate of the tree
+        # r (?): Radius of the tree
+        h (?): Height of the tree
     """
+    # Know input
+    print(type(pcd))
+    print(type(center_coord))
+    print(type(r))
+    print(type(h))
+    print('Tree height:', h)
+
     # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
     points = np.asarray(pcd.points)
     cloud = cc.ccPointCloud('cloud')
@@ -167,6 +180,11 @@ def find_trunk(pcd, center_coord, r, h):
 
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+
+    for index, cloud in enumerate(clouds):
+        print('Cloud:', index)
+        points = cloud.toNpArray()
+        print(points.shape)
 
     return meshes, clouds
 
@@ -257,13 +275,14 @@ class TreeGen():
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
                 # print(len(meshes), len(clouds)) # list 
-                for index, cloud in enumerate(clouds):
+                # for index, cloud in enumerate(clouds):
                     # Convert cloud to Open3D PointCloud for visualization
                     # o3d_cloud = o3d.geometry.PointCloud()
                     # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
                     # o3d.visualization.draw_geometries([o3d_cloud])
+
                     # Save cloud to .bin file
-                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
+                    # cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
 
                 # Kasya: kill code
                 import sys 
