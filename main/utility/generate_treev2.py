@@ -154,7 +154,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
     
     # RANSAC min N primitive points (default 500)
-    ransac_params.supportPoints = 200
+    ransac_params.supportPoints = 300
 
     # RANSAC max deviation of shape (degrees) (default 25)
     ransac_params.maxNormalDev_deg = 50
@@ -218,7 +218,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
 
                     # print('Cloud w/ tallest height')
                     cloud_top.append(index)
-                    
+
         filtered_clouds[index] = cloud
     filtered_clouds[index+1] = clouds[-1]
     print('cloud_center:', cloud_center)
