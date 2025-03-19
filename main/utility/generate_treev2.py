@@ -213,7 +213,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
                     print('Cloud w/ tallest height')
         filtered_clouds[index] = cloud
     filtered_clouds[index+1] = clouds[-1]
-    return meshes, clouds
+    return meshes, filtered_clouds
 
     
 class TreeGen():
