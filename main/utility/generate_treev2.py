@@ -185,18 +185,18 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
-        logging.info('No trunk found for:')
-        logging.info('Tree N points and ratio:', len(points), ratio)
-        logging.info('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
+        logging.info(f'No trunk found for:')
+        logging.info(f'Tree N points and ratio: {len(points)} {ratio}')
+        logging.info(f'RANSAC params (prim, deg, r_min, r_max): {prim} {dev_deg} {r_min} {r_max}')
         return None, None
 
     # Print Tree data and RANSAC params
-    logging.info('Tree N points and ratio:', len(points), ratio)
-    logging.info('RANSAC params (prim, deg, r_min, r_max):\n', prim, dev_deg, r_min, r_max)
-    logging.info('h_list:', h, h_list)
-    logging.info('tree_center_coord', center_coord)
-    logging.info('pcd min (x,y,z):', points[:,0].min(), points[:,1].min(), points[:,2].min())
-    logging.info('pcd max (x,y,z):', points[:,0].max(), points[:,1].max(), points[:,2].max())
+    logging.info(f'Tree N points and ratio: {len(points)} {ratio}')
+    logging.info(f'RANSAC params (prim, deg, r_min, r_max): {prim} {dev_deg} {r_min} {r_max}')
+    logging.info(f'h_list: {h} {h_list}')
+    logging.info(f'tree_center_coord {center_coord}')
+    logging.info(f'pcd min (x,y,z): {points[:,0].min()} {points[:,1].min()} {points[:,2].min()}')
+    logging.info(f'pcd max (x,y,z): {points[:,0].max()} {points[:,1].max()} {points[:,2].max()}')
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -247,10 +247,10 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     filtered_clouds[index+1] = clouds[-1]
 
     # Print RANSAC results and filtered clouds
-    logging.info('Total clouds:', len(clouds))
-    logging.info('cloud_ground:', cloud_ground)
-    logging.info('cloud_center:', cloud_center)
-    logging.info('cloud_top:', cloud_top)
+    logging.info(f'Total clouds: {len(clouds)}')
+    logging.info(f'cloud_ground: {cloud_ground}')
+    logging.info(f'cloud_center: {cloud_center}')
+    logging.info(f'cloud_top: {cloud_top}')
     return meshes, filtered_clouds
     
 class TreeGen():
