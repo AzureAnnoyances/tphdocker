@@ -381,8 +381,10 @@ class TreeGen():
                             "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
-                for deg in np.arange(deg_min, deg_max, deg_step):
-                    for prim in np.arange(prim_min, prim_max, prim_step):
+                ransac_loop_deg = tqdm(np.arange(deg_min, deg_max, deg_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+                for deg in ransac_loop_deg:
+                    ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+                    for prim in ransac_loop_prim:
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                         
