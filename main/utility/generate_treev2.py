@@ -180,7 +180,6 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     print('pcd min:', points[:,0].min(), points[:,1].min(), points[:,2].min())
     print('pcd max:', points[:,0].max(), points[:,1].max(), points[:,2].max())
     
-
     # Filter the cloud based on the center coordinate
     """
     Algo:
@@ -208,7 +207,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
             z_max = cloud_pts[:,2].max()
             if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
                 print('Cloud close to ground')
-                if z_max > max_z:
+                if z_max < max_z:
                     max_z = z_max
                     print('Cloud w/ tallest height')
         filtered_clouds[index] = cloud
