@@ -184,7 +184,7 @@ def find_trunk(pcd, center_coord, h_list, h, ratio:float = None, prim:int = 500,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    logging.info(f'RANSAC params (prim, deg, r_min, r_max): {prim} {dev_deg} {r_min} {r_max}')
+    logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max): {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
         return None, None
@@ -347,8 +347,6 @@ class TreeGen():
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
                 for prim in np.arange(prim_min, prim_max, prim_step):
                     for deg in np.arange(deg_min, deg_max, deg_step):
-                        # logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
-                        logging.info(f"\nRANSAC prim: {prim}, deg: {deg}")
                         
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds = find_trunk(singular_tree, coord, h_list, h, prim=prim, dev_deg=deg)
