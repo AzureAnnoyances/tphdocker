@@ -242,11 +242,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 # print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
                 cloud_ground.append(index)
 
+                height = z_max - z_min
+                cloud_top.append([index, height])
                 if z_max > max_z:
                     max_z = z_max
                     # print('Cloud w/ tallest height')
-                    height = z_max - z_min
-                    cloud_top.append([index, height])
+                    
 
     # Add leftover cloud for debugging
     filtered_clouds[index+1] = clouds[-1]
@@ -370,8 +371,8 @@ class TreeGen():
                 prim_min = 100
                 prim_max = 1100
                 prim_step = 100
-                deg_min = 25
-                deg_max = 75
+                deg_min = 40
+                deg_max = 100
                 deg_step = 10
                 ransac_results = [{
                             "tree_index": index,
