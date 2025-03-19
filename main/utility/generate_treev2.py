@@ -184,8 +184,8 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     """
     Algo:
     - Iterate clouds
+        - find the cloud with the closest z to the ground (eliminate leaves)
         - find the cloud with the center coordinate (eliminate leaves)
-        - find the cloud with the closest z to the ground (eliminate leaves close to trunk)
         - find the cloud with the closest z to the top (closest to crown)
     """
     filtered_clouds = {}
@@ -199,30 +199,30 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
         x,y = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
-        if (center_coord[0]-xy_tol < abs(x) < center_coord[0]+xy_tol) & (center_coord[1]-xy_tol < abs(y) < center_coord[1]+xy_tol):
-            # print('Cloud close to center')
-            # print('Tree center (ref):', center_coord)
-            # print('Tree center (RANSAC):', x, y)
-            # print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
-            # print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
-            cloud_center.append(index)
-
-            z_min = cloud_pts[:,2].min()
-            z_max = cloud_pts[:,2].max()
-            if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
-                # print('Cloud close to ground')
-                cloud_ground.append(index)
-
+        z_min = cloud_pts[:,2].min()
+        z_max = cloud_pts[:,2].max()
+        if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
+            # print('Cloud close to ground')
+            cloud_ground.append(index)
+            if (center_coord[0]-xy_tol < abs(x) < center_coord[0]+xy_tol) & (center_coord[1]-xy_tol < abs(y) < center_coord[1]+xy_tol):
+                # print('Cloud close to center')
+                # print('Tree center (ref):', center_coord)
+                # print('Tree center (RANSAC):', x, y)
+                # print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
+                # print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
+                cloud_center.append(index)
                 if z_max > max_z:
                     max_z = z_max
 
                     # print('Cloud w/ tallest height')
-                    cloud_top.append(index)
+                    height = z_max - z_min
+                    cloud_top.append([index, height])
 
         filtered_clouds[index] = cloud
     filtered_clouds[index+1] = clouds[-1]
-    print('cloud_center:', cloud_center)
+    print('Total clouds:', len(clouds))
     print('cloud_ground:', cloud_ground)
+    print('cloud_center:', cloud_center)
     print('cloud_top:', cloud_top)
     return meshes, filtered_clouds
 
@@ -309,6 +309,7 @@ class TreeGen():
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
+                print("Tree index:", index)
 
                 meshes, clouds = find_trunk(singular_tree, coord, 3, h, h_list)
 

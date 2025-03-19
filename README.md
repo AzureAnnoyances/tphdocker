@@ -38,9 +38,9 @@ git pull --recurse-submodules && python3 main2.py /root/pcds/ p01e_B .las
 
 Temp: Clearing .bin files
 ```bash
-cd ~/pcds/p01e_B/sideView/
-find . -name "*.bin" -type f -delete
-cd ~/sdp_tph/main/
+cd ~/pcds/p01e_B/sideView/ &&
+find . -name "*.bin" -type f -delete &&
+cd ~/sdp_tph/main/ &&
 git pull --recurse-submodules && python3 main2.py /root/pcds/ p01e_B .las
 
 ```
