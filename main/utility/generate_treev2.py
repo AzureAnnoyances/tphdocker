@@ -211,8 +211,8 @@ def find_trunk(pcd, center_coord, r, h, h_list):
                 if z_max > max_z:
                     max_z = z_max
                     print('Cloud w/ tallest height')
-    #         filtered_clouds[index] = cloud
-    # filtered_clouds[index+1] = clouds[-1]
+        filtered_clouds[index] = cloud
+    filtered_clouds[index+1] = clouds[-1]
     return meshes, clouds
 
     
