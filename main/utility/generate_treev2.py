@@ -174,16 +174,18 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
 
-    print('h_list:', h_list)
-    print('Tree height:', h)
-    print('Tree center:', center_coord)
     print('Tree N points:', points.shape)
     for index, cloud in enumerate(clouds):
         print('Cloud:', index)
         points = cloud.toNpArray()
-        print('Cloud center (x,y):', points[:,0].mean(), points[:,1].mean())
-        print('Cloud z (min,max):', points[:,2].min(), points[:,2].max())
-        print('Cloud z:', points[:,2].max()-points[:,2].min())
+        x,y = points[:,0].mean(), points[:,1].mean()
+        tol = 1
+        if (center_coord[0]-tol < x < center_coord[0]+tol) & (center_coord[1]-tol < y < center_coord[1]+tol):
+            print('Tree center (ref):', center_coord)
+            print('Tree center (RANSAC):', x, y)
+            print('Cloud z (min,max):', points[:,2].min(), points[:,2].max())
+            print('h_list:', h_list)
+            print('Cloud z:', points[:,2].max()-points[:,2].min())
     return meshes, clouds
 
     
