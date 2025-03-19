@@ -180,7 +180,8 @@ def find_trunk(pcd, center_coord, r, h):
     for index, cloud in enumerate(clouds):
         print('Cloud:', index)
         points = cloud.toNpArray()
-        print('Cloud center (x,y):', points[:,0].max()-points[:,0].min(), points[:,1].max()-points[:,1].min())
+        print('Cloud center (x,y):', points[:,0].mean(), points[:,1].mean())
+        print('Cloud z (min,max):', points[:,2].min(), points[:,2].max())
         print('Cloud z:', points[:,2].max()-points[:,2].min())
     return meshes, clouds
 
