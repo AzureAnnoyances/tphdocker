@@ -167,12 +167,8 @@ def find_trunk(pcd, center_coord, r, h):
 
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    print(type(meshes), type(clouds)) # list
-    print(len(meshes), len(clouds)) # tuple of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
-    for cloud in clouds:
-        o3d.visualization.draw_geometries([cloud])
-        break
-    pass
+
+    return meshes, clouds
 
     
 class TreeGen():
@@ -251,9 +247,26 @@ class TreeGen():
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                print(type(singular_tree))
-                # o3d.visualization.draw_geometries([singular_tree]) # Kasya: Visualize the tree
-                find_trunk(singular_tree, coord, 3, h)
+
+                # Kasya: Visualize the tree
+                # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
+                # o3d.visualization.draw_geometries([singular_tree])
+
+                meshes, clouds = find_trunk(singular_tree, coord, 3, h)
+
+                # Kasya: Save RANSAC generation
+                print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+                print(len(meshes), len(clouds)) # list 
+                for index, mesh, cloud in meshes, clouds:
+                    # o3d.visualization.draw_geometries([cloud]) # Type error
+                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
+                    cc.SaveMesh(mesh, f"{self.sideViewOut}/{self.pcd_name}_{index}.obj")
+                    break
+
+                # Kasya: kill code
+                import sys 
+                sys.exit()
+
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
                 # self.adTreeCls.segment_tree(singular_tree)
