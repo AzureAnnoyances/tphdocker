@@ -259,10 +259,11 @@ class TreeGen():
                 # print(len(meshes), len(clouds)) # list 
                 for index, cloud in enumerate(clouds):
                     # Convert cloud to Open3D PointCloud for visualization
-                    o3d_cloud = o3d.geometry.PointCloud()
-                    o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
-                    o3d.visualization.draw_geometries([o3d_cloud])
-                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/pcd/{self.pcd_name}_{index}.bin")
+                    # o3d_cloud = o3d.geometry.PointCloud()
+                    # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
+                    # o3d.visualization.draw_geometries([o3d_cloud])
+                    # Save cloud to .bin file
+                    cc.SavePointCloud(cloud, f"{self.sideViewOut}/{self.pcd_name}_{index}.bin")
 
                 # Kasya: kill code
                 import sys 
