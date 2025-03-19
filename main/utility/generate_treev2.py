@@ -340,14 +340,14 @@ class TreeGen():
 
                 # Kasya: Find trunk using RANSAC
                 logging.info("Finding trunk using RANSAC")
-                ratio_min = 0.1
+                ratio_min = 0.0
                 ratio_max = 0.9
-                ratio_step = 0.1
+                ratio_step = 0.3
                 deg_min = 25
-                deg_max = 60
+                deg_max = 65
                 deg_step = 10
-                for ratio in zip(np.arange(ratio_min, ratio_max, ratio_step)):
-                    for deg in zip(np.arange(deg_min, deg_max, deg_step)):
+                for ratio in np.arange(ratio_min, ratio_max, ratio_step):
+                    for deg in np.arange(deg_min, deg_max, deg_step):
                         logging.info(f"RANSAC ratio: {ratio}, deg: {deg}")
 
                         meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
