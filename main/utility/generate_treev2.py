@@ -284,7 +284,7 @@ class TreeGen():
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
                 # print(len(meshes), len(clouds)) # list 
-                for k,v in enumerate(clouds):
+                for k,v in clouds.items():
                     # Convert cloud to Open3D PointCloud for visualization
                     # o3d_cloud = o3d.geometry.PointCloud()
                     # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
