@@ -128,7 +128,7 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
                 temp_tree+=a
     return temp_tree
     
-def find_trunk(pcd, center_coord, r, h):
+def find_trunk(pcd, center_coord, r, h, h_list):
     """
     Find the trunk using the center of the tree via RANSAC
 
@@ -174,6 +174,7 @@ def find_trunk(pcd, center_coord, r, h):
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
 
+    print('h_list:', h_list)
     print('Tree height:', h)
     print('Tree center:', center_coord)
     print('Tree N points:', points.shape)
@@ -214,6 +215,7 @@ class TreeGen():
             n_detected = 0
             confi_list = []
             coord_list = []
+            h_list = []
             h_im_list = []
             
             # Split each coord to multi-sections and find the one with highest confidence
@@ -248,15 +250,10 @@ class TreeGen():
                             img_with_h = True,
                             min_no_points = self.min_points_per_tree
                             )
-                        
-                        # Kasya
-                        print('iter',i,j)
-                        print("height",h)
-                        print("coord",coord)
-
                         if h > 0:
                             confi_list.append(confi)
                             coord_list.append(coord)
+                            h_list.append(h)
                             h_im_list.append(im)
                             n_detected += 1
                         
@@ -273,7 +270,7 @@ class TreeGen():
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
 
-                meshes, clouds = find_trunk(singular_tree, coord, 3, h)
+                meshes, clouds = find_trunk(singular_tree, coord, 3, h, h_list)
 
                 # Kasya: Save RANSAC generation
                 # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
