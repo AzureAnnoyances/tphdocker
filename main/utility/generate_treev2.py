@@ -192,7 +192,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
     z_pcd_min = points[:,2].min()
     xy_tol = 1
     z_tol = 0.1
-    max_z = 0
+    max_z = -25
     for index, cloud in enumerate(clouds[:-1]):
         print('Cloud:', index)
         cloud_pts = cloud.toNpArray()
@@ -207,7 +207,7 @@ def find_trunk(pcd, center_coord, r, h, h_list):
             z_max = cloud_pts[:,2].max()
             if z_pcd_min-z_tol < z_min < z_pcd_min+z_tol:
                 print('Cloud close to ground')
-                if z_max < max_z:
+                if z_max > max_z:
                     max_z = z_max
                     print('Cloud w/ tallest height')
         filtered_clouds[index] = cloud
