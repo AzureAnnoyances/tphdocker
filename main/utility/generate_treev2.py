@@ -248,6 +248,12 @@ class TreeGen():
                             img_with_h = True,
                             min_no_points = self.min_points_per_tree
                             )
+                        
+                        # Kasya
+                        print('iter',i,j)
+                        print("height",h)
+                        print("coord",coord)
+
                         if h > 0:
                             confi_list.append(confi)
                             coord_list.append(coord)
