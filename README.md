@@ -38,7 +38,7 @@ git pull --recurse-submodules && python3 main2.py /root/pcds/ p01e_B .las
 
 Rerun code and clear data file
 ```bash
-cd /root/pcds/p01e_B && rm -r ransac_data && cd /root/sdp_tph/main
+cd /root/pcds/p01e_B && rm -r ransac_data && cd /root/sdp_tph/main &&
 git pull --recurse-submodules && python3 main2.py /root/pcds/ p01e_B .las
 
 ```
