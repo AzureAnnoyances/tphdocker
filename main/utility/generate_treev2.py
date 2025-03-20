@@ -19,9 +19,12 @@ cc.initCC()
 # Kasya
 import pandas as pd
 import logging
+import os
 # Configure logging
+ransac_daq_path = "/root/sdp_tph/ransac_data"
+os.mkdir(ransac_daq_path, exist_ok=True)
 logging.basicConfig(
-    filename="/root/pcds/p01e_B/ransac_log.log",  # Log file name
+    filename=os.path.join(ransac_daq_path, "ransac_log.log"),  # Log file name
     filemode='w',  # Overwrite the file each time
     format='%(asctime)s - %(message)s',  # Log format
     level=logging.INFO  # Log level
@@ -357,6 +360,7 @@ class TreeGen():
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
+                print(f"\nTree index: {index} h detected: {total_detected}")
                 logging.info(f"\nTree index: {index}")
                 logging.info(f"Tree h detected: {total_detected}")
                 logging.info(f'Tree N points: {len(np.asarray(singular_tree.points))}')
@@ -371,8 +375,8 @@ class TreeGen():
                 prim_min = 100
                 prim_max = 1100
                 prim_step = 100
-                deg_min = 40
-                deg_max = 100
+                deg_min = 25
+                deg_max = 75
                 deg_step = 10
                 ransac_results = [{
                             "tree_index": index,
@@ -403,10 +407,10 @@ class TreeGen():
 
                             # Save cloud to .bin file
                             # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
-                            cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{prim}_{deg}.bin")
+                            cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{k}_{prim}_{deg}.bin")
                 # Save results to a CSV file
                 results_df = pd.DataFrame(ransac_results)
-                results_df.to_csv("/root/pcds/p01e_B/ransac_results.csv", index=False, mode='a')
+                results_df.to_csv(f"{ransac_daq_path}/ransac_results.csv", index=False, mode='a')
                 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
