@@ -222,7 +222,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC filter parameters
     xy_tol = 1
     z_tol = 0.1
-    max_z = -25
+    max_z = 0
     # Init variables
     filtered_clouds = {}
     z_min_pcd = points[:,2].min()
@@ -252,8 +252,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
                 height = z_max - z_min
                 cloud_top.append([index, height])
-                if z_max > max_z:
-                    max_z = z_max
+                if height > max_z:
+                    max_z = height
                     # print('Cloud w/ tallest height')
                     
 
