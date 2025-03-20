@@ -197,8 +197,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             "ratio": ratio,
             "r_min": r_min,
             "r_max": r_max,
-            "deg": dev_deg,
             "prim": prim,
+            "deg": dev_deg,
             "n_clouds": 0,
             "n_clouds_fltr": 0,
             "n_clouds_center": 0,
@@ -277,8 +277,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         "ratio": ratio,
         "r_min": r_min,
         "r_max": r_max,
-        "deg": dev_deg,
         "prim": prim,
+        "deg": dev_deg,
         "n_clouds": len(clouds),
         "n_clouds_fltr": len(filtered_clouds),
         "n_clouds_center": len(cloud_center),
@@ -399,10 +399,9 @@ class TreeGen():
                             "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
-                ransac_loop_deg = tqdm(np.arange(deg_min, deg_max, deg_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
-                for deg in ransac_loop_deg:
-                    ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
-                    for prim in ransac_loop_prim:
+                ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+                for prim in ransac_loop_prim:
+                    for deg in enumerate(np.arange(deg_min, deg_max, deg_step)):
                         # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                         meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                         
