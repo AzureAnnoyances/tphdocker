@@ -254,7 +254,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                     
 
     # Add leftover cloud for debugging
-    filtered_clouds[index+1] = clouds[-1]
+    filtered_clouds['leftover'] = clouds[-1]
 
     # Print RANSAC results and filtered clouds
     logging.info(f'Trunk found')
@@ -408,7 +408,7 @@ class TreeGen():
 
                             # Save cloud to .bin file
                             # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
-                            cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{k}_{prim}_{deg}.bin")
+                            cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{prim}_{deg}_{k}.bin")
                 # Save results to a CSV file
                 results_df = pd.DataFrame(ransac_results)
                 results_df.to_csv(f"{ransac_daq_path}/ransac_results.csv", index=False, mode='a')
