@@ -22,7 +22,8 @@ import logging
 import os
 # Configure logging
 ransac_daq_path = "/root/sdp_tph/ransac_data"
-os.mkdir(ransac_daq_path, exist_ok=True)
+if not os.path.exists(ransac_daq_path):
+    os.mkdir(ransac_daq_path)
 logging.basicConfig(
     filename=os.path.join(ransac_daq_path, "ransac_log.log"),  # Log file name
     filemode='w',  # Overwrite the file each time
