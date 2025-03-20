@@ -21,7 +21,7 @@ import pandas as pd
 import logging
 import os
 # Configure logging
-ransac_daq_path = "/root/sdp_tph/main/ransac_data"
+ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
     os.mkdir(ransac_daq_path)
 logging.basicConfig(
