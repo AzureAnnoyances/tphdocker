@@ -1,4 +1,3 @@
 main/tests/
 *.pyc
 *.pdf
-/ransac_data/
