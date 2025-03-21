@@ -245,7 +245,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_clouds['leftover'] = clouds[-1]
 
     # Append results to the list
-    ransac_results[f"n_cloud_{dev_deg}"].append(len(clouds))
+    ransac_results[f"n_cloud_{dev_deg}"] = len(clouds)
 
     return meshes, filtered_clouds, ransac_results
     
