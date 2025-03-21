@@ -345,12 +345,12 @@ class TreeGen():
                     "h_preds": h_list[0],
                     "n_supp": 0,
                     "n_gens": 0,
-                    "h_gens": None
+                    "h_gens": 0
                 }
                 for prim in range(prim_min, prim_max, prim_step):
                     meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 print(ransac_results)
-                if ransac_results['h_gens'] is not None:
+                if ransac_results['h_gens'] == 0:
                     results_df = pd.DataFrame([ransac_results])
                     results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
