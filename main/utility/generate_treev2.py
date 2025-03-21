@@ -193,7 +193,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max):\n {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
-        ransac_results[f"n_cloud_{dev_deg}"] = 0
+        ransac_results[f"n_cloud_{prim}_{dev_deg}"] = 0
         return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
@@ -246,7 +246,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_clouds['leftover'] = clouds[-1]
 
     # Append results to the list
-    ransac_results[f"n_cloud_{dev_deg}"] = len(clouds)
+    ransac_results[f"n_cloud_{prim}_{dev_deg}"] = len(clouds)
 
     return meshes, filtered_clouds, ransac_results
     
@@ -354,13 +354,12 @@ class TreeGen():
                     "n_points": len(np.asarray(singular_tree.points)),
                     "h_list": h_list,
                 }
-                prim = 100
-
-                for deg in np.arange(deg_min, deg_max, deg_step):
-                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                    
-                    if clouds is None:
-                        continue
+                for prim in np.arange(prim_min, prim_max, prim_step):
+                    for deg in np.arange(deg_min, deg_max, deg_step):
+                        meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                        
+                        if clouds is None:
+                            continue
 
                 # Save results to a CSV file
                 # Define the header for the CSV file
