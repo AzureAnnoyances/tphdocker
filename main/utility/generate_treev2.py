@@ -193,6 +193,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max):\n {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
+        ransac_results[f"n_cloud_{dev_deg}"] = 0
         return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
