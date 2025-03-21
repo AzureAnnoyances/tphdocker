@@ -193,24 +193,6 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max):\n {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
-        ransac_results.append({
-            "n_points": len(points),
-            "h_list": h_list,
-            "ratio": ratio,
-            "r_min": r_min,
-            "r_max": r_max,
-            "prim": prim,
-            "deg": dev_deg,
-            "n_clouds": 0,
-            "n_clouds_fltr": 0,
-            "n_clouds_center": 0,
-            "n_clouds_ground": 0,
-            "n_clouds_top": 0,
-            "height_max": 0,
-            "cloud_center": [],
-            "cloud_ground": [],
-            "cloud_top": []
-        })
         return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
@@ -262,38 +244,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # Add leftover cloud for debugging
     filtered_clouds['leftover'] = clouds[-1]
 
-    # Print RANSAC results and filtered clouds
-    # logging.info(f'Trunk found')
-    # logging.info(f'Saved clouds, Total clouds: {len(filtered_clouds)} {len(clouds)}')
-    # logging.info(f'n_clouds: {len(clouds)}')
-    # logging.info(f'n_clouds_fltr: {len(filtered_clouds)}')
-    # logging.info(f'n_clouds_center: {len(cloud_center)}')
-    # logging.info(f'n_clouds_ground: {len(cloud_ground)}')
-    # logging.info(f'n_clouds_top: {len(cloud_top)}')
-    # logging.info(f'cloud_center: {cloud_center}')
-    # logging.info(f'cloud_ground: {cloud_ground}')
-    # logging.info(f'cloud_top: {cloud_top}')
-    # logging.info(f'height: {max_z}')
-
     # Append results to the list
-    ransac_results.append({
-        "n_points": len(points),
-        "h_list": h_list,
-        "ratio": ratio,
-        "r_min": r_min,
-        "r_max": r_max,
-        "prim": prim,
-        "deg": dev_deg,
-        "n_clouds": len(clouds),
-        "n_clouds_fltr": len(filtered_clouds),
-        "n_clouds_center": len(cloud_center),
-        "n_clouds_ground": len(cloud_ground),
-        "n_clouds_top": len(cloud_top),
-        "height_max": max_z,
-        "cloud_center": cloud_center,
-        "cloud_ground": cloud_ground,  
-        "cloud_top": cloud_top
-    })
+    ransac_results[f"n_cloud_{dev_deg}"].append(len(clouds))
 
     return meshes, filtered_clouds, ransac_results
     
@@ -397,19 +349,21 @@ class TreeGen():
                 deg_min = 25
                 deg_max = 75
                 deg_step = 10
-                ransac_results = []
-                # ransac_results = [{
-                #             "tree_index": index,
-                #             "h": h,
-                #             "coord": coord,
-                #         }]
-                # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
-                # ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
-                # for prim in ransac_loop_prim:
+                ransac_results = {
+                    "n_points": len(np.asarray(singular_tree.points)),
+                    "h_list": h_list,
+                }
                 prim = 100
 
+                for deg in np.arange(deg_min, deg_max, deg_step):
+                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                    
+                    if clouds is None:
+                        continue
+
+                # Save results to a CSV file
                 # Define the header for the CSV file
-                header = ["n_points", "h_list", "ratio", "r_min", "r_max", "prim", "deg", "n_clouds", "n_clouds_fltr", "n_clouds_center", "n_clouds_ground", "n_clouds_top", "height_max", "cloud_center", "cloud_ground", "cloud_top"]
+                header = ransac_results.keys()
  
                 # Define the path for the CSV file
                 csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
@@ -419,27 +373,6 @@ class TreeGen():
                     # Create an empty DataFrame with the predefined header
                     empty_df = pd.DataFrame(columns=header)
                     empty_df.to_csv(csv_file_path, index=False)
-
-                for deg in np.arange(deg_min, deg_max, deg_step):
-                    # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
-                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                    
-                    if clouds is None:
-                        continue
-
-                    # Kasya: Save RANSAC generation
-                    # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
-                    # print(len(meshes), len(clouds)) # list 
-                    # for k,v in clouds.items():
-                        # Convert cloud to Open3D PointCloud for visualization
-                        # o3d_cloud = o3d.geometry.PointCloud()
-                        # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
-                        # o3d.visualization.draw_geometries([o3d_cloud])
-
-                        # Save cloud to .bin file
-                        # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
-                        # cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{prim}_{deg}_{k}.bin")
-                # Save results to a CSV file
                 results_df = pd.DataFrame(ransac_results, columns=header)
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
