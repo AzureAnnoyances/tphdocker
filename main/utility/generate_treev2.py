@@ -409,8 +409,8 @@ class TreeGen():
                 prim = 100
 
                 # Define the header for the CSV file
-                header = ["ratio", "prim", "deg", "r_min", "r_max", "num_clouds", "filtered_clouds"]
-
+                header = ["n_points", "h_list", "ratio", "r_min", "r_max", "prim", "deg", "n_clouds", "n_clouds_fltr", "n_clouds_center", "n_clouds_ground", "n_clouds_top", "height_max", "cloud_center", "cloud_ground", "cloud_top"]
+ 
                 # Define the path for the CSV file
                 csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv"
 
