@@ -258,10 +258,10 @@ class TreeGen():
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         # Init
         # RANSAC Iter Parameters
-        prim_min = 100
-        prim_max = 1100
+        prim_min = 1000
+        prim_max = 2100
         prim_step = 100
-        deg = 55
+        deg = 25
 
         # Save results to a CSV file
         # Define the path for the CSV file
