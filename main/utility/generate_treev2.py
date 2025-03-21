@@ -412,7 +412,7 @@ class TreeGen():
                 header = ["n_points", "h_list", "ratio", "r_min", "r_max", "prim", "deg", "n_clouds", "n_clouds_fltr", "n_clouds_center", "n_clouds_ground", "n_clouds_top", "height_max", "cloud_center", "cloud_ground", "cloud_top"]
  
                 # Define the path for the CSV file
-                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv"
+                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
 
                 # Check if the file exists; if not, create it with the header
                 if not os.path.exists(csv_file_path):
