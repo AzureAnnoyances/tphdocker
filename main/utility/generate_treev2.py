@@ -370,7 +370,6 @@ class TreeGen():
                         
                         if clouds is None:
                             continue
-                    break #Temp
 
                 # Save results to a CSV file
                 # Define the header for the CSV file
