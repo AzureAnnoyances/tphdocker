@@ -370,23 +370,22 @@ class TreeGen():
                         
                         if clouds is None:
                             continue
-
-                    # Save results to a CSV file
-                    # Define the header for the CSV file
-                    header = ransac_results.keys()
-    
-                    # Define the path for the CSV file
-                    csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
-
-                    # Check if the file exists; if not, create it with the header
-                    if not os.path.exists(csv_file_path):
-                        # Create an empty DataFrame with the predefined header
-                        empty_df = pd.DataFrame(columns=header)
-                        empty_df.to_csv(csv_file_path, index=False)
-                    results_df = pd.DataFrame(ransac_results, columns=header)
-                    results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-
                     break #Temp
+
+                # Save results to a CSV file
+                # Define the header for the CSV file
+                header = ransac_results.keys()
+ 
+                # Define the path for the CSV file
+                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
+
+                # Check if the file exists; if not, create it with the header
+                if not os.path.exists(csv_file_path):
+                    # Create an empty DataFrame with the predefined header
+                    empty_df = pd.DataFrame(columns=header)
+                    empty_df.to_csv(csv_file_path, index=False)
+                results_df = pd.DataFrame(ransac_results, columns=header)
+                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
