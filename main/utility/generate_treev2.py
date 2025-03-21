@@ -266,7 +266,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_gens", "h_preds", "n_supp", "h_gens"]
+        header = ["n_points", "h_preds", "n_supp", "h_gens"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
@@ -340,7 +340,7 @@ class TreeGen():
                 
                 # Kasya: Find trunk using RANSAC
                 ransac_results = {
-                    "n_gens": len(np.asarray(singular_tree.points)),
+                    "n_points": len(np.asarray(singular_tree.points)),
                     "h_preds": h_list[0],
                     "n_supp": 0,
                     "h_gens": 0
