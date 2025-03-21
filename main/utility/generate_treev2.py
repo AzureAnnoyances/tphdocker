@@ -407,6 +407,19 @@ class TreeGen():
                 # ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
                 # for prim in ransac_loop_prim:
                 prim = 100
+
+                # Define the header for the CSV file
+                header = ["ratio", "prim", "deg", "r_min", "r_max", "num_clouds", "filtered_clouds"]
+
+                # Define the path for the CSV file
+                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv"
+
+                # Check if the file exists; if not, create it with the header
+                if not os.path.exists(csv_file_path):
+                    # Create an empty DataFrame with the predefined header
+                    empty_df = pd.DataFrame(columns=header)
+                    empty_df.to_csv(csv_file_path, index=False)
+
                 for deg in np.arange(deg_min, deg_max, deg_step):
                     # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
                     meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
@@ -427,8 +440,8 @@ class TreeGen():
                         # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
                         # cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{prim}_{deg}_{k}.bin")
                 # Save results to a CSV file
-                results_df = pd.DataFrame(ransac_results)
-                results_df.to_csv(f"{ransac_daq_path}/ransac_results.csv", index=False, mode='a')
+                results_df = pd.DataFrame(ransac_results, columns=header)
+                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
