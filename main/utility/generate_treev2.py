@@ -198,6 +198,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         logging.info(f'No trunk found')
+        print(f'No trunk found in {prim}')
         return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
@@ -233,6 +234,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # Append results to the list
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
+        ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = gens_h
 
     return meshes, filtered_gens, ransac_results
@@ -343,7 +345,8 @@ class TreeGen():
                     "n_points": len(np.asarray(singular_tree.points)),
                     "h_preds": h_list[0],
                     "n_supp": 0,
-                    "h_gens": 0
+                    "n_gens": 0,
+                    "h_gens": [0]
                 }
                 for prim in range(prim_min, prim_max, prim_step):
                     meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
