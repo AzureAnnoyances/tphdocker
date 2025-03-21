@@ -194,6 +194,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     if len(clouds) == 0:
         logging.info(f'No trunk found')
         ransac_results.append({
+            "n_points": len(points),
+            "h_list": h_list,
             "ratio": ratio,
             "r_min": r_min,
             "r_max": r_max,
@@ -275,6 +277,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
     # Append results to the list
     ransac_results.append({
+        "n_points": len(points),
+        "h_list": h_list,
         "ratio": ratio,
         "r_min": r_min,
         "r_max": r_max,
@@ -397,8 +401,6 @@ class TreeGen():
                             "tree_index": index,
                             "h": h,
                             "coord": coord,
-                            "n_points": len(np.asarray(singular_tree.points)),
-                            "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
                 # ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
