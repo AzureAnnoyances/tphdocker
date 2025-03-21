@@ -261,7 +261,7 @@ class TreeGen():
         prim_min = 100
         prim_max = 1100
         prim_step = 100
-        deg = 35
+        deg = 45
 
         # Save results to a CSV file
         # Define the path for the CSV file
