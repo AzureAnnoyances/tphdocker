@@ -194,6 +194,11 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     if len(clouds) == 0:
         logging.info(f'No trunk found')
         ransac_results[f"n_cloud_{prim}_{dev_deg}"] = 0
+        ransac_results[f"n_cloud_center_{prim}_{dev_deg}"] = 0
+        ransac_results[f"n_cloud_ground_{prim}_{dev_deg}"] = 0
+        ransac_results[f"n_cloud_top_{prim}_{dev_deg}"] = 0
+        ransac_results[f"max_z_{prim}_{dev_deg}"] = 0
+        ransac_results[f"cloud_top_{prim}_{dev_deg}"] = []
         return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
@@ -247,6 +252,11 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
     # Append results to the list
     ransac_results[f"n_cloud_{prim}_{dev_deg}"] = len(clouds)
+    ransac_results[f"n_cloud_center_{prim}_{dev_deg}"] = len(cloud_center)
+    ransac_results[f"n_cloud_ground_{prim}_{dev_deg}"] = len(cloud_ground)
+    ransac_results[f"n_cloud_top_{prim}_{dev_deg}"] = len(cloud_top)
+    ransac_results[f"max_z_{prim}_{dev_deg}"] = max_z
+    ransac_results[f"cloud_top_{prim}_{dev_deg}"] = cloud_top
 
     return meshes, filtered_clouds, ransac_results
     
@@ -361,20 +371,22 @@ class TreeGen():
                         if clouds is None:
                             continue
 
-                # Save results to a CSV file
-                # Define the header for the CSV file
-                header = ransac_results.keys()
- 
-                # Define the path for the CSV file
-                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
+                    # Save results to a CSV file
+                    # Define the header for the CSV file
+                    header = ransac_results.keys()
+    
+                    # Define the path for the CSV file
+                    csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
 
-                # Check if the file exists; if not, create it with the header
-                if not os.path.exists(csv_file_path):
-                    # Create an empty DataFrame with the predefined header
-                    empty_df = pd.DataFrame(columns=header)
-                    empty_df.to_csv(csv_file_path, index=False)
-                results_df = pd.DataFrame(ransac_results, columns=header)
-                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
+                    # Check if the file exists; if not, create it with the header
+                    if not os.path.exists(csv_file_path):
+                        # Create an empty DataFrame with the predefined header
+                        empty_df = pd.DataFrame(columns=header)
+                        empty_df.to_csv(csv_file_path, index=False)
+                    results_df = pd.DataFrame(ransac_results, columns=header)
+                    results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
+
+                    break #Temp
                 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
