@@ -397,11 +397,12 @@ class TreeGen():
                 deg_min = 25
                 deg_max = 75
                 deg_step = 10
-                ransac_results = [{
-                            "tree_index": index,
-                            "h": h,
-                            "coord": coord,
-                        }]
+                ransac_results = []
+                # ransac_results = [{
+                #             "tree_index": index,
+                #             "h": h,
+                #             "coord": coord,
+                #         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
                 # ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
                 # for prim in ransac_loop_prim:
