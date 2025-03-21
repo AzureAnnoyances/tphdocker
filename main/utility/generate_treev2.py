@@ -166,23 +166,29 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC Parameters
     ransac_params = cc.RANSAC_SD.RansacParams()
 
+    # RANSAC save leftover points (Default: true)
+    ransac_params.createCloudFromLeftOverPoints = False
+    # RANSAC least square fitting (important for trunk cylinder, Default: true)
+    ransac_params.allowFitting = True
+    # RANSAC attempt to simplify shape (Default: true)
+    ransac_params.allowSimplification = True
+    # RANSAC set random color for each shape found (Default: true) 
+    ransac_params.randomColor = True
+
     # Primitive shape to be detected
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CYLINDER,True)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CONE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_PLANE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_SPHERE,False)
     ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
-    
-    # RANSAC min N primitive points (default 500)
-    # ratio calculation
-    if ratio is not None:
-        prim = int(len(points)*ratio)
+
+    # RANSAC min N primitive points (Default: 500)
     ransac_params.supportPoints = prim
 
-    # RANSAC max deviation of shape (degrees) (default 25)
+    # RANSAC max deviation of shape (Default: 25 degrees)
     ransac_params.maxNormalDev_deg = dev_deg
 
-    # RANSAC cylinder parameters (default inf, inf) 
+    # RANSAC cylinder parameters (Default: inf, inf) 
     # Oil Palm trunk dia 45-65 cm (https://bioresources.cnr.ncsu.edu/resources/the-potential-of-oil-palm-trunk-biomass-as-an-alternative-source-for-compressed-wood/)
     ransac_params.minCylinderRadius = r_min
     ransac_params.maxCylinderRadius = r_max
@@ -190,75 +196,46 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    # logging.info(f'RANSAC params (ratio, prim, deg, r_min, r_max):\n {ratio} {prim} {dev_deg} {r_min} {r_max}')
     if len(clouds) == 0:
         logging.info(f'No trunk found')
-        ransac_results[f"n_cloud_{prim}_{dev_deg}"] = 0
-        # ransac_results[f"n_cloud_center_{prim}_{dev_deg}"] = 0
-        # ransac_results[f"n_cloud_ground_{prim}_{dev_deg}"] = 0
-        # ransac_results[f"n_cloud_top_{prim}_{dev_deg}"] = 0
-        # ransac_results[f"max_z_{prim}_{dev_deg}"] = 0
-        # ransac_results[f"cloud_top_{prim}_{dev_deg}"] = []
-        return None, None, ransac_results
+        return None, None, None
     
     # Filter the cloud based on the center coordinate and height
     """
     Algo:
     - Iterate clouds
-        - find the cloud with the center coordinate (eliminate leaves)
         - find the cloud with the closest z to the ground (eliminate leaves)
         - find the cloud with the closest z to the top (closest to crown)
+        - save if height cloud closest to top > 0 
     """
-    # RANSAC filter parameters
-    xy_tol = 1
+    # RANSAC data filter parameters
     z_tol = 0.1
-    max_z = 0
+    h_tol = 4
     # Init variables
-    filtered_clouds = {}
+    filtered_gens = {}
     z_min_pcd = points[:,2].min()
-    cloud_center = []
-    cloud_ground = []
-    cloud_top = []
+    gens_ground = []
+    gens_h = []
     # Filter clouds except the last one (the last is the leftover)
-    for index, cloud in enumerate(clouds[:-1]):
+    for index, cloud in enumerate(clouds):
         cloud_pts = cloud.toNpArray()
-        x,y = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
         z_min = cloud_pts[:,2].min()
         z_max = cloud_pts[:,2].max()
-        if (center_coord[0]-xy_tol < abs(x) < center_coord[0]+xy_tol) & (center_coord[1]-xy_tol < abs(y) < center_coord[1]+xy_tol):
-            # print('Cloud close to center')
-            # print('Tree center (ref):', center_coord)
-            # print('Tree center (RANSAC):', x, y)
-            cloud_center.append(index)
 
-            # save cloud that is close to center
-            filtered_clouds[index] = cloud
+        if z_min_pcd-z_tol < z_min < z_min_pcd+z_tol:
+            gens_ground.append(index)
+            filtered_gens[index] = cloud 
 
-            if z_min_pcd-z_tol < z_min < z_min_pcd+z_tol:
-                # print('Cloud close to ground')
-                # print('Cloud z (min, max):', cloud_pts[:,2].min(), cloud_pts[:,2].max())
-                # print('Cloud z:', cloud_pts[:,2].max()-cloud_pts[:,2].min())
-                cloud_ground.append(index)
-
-                height = z_max - z_min
-                cloud_top.append([index, height])
-                if height > max_z:
-                    max_z = height
-                    # print('Cloud w/ tallest height')
-                    
-
-    # Add leftover cloud for debugging
-    filtered_clouds['leftover'] = clouds[-1]
+            height = z_max - z_min
+            if height > h_list[0] - h_tol:
+                gens_h.append(height)
 
     # Append results to the list
-    ransac_results[f"n_cloud_{prim}_{dev_deg}"] = len(clouds)
-    # ransac_results[f"n_cloud_center_{prim}_{dev_deg}"] = len(cloud_center)
-    # ransac_results[f"n_cloud_ground_{prim}_{dev_deg}"] = len(cloud_ground)
-    # ransac_results[f"n_cloud_top_{prim}_{dev_deg}"] = len(cloud_top)
-    # ransac_results[f"max_z_{prim}_{dev_deg}"] = max_z
-    # ransac_results[f"cloud_top_{prim}_{dev_deg}"] = cloud_top
+    if len(gens_h) > 0:
+        ransac_results[f"n_supp"] = prim
+        ransac_results[f"h_gens"] = gens_h
 
-    return meshes, filtered_clouds, ransac_results
+    return meshes, filtered_gens, ransac_results
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -279,6 +256,23 @@ class TreeGen():
     
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         # Init
+        # RANSAC Iter Parameters
+        prim_min = 100
+        prim_max = 1100
+        prim_step = 100
+        deg = 25
+
+        # Save results to a CSV file
+        # Define the path for the CSV file
+        csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
+        # Define the header for the CSV file
+        header = ["n_gens", "h_preds", "n_supp", "h_gens"]
+        # Check if the file exists; if not, create it with the header
+        if not os.path.exists(csv_file_path):
+            # Create an empty DataFrame with the predefined header
+            empty_df = pd.DataFrame(columns=header)
+            empty_df.to_csv(csv_file_path, index=False)
+
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
@@ -343,49 +337,18 @@ class TreeGen():
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
                 print(f"\nTree index: {index} h detected: {total_detected}")
-                # logging.info(f"\nTree index: {index}")
-                # logging.info(f"Tree h detected: {total_detected}")
-                # logging.info(f'Tree N points: {len(np.asarray(singular_tree.points))}')
-                # logging.info(f'h_list: {h} {h_list}')
-                # logging.info(f'tree_center_coord {coord}')
-
+                
                 # Kasya: Find trunk using RANSAC
-                # logging.info("Finding trunk using RANSAC")
-                ratio_min = 0.1
-                ratio_max = 0.9
-                ratio_step = 0.3
-                prim_min = 100
-                prim_max = 1100
-                prim_step = 100
-                deg_min = 25
-                deg_max = 75
-                deg_step = 10
                 ransac_results = {
-                    "n_points": len(np.asarray(singular_tree.points)),
-                    "h_list": h_list,
+                    "n_gens": len(np.asarray(singular_tree.points)),
+                    "h_preds": h_list[0],
                 }
                 for prim in np.arange(prim_min, prim_max, prim_step):
-                    for deg in np.arange(deg_min, deg_max, deg_step):
-                        meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                        
-                        if clouds is None:
-                            continue
-                    # break # Kasya: Remove this break to iterate through all the parameters
+                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
 
-                # Save results to a CSV file
-                # Define the header for the CSV file
-                header = ransac_results.keys()
- 
-                # Define the path for the CSV file
-                csv_file_path = f"{ransac_daq_path}/ransac_results_{prim}.csv" 
-
-                # Check if the file exists; if not, create it with the header
-                if not os.path.exists(csv_file_path):
-                    # Create an empty DataFrame with the predefined header
-                    empty_df = pd.DataFrame(columns=header)
-                    empty_df.to_csv(csv_file_path, index=False)
-                results_df = pd.DataFrame(ransac_results, columns=header)
-                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
+                if ransac_results is not None:
+                    results_df = pd.DataFrame(ransac_results)
+                    results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
