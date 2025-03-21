@@ -234,7 +234,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
-        ransac_results[f"h_gens"] = gens_h
+        ransac_results[f"h_gens"] = max(gens_h)
 
     return meshes, filtered_gens, ransac_results
     
