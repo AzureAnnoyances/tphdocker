@@ -401,27 +401,28 @@ class TreeGen():
                             "h_list": h_list,
                         }]
                 # for ratio in np.arange(ratio_min, ratio_max, ratio_step):
-                ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
-                for prim in ransac_loop_prim:
-                    for deg in np.arange(deg_min, deg_max, deg_step):
-                        # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
-                        meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                        
-                        if clouds is None:
-                            continue
+                # ransac_loop_prim = tqdm(np.arange(prim_min, prim_max, prim_step), unit="step", bar_format='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+                # for prim in ransac_loop_prim:
+                prim = 100
+                for deg in np.arange(deg_min, deg_max, deg_step):
+                    # meshes, clouds = find_trunk(singular_tree, coord, h_list, h, ratio=ratio, dev_deg=deg)
+                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                    
+                    if clouds is None:
+                        continue
 
-                        # Kasya: Save RANSAC generation
-                        # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
-                        # print(len(meshes), len(clouds)) # list 
-                        # for k,v in clouds.items():
-                            # Convert cloud to Open3D PointCloud for visualization
-                            # o3d_cloud = o3d.geometry.PointCloud()
-                            # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
-                            # o3d.visualization.draw_geometries([o3d_cloud])
+                    # Kasya: Save RANSAC generation
+                    # print(type(meshes), type(clouds)) # list of cloudComPy.ccCylinder object, cloudComPy.ccPointCloud object
+                    # print(len(meshes), len(clouds)) # list 
+                    # for k,v in clouds.items():
+                        # Convert cloud to Open3D PointCloud for visualization
+                        # o3d_cloud = o3d.geometry.PointCloud()
+                        # o3d_cloud.points = o3d.utility.Vector3dVector(cloud.toNpArray())
+                        # o3d.visualization.draw_geometries([o3d_cloud])
 
-                            # Save cloud to .bin file
-                            # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
-                            # cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{prim}_{deg}_{k}.bin")
+                        # Save cloud to .bin file
+                        # cc.SavePointCloud(v, f"{self.sideViewOut}/{self.pcd_name}_{index}_{k}_{ratio}_{deg}.bin")
+                        # cc.SavePointCloud(v, f"{ransac_daq_path}/{self.pcd_name}_{index}_{prim}_{deg}_{k}.bin")
                 # Save results to a CSV file
                 results_df = pd.DataFrame(ransac_results)
                 results_df.to_csv(f"{ransac_daq_path}/ransac_results.csv", index=False, mode='a')
