@@ -196,10 +196,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    if len(clouds) == 0:
-        print("Rerun")
-        ransac_params.supportPoints = prim - 100
-        meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    # if len(clouds) == 0:
+    #     print("Rerun")
+    #     ransac_params.supportPoints = prim - 100
+    #     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         print("No trunk found")
         return None, None, ransac_results, None, None
@@ -235,7 +235,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append([index, height])
 
     # Append results to the list
-    trunk_img, tree_img = None, None, None
+    trunk_img, tree_img = None, None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -350,8 +350,8 @@ class TreeGen():
                 print(f"\nTree index: {index} h detected: {total_detected}")
                 
                 # Kasya: Find trunk using RANSAC
-                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                # prim = int(0.01*len(np.asarray(singular_tree.points)))
+                # prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
+                prim = int(0.01*len(np.asarray(singular_tree.points)))
                 print(f"n_points: {len(np.asarray(singular_tree.points))}")
                 print(f"prim: {prim}")
                 ransac_results = {
