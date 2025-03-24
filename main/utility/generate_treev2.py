@@ -239,9 +239,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h)
-        o3dCloud = o3d.geometry.PointCloud(clouds[0]) 
-        trunk_img_x = pcd2img_np(o3dCloud,"x",0.02)
-        trunk_img_y = pcd2img_np(o3dCloud,"y",0.02)
+        trunk_img_x = pcd2img_np(clouds[0],"x",0.02)
+        trunk_img_y = pcd2img_np(clouds[0],"y",0.02)
         img = cv2.cvtColor([trunk_img_x, trunk_img_y], cv2.COLOR_GRAY2RGB)
 
     return meshes, filtered_gens, ransac_results, img
