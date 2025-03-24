@@ -165,6 +165,7 @@ def assign_colors_to_cloud(cloud, color):
     Returns:
         A new point cloud with colors assigned (Nx6 array: x, y, z, r, g, b).
     """
+    cloud = cloud.toNpArray()
     num_points = cloud.shape[0]
     colors = np.tile(color, (num_points, 1))  # Repeat the color for all points
     return np.hstack((cloud, colors))  # Combine the points with their colors
