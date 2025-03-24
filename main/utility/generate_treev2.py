@@ -258,10 +258,10 @@ class TreeGen():
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         # Init
         # RANSAC Iter Parameters
-        prim_min = 1000
-        prim_max = 2100
-        prim_step = 100
-        deg = 25
+        # prim_min = 1000
+        # prim_max = 2100
+        # prim_step = 100
+        deg = 45
 
         # Save results to a CSV file
         # Define the path for the CSV file
@@ -347,8 +347,9 @@ class TreeGen():
                     "n_gens": 0,
                     "h_gens": 0
                 }
-                for prim in range(prim_min, prim_max, prim_step):
-                    meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                # for prim in range(prim_min, prim_max, prim_step):
+                prim = 596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5
+                meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 
