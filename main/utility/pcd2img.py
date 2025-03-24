@@ -183,8 +183,9 @@ def annotate_h_img(img, step_size, text, height, color):
     thickness = 1
 
     # Add a dot and text for h_list height
-    h_color = (255, 0, 0)  # Blue for h_list height
     h_text = f"{text} {height:.2f}"
     h_position = (int(img.shape[1] /2), int(img.shape[0] - height / step_size))  # Scale height to image coordinates
-    cv2.circle(img, h_position, 5, h_color, -1)  # Draw a blue dot
+    cv2.circle(img, h_position, 5, color, -1)  # Draw a blue dot
     cv2.putText(img, h_text, (h_position[0] + 10, h_position[1]), font, font_scale, color, thickness, cv2.LINE_AA)
+
+    return img
