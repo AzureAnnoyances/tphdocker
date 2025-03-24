@@ -197,8 +197,11 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
-        logging.info(f'No trunk found')
-        return None, None, ransac_results
+        print("Rerun")
+        meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+        if len(clouds) == 0:
+            print("No trunk found")
+            return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -340,16 +343,16 @@ class TreeGen():
                 print(f"\nTree index: {index} h detected: {total_detected}")
                 
                 # Kasya: Find trunk using RANSAC
+                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
+                print(f"prim: {prim}")
                 ransac_results = {
                     "n_points": len(np.asarray(singular_tree.points)),
                     "h_preds": h_list[0],
-                    "n_supp": 0,
+                    "n_supp": prim,
                     "n_gens": 0,
                     "h_gens": 0
                 }
-                # for prim in range(prim_min, prim_max, prim_step):
-                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                print(f"prim: {prim}")
+                # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
