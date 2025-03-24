@@ -262,12 +262,18 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         font_scale = 0.5
         font_color = (0, 0, 255)  # Green text
         thickness = 1
-        h_list_text = f"h_list height: {h_list[0]:.2f}"
-        h_list_position = (50, int(h_list[0] / 0.02))  # Scale height to image coordinates
-        cv2.circle(combined_img_x, h_list_position, 5, (0, 0, 255), -1)  # Draw a red dot
+
+        # Add a dot and text for h_list height
+        h_list_text = f"h_pred height: {h_list[0]:.2f}"
+        h_list_position = (combined_img_x.shape[1] /2, combined_img_x.shape[0] - int(h_list[0] / 0.02))  # Scale height to image coordinates
+        cv2.circle(combined_img_x, h_list_position, 5, (255, 0, 0), -1)  # Draw a blue dot
         cv2.putText(combined_img_x, h_list_text, (h_list_position[0] + 10, h_list_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
 
-
+        # Add a dot and text for h_gen height
+        h_gens_text = f"h_gens height: {max(gens_h, key=lambda x: x[1])[1]:.2f}"
+        h_gens_position = (combined_img_x.shape[1] /2, combined_img_x.shape[0] - int(max(gens_h, key=lambda x: x[1])[1] / 0.02))  # Scale height to image coordinates
+        cv2.circle(combined_img_x, h_gens_position, 5, (0, 0, 255), -1)  # Draw a red dot
+        cv2.putText(combined_img_x, h_gens_text, (h_gens_position[0] + 10, h_gens_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
 
     return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z
     
