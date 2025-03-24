@@ -241,11 +241,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
         trunk_img_x = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
-        trunk_img_tree = ccpcd2img_np(clouds[-1],"x",0.02)
-        stacked_img = np.hstack((trunk_img_x, trunk_img_tree)) 
-        img = cv2.cvtColor(stacked_img, cv2.COLOR_GRAY2RGB)
+        tree_img = ccpcd2img_np(clouds[-1],"x",0.02)
+        # stacked_img = np.hstack((trunk_img_x, trunk_img_tree)) 
+        trunk_img = cv2.cvtColor(trunk_img_x, cv2.COLOR_GRAY2RGB)
+        tree_img = cv2.cvtColor(tree_img, cv2.COLOR_GRAY2RGB)
 
-    return meshes, filtered_gens, ransac_results, img
+    return meshes, filtered_gens, ransac_results, trunk_img, tree_img
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -361,11 +362,12 @@ class TreeGen():
                     "h_gens": 0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
-                meshes, clouds, ransac_results, img = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                meshes, clouds, ransac_results, img1, img2 = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                if img is not None:
-                    cv2.imwrite(f"{ransac_daq_path}/test.jpg", img)
+                if img1 is not None:
+                    cv2.imwrite(f"{ransac_daq_path}/test.jpg", img1)
+                    cv2.imwrite(f"{ransac_daq_path}/test2.jpg", img2)
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
