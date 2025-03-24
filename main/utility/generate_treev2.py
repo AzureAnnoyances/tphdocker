@@ -254,8 +254,16 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
 
         # Convert the combined cloud to an image
-        combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
         combined_img_z = cloud_to_image(combined_cloud, axis='z', stepsize=0.02)
+        
+        combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
+        # Add a dot and text for h_list height
+        h_list_text = f"h_list height: {h_list[0]:.2f}"
+        h_list_position = (50, int(h_list[0] / 0.02))  # Scale height to image coordinates
+        cv2.circle(combined_img_x, h_list_position, 5, (0, 0, 255), -1)  # Draw a red dot
+        cv2.putText(combined_img_x, h_list_text, (h_list_position[0] + 10, h_list_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+
 
     return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z
     
