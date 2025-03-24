@@ -345,7 +345,7 @@ class TreeGen():
                 
                 # Kasya: Find trunk using RANSAC
                 # prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                prim = int(0.2*len(np.asarray(singular_tree.points)))
+                prim = int(0.02*len(np.asarray(singular_tree.points)))
                 print(f"prim: {prim}")
                 ransac_results = {
                     "n_points": len(np.asarray(singular_tree.points)),
