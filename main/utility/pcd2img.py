@@ -116,13 +116,13 @@ def pcd2img_np(pcd:o3d.cuda.pybind.geometry.PointCloud, axis:str, stepsize:float
 # Kasya
 def ccpcd2img_np(pcd:cc.ccPointCloud, axis:str, stepsize:float, use_binary:bool=False)->np.ndarray:
     """
-    :param pcd      : PointCloudData from open3d 
+    :param pcd      : CloudComPy PointCloudData
     :param axis     : str   ["x", "y", or "z"]
     :param stepsize : float [in meters]
     :return:        : numpy.ndarray [2D image]
     """
     # pcd_arr = np.asarray(pcd.points)
-    pcd_arr = pcd
+    pcd_arr = pcd.toNpArray()
     x = pcd_arr[:,0]
     y = pcd_arr[:,1]
     z = pcd_arr[:,2]
