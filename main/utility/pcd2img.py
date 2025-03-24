@@ -172,7 +172,7 @@ def assign_colors_to_cloud(cloud, color):
     return np.hstack((cloud, colors))  # Combine the points with their colors
 
 # Convert the combined point cloud to an image
-def cloud_to_image(cloud, dim1, dim2, stepsize):
+def cloud_to_image(cloud, axis, stepsize):
     """
     Convert a colored point cloud to a 2D image.
 
@@ -184,6 +184,16 @@ def cloud_to_image(cloud, dim1, dim2, stepsize):
     Returns:
         A 2D image with the points rendered in their assigned colors.
     """
+    # Axis selection
+    if axis == "x":
+        dim1, dim2 = 1, 2
+    elif axis == "y":
+        dim1, dim2 = 0, 2
+    elif axis == "z":
+        dim1, dim2 = 0, 1
+    else:
+        raise ValueError("Invalid axis. Choose 'x', 'y', or 'z'.")
+
     # Extract coordinates and colors
     dim1_arr = cloud[:, dim1]
     dim2_arr = cloud[:, dim2]

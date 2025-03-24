@@ -235,7 +235,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append([index, height])
 
     # Append results to the list
-    trunk_img, tree_img, combined_img = None, None, None
+    combined_img_x, combined_img_z = None, None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -254,13 +254,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
 
         # Convert the combined cloud to an image
-        combined_img = cloud_to_image(combined_cloud, dim1=0, dim2=1, stepsize=0.02)
-        print(f"Trunk found: {combined_img.shape}")
-        cv2.imshow("Trunk and Tree", combined_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
+        combined_img_z = cloud_to_image(combined_cloud, axis='z', stepsize=0.02)
 
-    return meshes, filtered_gens, ransac_results, trunk_img, combined_img
+    return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
