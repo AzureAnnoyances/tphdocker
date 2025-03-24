@@ -235,7 +235,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append([index, height])
 
     # Append results to the list
-    trunk_img, tree_img = None, None
+    trunk_img, trunk_img_colored, tree_img = None, None, None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
