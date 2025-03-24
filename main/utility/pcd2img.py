@@ -186,7 +186,7 @@ def cloud_to_image(cloud, axis, stepsize):
     """
     # Axis selection
     if axis == "x":
-        dim1, dim2 = 2, 1
+        dim1, dim2 = 1, 2
     elif axis == "y":
         dim1, dim2 = 0, 2
     elif axis == "z":
@@ -203,6 +203,9 @@ def cloud_to_image(cloud, axis, stepsize):
     dim1_min, dim2_min = dim1_arr.min(), dim2_arr.min()
     dim1_scaled = ((dim1_arr - dim1_min) / stepsize).astype(int)
     dim2_scaled = ((dim2_arr - dim2_min) / stepsize).astype(int)
+
+    # Flip the y-axis to align with image coordinates
+    dim2_scaled = (dim2_scaled.max() - dim2_scaled).astype(int)
 
     # Create an empty image
     img_height = dim2_scaled.max() + 1
