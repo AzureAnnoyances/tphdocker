@@ -242,7 +242,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"h_gens"] = max(gens_h)
         trunk_img_x = ccpcd2img_np(clouds[0],"x",0.02)
         trunk_img_y = ccpcd2img_np(clouds[0],"y",0.02)
-        img = cv2.cvtColor([trunk_img_x, trunk_img_y], cv2.COLOR_GRAY2RGB)
+        stacked_img = np.hstack((trunk_img_x, trunk_img_y)) 
+        img = cv2.cvtColor(stacked_img, cv2.COLOR_GRAY2RGB)
 
     return meshes, filtered_gens, ransac_results, img
     
