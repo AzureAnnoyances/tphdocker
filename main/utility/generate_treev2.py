@@ -243,9 +243,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
         tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
 
-        trunk_img = cv2.cvtColor(trunk_img_np, cv2.COLOR_GRAY2RGB)
+        trunk_img = cv2.merge([
+                trunk_img_np,  # Blue channel (use the grayscale values)
+                np.zeros_like(trunk_img_np),  # Green channel (set to 0)
+                np.zeros_like(trunk_img_np)   # Red channel (set to 0)
+            ])
         tree_img = cv2.cvtColor(tree_img_np, cv2.COLOR_GRAY2RGB)
-        print(trunk_img.shape, tree_img.shape)
 
     return meshes, filtered_gens, ransac_results, trunk_img, tree_img
     
