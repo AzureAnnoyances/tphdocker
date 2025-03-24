@@ -390,7 +390,7 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", img_x_t)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_z_{index}.jpg", img_z_t)
                 for k, v in clouds.items():
-                    cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{k}_{index}.bin")
+                    cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{index}_{k}.bin")
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
