@@ -258,10 +258,14 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         
         combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
         # Add a dot and text for h_list height
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.5
+        font_color = (0, 0, 255)  # Green text
+        thickness = 1
         h_list_text = f"h_list height: {h_list[0]:.2f}"
         h_list_position = (50, int(h_list[0] / 0.02))  # Scale height to image coordinates
         cv2.circle(combined_img_x, h_list_position, 5, (0, 0, 255), -1)  # Draw a red dot
-        cv2.putText(combined_img_x, h_list_text, (h_list_position[0] + 10, h_list_position[1]))
+        cv2.putText(combined_img_x, h_list_text, (h_list_position[0] + 10, h_list_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
 
 
 
