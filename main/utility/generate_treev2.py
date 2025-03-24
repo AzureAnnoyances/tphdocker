@@ -240,13 +240,14 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
-        trunk_img_x = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
-        trunk_img = cv2.cvtColor(trunk_img_x, cv2.COLOR_GRAY2RGB)
-        tree_img = ccpcd2img_np(clouds[-1],"x",0.02)
-        tree_img = cv2.cvtColor(tree_img, cv2.COLOR_GRAY2RGB)
+        trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
+        tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
+
+        trunk_img = cv2.cvtColor(trunk_img_np, cv2.COLOR_GRAY2RGB)
+        tree_img = cv2.cvtColor(tree_img_np, cv2.COLOR_GRAY2RGB)
         print(trunk_img.shape, tree_img.shape)
 
-    return meshes, filtered_gens, ransac_results, trunk_img_x, tree_img
+    return meshes, filtered_gens, ransac_results, trunk_img, tree_img
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
