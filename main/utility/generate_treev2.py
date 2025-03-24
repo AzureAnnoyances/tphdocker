@@ -167,7 +167,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     ransac_params = cc.RANSAC_SD.RansacParams()
 
     # RANSAC save leftover points (Default: true)
-    ransac_params.createCloudFromLeftOverPoints = False
+    ransac_params.createCloudFromLeftOverPoints = True
     # RANSAC least square fitting (important for trunk cylinder, Default: true)
     ransac_params.allowFitting = True
     # RANSAC attempt to simplify shape (Default: true)
@@ -221,7 +221,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     gens_ground = []
     gens_h = []
     # Filter clouds except the last one (the last is the leftover)
-    for index, cloud in enumerate(clouds):
+    for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
         z_min = cloud_pts[:,2].min()
         z_max = cloud_pts[:,2].max()
@@ -241,8 +241,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h)
         trunk_img_x = ccpcd2img_np(clouds[0],"x",0.02)
-        trunk_img_y = ccpcd2img_np(clouds[0],"y",0.02)
-        stacked_img = np.hstack((trunk_img_x, trunk_img_y)) 
+        trunk_img_tree = ccpcd2img_np(clouds[-1],"x",0.02)
+        stacked_img = np.hstack((trunk_img_x, trunk_img_tree)) 
         img = cv2.cvtColor(stacked_img, cv2.COLOR_GRAY2RGB)
 
     return meshes, filtered_gens, ransac_results, img

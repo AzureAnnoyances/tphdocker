@@ -131,17 +131,17 @@ def ccpcd2img_np(pcd:cc.ccPointCloud, axis:str, stepsize:float, use_binary:bool=
         # dim1, dim2 = y,z
         dimen1Min, dimen1Max = np.min(y), np.max(y)
         dimen2Min, dimen2Max = np.min(z), np.max(z)
-        gv = cloud_to_gray_np(y,z,x, dimen1Min, dimen2Min, stepsize, use_binary)
+        gv = cloud_to_color_np(y,z,x, dimen1Min, dimen2Min, stepsize, use_binary)
     elif axis == "y":
         # dim1, dim2 = x,z
         dimen1Min, dimen1Max = np.min(x), np.max(x)
         dimen2Min, dimen2Max = np.min(z), np.max(z)
-        gv = cloud_to_gray_np(x,z,y, dimen1Min, dimen2Min, stepsize, use_binary)
+        gv = cloud_to_color_np(x,z,y, dimen1Min, dimen2Min, stepsize, use_binary)
     elif axis == "z":
         # dim1, dim2 = x,y
         dimen1Min, dimen1Max = np.min(x), np.max(x)
         dimen2Min, dimen2Max = np.min(y), np.max(y)
-        gv = cloud_to_gray_np(x,y,z, dimen1Min, dimen2Min, stepsize, use_binary)
+        gv = cloud_to_color_np(x,y,z, dimen1Min, dimen2Min, stepsize, use_binary)
     else:
         return np.zeros((0,0),dtype=np.float32)
     
@@ -152,3 +152,32 @@ def ccpcd2img_np(pcd:cc.ccPointCloud, axis:str, stepsize:float, use_binary:bool=
     greyscaleimg = np.zeros((int(img_height)+1,int(img_width)+1), dtype=np.float32)
     greyscaleimg[gv[1],gv[0]] = gv[2]
     return greyscaleimg
+
+def cloud_to_color_np(dim1_arr, dim2_arr, dim_depth, dim1_min, dim2_min, stepsize, use_binary: bool = False, color_value: int = 128):
+    """
+    Converts point cloud data to 2D image coordinates with a single color.
+
+    Args:
+        dim1_arr: Array of x-coordinates.
+        dim2_arr: Array of y-coordinates.
+        dim_depth: Array of depth values (z-coordinates).
+        dim1_min: Minimum value for x-coordinates.
+        dim2_min: Minimum value for y-coordinates.
+        stepsize: Step size for scaling.
+        use_binary: Whether to use binary depth values.
+        color_value: The constant color value to output (default: 128).
+
+    Returns:
+        Tuple of (x-coordinates, y-coordinates, color values).
+    """
+    if use_binary == False:
+        return \
+            ((dim1_arr - dim1_min) / stepsize).astype(int), \
+            (-(dim2_arr - dim2_min) / stepsize).astype(int), \
+            np.full_like(dim_depth, color_value)  # Use a constant color value
+    else:
+        dim_depth = np.where((dim_depth / np.max(dim_depth)) > 0.3, 1, 0)
+        return \
+            ((dim1_arr - dim1_min) / stepsize).astype(int), \
+            (-(dim2_arr - dim2_min) / stepsize).astype(int), \
+            dim_depth * 255
