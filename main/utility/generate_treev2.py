@@ -385,12 +385,15 @@ class TreeGen():
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 if img_x is not None or img_z is not None or img_x_t is not None or img_z_t is not None:
+                    # Save the images
                     cv2.imwrite(f"{ransac_daq_path}/tree_x_{index}.jpg", img_x)
                     cv2.imwrite(f"{ransac_daq_path}/tree_z_{index}.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", img_x_t)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_z_{index}.jpg", img_z_t)
-                for k, v in clouds.items():
-                    cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{index}_{k}.bin")
+
+                    # Save the point clouds
+                    for k, v in clouds.items():
+                        cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{index}_{k}.bin")
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
