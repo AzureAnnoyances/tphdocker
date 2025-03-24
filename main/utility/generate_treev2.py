@@ -202,7 +202,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     #     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         print("No trunk found")
-        return None, None, ransac_results, None, None
+        return None, None, ransac_results, None, None, None
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -236,13 +236,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
     # Append results to the list
     combined_img_x, combined_img_z = None, None
+    trunk_img_x, trunk_img_z = None, None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
 
-        # trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
-        # tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
         #  Assign colors to the trunk and tree clouds
         trunk_color = (0, 0, 255)  # Blue for the trunk
         tree_color = (255, 255, 255)  # White for the tree
@@ -255,28 +254,18 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Convert the combined cloud to an image
         combined_img_z = cloud_to_image(combined_cloud, axis='z', stepsize=0.02)
-        
         combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
-        # Add a dot and text for h_list height
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.5
-        font_color = (0, 0, 255)  # Green text
-        thickness = 1
 
-        # Add a dot and text for h_list height
-        h_list_text = f"h_pred height: {h_list[0]:.2f}"
-        print(combined_img_x.shape, h_list[0])
-        h_list_position = (int(combined_img_x.shape[1] /2), int(combined_img_x.shape[0] - h_list[0] / 0.02))  # Scale height to image coordinates
-        cv2.circle(combined_img_x, h_list_position, 5, (255, 0, 0), -1)  # Draw a blue dot
-        cv2.putText(combined_img_x, h_list_text, (h_list_position[0] + 10, h_list_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
+        combined_img_x = annotate_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
+        combined_img_x = annotate_h_img(combined_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
 
-        # Add a dot and text for h_gen height
-        h_gens_text = f"h_gens height: {max(gens_h, key=lambda x: x[1])[1]:.2f}"
-        h_gens_position = (int(combined_img_x.shape[1] /2), int(combined_img_x.shape[0] - max(gens_h, key=lambda x: x[1])[1] / 0.02))  # Scale height to image coordinates
-        cv2.circle(combined_img_x, h_gens_position, 5, (0, 0, 255), -1)  # Draw a red dot
-        cv2.putText(combined_img_x, h_gens_text, (h_gens_position[0] + 10, h_gens_position[1]), font, font_scale, font_color, thickness, cv2.LINE_AA)
+        trunk_img_x = cloud_to_image(trunk_cloud_colored, axis='x', stepsize=0.02)
+        trunk_img_z = cloud_to_image(trunk_cloud_colored, axis='z', stepsize=0.02)
 
-    return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z
+        trunk_img_x = annotate_h_img(trunk_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
+        trunk_img_x = annotate_h_img(trunk_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
+
+    return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -392,12 +381,14 @@ class TreeGen():
                     "h_gens": 0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
-                meshes, clouds, ransac_results, img1, img2 = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                if img1 is not None or img2 is not None:
-                    cv2.imwrite(f"{ransac_daq_path}/test.jpg", img1)
-                    cv2.imwrite(f"{ransac_daq_path}/test2.jpg", img2)
+                if img_x is not None or img_z is not None or img_x_t is not None or img_z_t is not None:
+                    cv2.imwrite(f"{ransac_daq_path}/tree_x.jpg", img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_z.jpg", img_z)
+                    cv2.imwrite(f"{ransac_daq_path}/trunk_x.jpg", img_x_t)
+                    cv2.imwrite(f"{ransac_daq_path}/trunk_z.jpg", img_z_t)
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
