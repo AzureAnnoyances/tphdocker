@@ -348,7 +348,7 @@ class TreeGen():
                     "h_gens": 0
                 }
                 # for prim in range(prim_min, prim_max, prim_step):
-                prim = 596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5
+                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
                 print(f"prim: {prim}")
                 meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
