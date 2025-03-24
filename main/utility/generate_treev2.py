@@ -379,7 +379,7 @@ class TreeGen():
                 meshes, clouds, ransac_results, img1, img2 = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                if img1 is not None:
+                if img1 is not None or img2 is not None:
                     cv2.imwrite(f"{ransac_daq_path}/test.jpg", img1)
                     cv2.imwrite(f"{ransac_daq_path}/test2.jpg", img2)
 
