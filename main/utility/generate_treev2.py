@@ -198,6 +198,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         print("Rerun")
+        ransac_params.supportPoints = prim - 100
         meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
         if len(clouds) == 0:
             print("No trunk found")
