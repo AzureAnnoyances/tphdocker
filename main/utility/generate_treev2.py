@@ -244,13 +244,19 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
 
         trunk_img = cv2.merge([
-                trunk_img_np,  # Blue channel (use the grayscale values)
+                np.zeros_like(trunk_img_np),  # Blue channel (set to 0)
                 np.zeros_like(trunk_img_np),  # Green channel (set to 0)
-                np.zeros_like(trunk_img_np)   # Red channel (set to 0)
+                trunk_img_np # Red channel (use the grayscale values)
             ])
         tree_img = cv2.cvtColor(tree_img_np, cv2.COLOR_GRAY2RGB)
 
-    return meshes, filtered_gens, ransac_results, trunk_img, tree_img
+        # Ensure both images have the same dimensions
+        tree_img_resized = cv2.resize(tree_img, (trunk_img.shape[1], trunk_img.shape[0]))
+
+        # Combine the two images
+        combined_img = cv2.addWeighted(trunk_img, 1.0, tree_img_resized, 1.0, 0)
+
+    return meshes, filtered_gens, ransac_results, trunk_img, combined_img
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
