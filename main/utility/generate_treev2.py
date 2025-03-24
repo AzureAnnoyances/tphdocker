@@ -244,7 +244,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
         # tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
         #  Assign colors to the trunk and tree clouds
-        trunk_color = (255, 0, 0)  # Blue for the trunk
+        trunk_color = (0, 0, 255)  # Blue for the trunk
         tree_color = (255, 255, 255)  # White for the tree
 
         trunk_cloud_colored = assign_colors_to_cloud(clouds[max(gens_h, key=lambda x: x[1])[0]], trunk_color)

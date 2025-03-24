@@ -202,7 +202,7 @@ def cloud_to_image(cloud, axis, stepsize):
     # Normalize coordinates to fit into the image
     dim1_min, dim2_min = dim1_arr.min(), dim2_arr.min()
     dim1_scaled = ((dim1_arr - dim1_min) / stepsize).astype(int)
-    dim2_scaled = ((dim2_arr - dim2_min) / stepsize).astype(int)
+    dim2_scaled = (-(dim2_arr - dim2_min) / stepsize).astype(int)
 
     # Create an empty image
     img_height = dim2_scaled.max() + 1
