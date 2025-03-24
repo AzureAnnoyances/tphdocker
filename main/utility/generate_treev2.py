@@ -232,15 +232,15 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
             height = z_max - z_min
             if height > h_list[0] - h_tol:
-                gens_h.append(height)
+                gens_h.append([index, height])
 
     # Append results to the list
     img = None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
-        ransac_results[f"h_gens"] = max(gens_h)
-        trunk_img_x = ccpcd2img_np(clouds[0],"x",0.02)
+        ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
+        trunk_img_x = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
         trunk_img_tree = ccpcd2img_np(clouds[-1],"x",0.02)
         stacked_img = np.hstack((trunk_img_x, trunk_img_tree)) 
         img = cv2.cvtColor(stacked_img, cv2.COLOR_GRAY2RGB)
