@@ -202,7 +202,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     #     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         print("No trunk found")
-        return None, None, ransac_results, None, None, None
+        return None, None, ransac_results, None, None, None, None
     
     # Filter the cloud based on the center coordinate and height
     """
