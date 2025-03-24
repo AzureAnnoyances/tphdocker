@@ -233,6 +233,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             height = z_max - z_min
             if height > h_list[0] - h_tol:
                 gens_h.append([index, height])
+    filtered_gens["leftover"] = clouds[-1]
 
     # Append results to the list
     combined_img_x, combined_img_z = None, None
