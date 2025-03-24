@@ -245,6 +245,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # stacked_img = np.hstack((trunk_img_x, trunk_img_tree)) 
         trunk_img = cv2.cvtColor(trunk_img_x, cv2.COLOR_GRAY2RGB)
         tree_img = cv2.cvtColor(tree_img, cv2.COLOR_GRAY2RGB)
+        print(trunk_img.shape, tree_img.shape)
 
     return meshes, filtered_gens, ransac_results, trunk_img, tree_img
     
