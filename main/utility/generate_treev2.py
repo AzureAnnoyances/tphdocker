@@ -196,13 +196,13 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-    # if len(clouds) == 0:
-    #     print("Rerun")
-    #     ransac_params.supportPoints = prim - 100
-    #     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    if len(clouds) == 0:
+        print("Rerun")
+        ransac_params.supportPoints = prim - 100
+        meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
         print("No trunk found")
-        return None, None, ransac_results
+        return None, None, ransac_results, None
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -239,8 +239,13 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h)
+        trunk_img_x = pcd2img_np(clouds[0],"x",0.02)
+        trunk_img_y = pcd2img_np(clouds[0],"y",0.02)
+        img = cv2.cvtColor([trunk_img_x, trunk_img_y], cv2.COLOR_GRAY2RGB)
 
-    return meshes, filtered_gens, ransac_results
+
+
+    return meshes, filtered_gens, ransac_results, img
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -344,8 +349,9 @@ class TreeGen():
                 print(f"\nTree index: {index} h detected: {total_detected}")
                 
                 # Kasya: Find trunk using RANSAC
-                # prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                prim = int(0.01*len(np.asarray(singular_tree.points)))
+                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
+                # prim = int(0.01*len(np.asarray(singular_tree.points)))
+                print(f"n_points: {len(np.asarray(singular_tree.points))}")
                 print(f"prim: {prim}")
                 ransac_results = {
                     "n_points": len(np.asarray(singular_tree.points)),
@@ -355,10 +361,11 @@ class TreeGen():
                     "h_gens": 0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
-                meshes, clouds, ransac_results = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                meshes, clouds, ransac_results, img = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                
+                cv2.imwrite(f"{ransac_daq_path}_test.jpg", img)
+
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
                 # self.adTreeCls.segment_tree(singular_tree)
