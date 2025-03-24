@@ -196,13 +196,13 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     # RANSAC calculate
     ransac_params.optimizeForCloud(cloud)
     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
+    # if len(clouds) == 0:
+    #     print("Rerun")
+    #     ransac_params.supportPoints = prim - 100
+    #     meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
     if len(clouds) == 0:
-        print("Rerun")
-        ransac_params.supportPoints = prim - 100
-        meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-        if len(clouds) == 0:
-            print("No trunk found")
-            return None, None, ransac_results
+        print("No trunk found")
+        return None, None, ransac_results
     
     # Filter the cloud based on the center coordinate and height
     """
@@ -345,7 +345,7 @@ class TreeGen():
                 
                 # Kasya: Find trunk using RANSAC
                 # prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                prim = int(0.02*len(np.asarray(singular_tree.points)))
+                prim = int(0.01*len(np.asarray(singular_tree.points)))
                 print(f"prim: {prim}")
                 ransac_results = {
                     "n_points": len(np.asarray(singular_tree.points)),
