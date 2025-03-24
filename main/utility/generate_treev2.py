@@ -255,7 +255,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Convert the combined cloud to an image
         combined_img = cloud_to_image(combined_cloud, dim1=0, dim2=1, stepsize=0.02)
-
+        print(f"Trunk found: {combined_img.shape}")
 
     return meshes, filtered_gens, ransac_results, trunk_img, combined_img
     
