@@ -235,6 +235,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append(height)
 
     # Append results to the list
+    img = None
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -362,7 +363,8 @@ class TreeGen():
                 meshes, clouds, ransac_results, img = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                cv2.imwrite(f"{ransac_daq_path}/test.jpg", img)
+                if img is not None:
+                    cv2.imwrite(f"{ransac_daq_path}/test.jpg", img)
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
