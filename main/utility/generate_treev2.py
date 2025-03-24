@@ -240,21 +240,22 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
-        trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
-        tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
 
-        trunk_img = cv2.merge([
-                np.zeros_like(trunk_img_np),  # Blue channel (set to 0)
-                np.zeros_like(trunk_img_np),  # Green channel (set to 0)
-                trunk_img_np # Red channel (use the grayscale values)
-            ])
-        tree_img = cv2.cvtColor(tree_img_np, cv2.COLOR_GRAY2RGB)
+        # trunk_img_np = ccpcd2img_np(clouds[max(gens_h, key=lambda x: x[1])[0]],"x",0.02)
+        # tree_img_np = ccpcd2img_np(clouds[-1],"x",0.02)
+        #  Assign colors to the trunk and tree clouds
+        trunk_color = (255, 0, 0)  # Blue for the trunk
+        tree_color = (255, 255, 255)  # White for the tree
 
-        # Ensure both images have the same dimensions
-        tree_img_resized = cv2.resize(tree_img, (trunk_img.shape[1], trunk_img.shape[0]))
+        trunk_cloud_colored = assign_colors_to_cloud(clouds[max(gens_h, key=lambda x: x[1])[0]], trunk_color)
+        tree_cloud_colored = assign_colors_to_cloud(clouds[-1], tree_color)
 
-        # Combine the two images
-        combined_img = cv2.addWeighted(trunk_img, 1.0, tree_img_resized, 1.0, 0)
+        # Combine the trunk and tree clouds
+        combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
+
+        # Convert the combined cloud to an image
+        combined_img = cloud_to_image(combined_cloud, dim1=0, dim2=1, stepsize=0.02)
+
 
     return meshes, filtered_gens, ransac_results, trunk_img, combined_img
     

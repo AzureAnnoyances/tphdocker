@@ -152,3 +152,51 @@ def ccpcd2img_np(pcd:cc.ccPointCloud, axis:str, stepsize:float, use_binary:bool=
     greyscaleimg = np.zeros((int(img_height)+1,int(img_width)+1), dtype=np.float32)
     greyscaleimg[gv[1],gv[0]] = gv[2]
     return greyscaleimg
+
+# Assign unique colors to the trunk and tree points
+def assign_colors_to_cloud(cloud, color):
+    """
+    Assign a specific color to all points in the cloud.
+
+    Args:
+        cloud: The point cloud (numpy array of shape Nx3 or Nx4).
+        color: A tuple representing the RGB color (e.g., (255, 0, 0) for blue).
+
+    Returns:
+        A new point cloud with colors assigned (Nx6 array: x, y, z, r, g, b).
+    """
+    num_points = cloud.shape[0]
+    colors = np.tile(color, (num_points, 1))  # Repeat the color for all points
+    return np.hstack((cloud, colors))  # Combine the points with their colors
+
+# Convert the combined point cloud to an image
+def cloud_to_image(cloud, dim1, dim2, stepsize):
+    """
+    Convert a colored point cloud to a 2D image.
+
+    Args:
+        cloud: The colored point cloud (Nx6 array: x, y, z, r, g, b).
+        dim1, dim2: The dimensions to project onto (e.g., x and y).
+        stepsize: The resolution of the image.
+
+    Returns:
+        A 2D image with the points rendered in their assigned colors.
+    """
+    # Extract coordinates and colors
+    dim1_arr = cloud[:, dim1]
+    dim2_arr = cloud[:, dim2]
+    colors = cloud[:, 3:]  # RGB values
+
+    # Normalize coordinates to fit into the image
+    dim1_min, dim2_min = dim1_arr.min(), dim2_arr.min()
+    dim1_scaled = ((dim1_arr - dim1_min) / stepsize).astype(int)
+    dim2_scaled = ((dim2_arr - dim2_min) / stepsize).astype(int)
+
+    # Create an empty image
+    img_height = dim2_scaled.max() + 1
+    img_width = dim1_scaled.max() + 1
+    img = np.zeros((img_height, img_width, 3), dtype=np.uint8)
+
+    # Assign colors to the image
+    img[dim2_scaled, dim1_scaled] = colors.astype(np.uint8)
+    return img
