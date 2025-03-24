@@ -364,7 +364,7 @@ class TreeGen():
                 meshes, clouds, ransac_results, img = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
-                cv2.imwrite(f"{ransac_daq_path}_test.jpg", img)
+                cv2.imwrite(f"{ransac_daq_path}/test.jpg", img)
 
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
