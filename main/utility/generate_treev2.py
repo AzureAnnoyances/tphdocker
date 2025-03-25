@@ -213,8 +213,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         - save if height cloud closest to top > 0 
     """
     # RANSAC data filter parameters
+    center_tol = 0.5
     z_tol = 0.1
-    h_tol = 4
+    h_tol = 3
     # Init variables
     filtered_gens = {}
     z_min_pcd = points[:,2].min()
@@ -226,15 +227,21 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
         x_center, y_center = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
-        print(f"x_center: {x_center}, y_center: {y_center}")
+        
+        x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
+        y_tol = center_coord[1]-center_tol < abs(y_center) < center_coord[1]+center_tol
+        if x_tol and y_tol:
+            print(f"x_center: {x_center}, y_center: {abs(y_center)}")
 
-        if z_min_pcd-z_tol < z_min < z_min_pcd+z_tol:
-            gens_ground.append(index)
-            filtered_gens[index] = cloud 
+            z_tols = z_min_pcd-z_tol < z_min < z_min_pcd+z_tol
+            if z_tols:
+                gens_ground.append(index)
+                filtered_gens[index] = cloud 
 
-            height = z_max - z_min
-            if height > h_list[0] - h_tol:
-                gens_h.append([index, height])
+                height = z_max - z_min
+                h_tols = height > h_list[0] - h_tol
+                if h_tols:
+                    gens_h.append([index, height])
     filtered_gens["leftover"] = clouds[-1]
 
     import sys 
