@@ -220,6 +220,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_center = {}
     filtered_h = {}
     z_min_pcd = points[:,2].min()
+    gens_ctr = []
     gens_ground = []
     gens_h = []
     # Filter clouds except the last one (the last is the leftover)
@@ -231,8 +232,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
         y_tol = center_coord[1]-center_tol < abs(y_center) < center_coord[1]+center_tol
         if x_tol and y_tol:
-            print(f"x_center: {x_center}, y_center: {abs(y_center)}")
             filtered_center[index] = cloud
+            gens_ctr.append([index, x_center, y_center])
 
     for k, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
@@ -268,8 +269,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Convert the combined cloud to an image
         combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=0.02)
-        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
+        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_pred", center_coord, (255,0,0))
 
+        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
         combined_img_x = ann_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
         combined_img_x = ann_h_img(combined_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
 
