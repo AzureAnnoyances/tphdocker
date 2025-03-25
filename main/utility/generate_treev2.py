@@ -237,9 +237,11 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Use min max to find the center of the cloud
         # x_center = cloud_pts[:,0].max() - (cloud_pts[:,0].max() - cloud_pts[:,0].min())
         # y_center = abs(cloud_pts[:,1].min()) - (abs(cloud_pts[:,1].min()) - abs(cloud_pts[:,1].max()))
+        
         # Use mean to find the center of the cloud
         x_center = cloud_pts[:,0].mean()
         y_center = abs(cloud_pts[:,1].mean())
+
         x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
         y_tol = center_coord[1]-center_tol < y_center < center_coord[1]+center_tol
         if x_tol and y_tol:
