@@ -370,8 +370,8 @@ class TreeGen():
                 print(f"\nTree index: {index} h detected: {total_detected}")
                 
                 # Kasya: Find trunk using RANSAC
-                prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
-                # prim = int(0.01*len(np.asarray(singular_tree.points)))
+                # prim = int(596.11 * np.log(len(np.asarray(singular_tree.points))) - 5217.5)
+                prim = int(0.01*len(np.asarray(singular_tree.points)))
                 print(f"n_points: {len(np.asarray(singular_tree.points))}")
                 print(f"prim: {prim}")
                 ransac_results = {
@@ -391,6 +391,8 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/tree_z_{index}.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", img_x_t)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_z_{index}.jpg", img_z_t)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_out.jpg", img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
 
                     # Save the point clouds
                     for k, v in clouds.items():
