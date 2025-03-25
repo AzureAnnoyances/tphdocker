@@ -221,10 +221,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     gens_ground = []
     gens_h = []
     # Filter clouds except the last one (the last is the leftover)
+    print(f"center coord: {center_coord}")
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
-        z_min = cloud_pts[:,2].min()
-        z_max = cloud_pts[:,2].max()
+        z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
 
         if z_min_pcd-z_tol < z_min < z_min_pcd+z_tol:
             gens_ground.append(index)
@@ -234,6 +234,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             if height > h_list[0] - h_tol:
                 gens_h.append([index, height])
     filtered_gens["leftover"] = clouds[-1]
+
+    import sys 
+    sys.exit()
 
     # Append results to the list
     combined_img_x, combined_img_z = None, None
@@ -391,7 +394,8 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/tree_z_{index}.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", img_x_t)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_z_{index}.jpg", img_z_t)
-                    cv2.imwrite(f"{ransac_daq_path}/tree_out.jpg", img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_out_x.jpg", img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_out_z.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
 
                     # Save the point clouds
