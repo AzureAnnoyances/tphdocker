@@ -199,7 +199,7 @@ def ann_ctr_img(img, step_size, text, center, color):
     # Add a dot and text for the center
     center_text = f"{text} {center}"
     w_center = img.shape[0] - (img.shape[0] - center[0] / step_size)
-    h_center = img.shape[0] - center[1] / step_size
+    h_center = img.shape[1] - (img.shape[1] - center[1] / step_size)
     center_position = (int(w_center), int(h_center))  # Scale center to image coordinates
     print(f"img.shape[0] {img.shape[0]}, img.shape[1] {img.shape[1]}")
     print(f'center[0] {center[0]}, center[1] {center[1]}')
