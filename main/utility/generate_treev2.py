@@ -268,7 +268,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Convert the combined cloud to an image
         combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=0.02)
-        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_pred", center_coord, (255,0,0))
+        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_pred:", center_coord, (255,0,0))
 
         combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
         combined_img_x = ann_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
