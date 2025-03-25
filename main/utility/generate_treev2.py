@@ -213,7 +213,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         - save if height cloud closest to top > 0 
     """
     # RANSAC data filter parameters
-    center_tol = 0.5
+    center_tol = 0.7
     z_tol = 0.1
     h_tol = 3
     # Init variables
@@ -231,14 +231,11 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     pred_y_center_m = y_max_pcd - center_coord[1]
     center_coord_m = (pred_x_center_m, pred_y_center_m)
     print(f'center_coord: {center_coord}')
-    print(f'pred_x_center_m: {pred_x_center_m}, pred_y_center_m: {pred_y_center_m}')
     # Filter clouds except the last one (the last is the leftover)
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
         x_center = cloud_pts[:,0].max() - (cloud_pts[:,0].max() - cloud_pts[:,0].min())
         y_center = abs(cloud_pts[:,1].min()) - (abs(cloud_pts[:,1].min()) - abs(cloud_pts[:,1].max()))
-        print(f"x_center: {x_center}, y_center: {y_center}")
-
         x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
         y_tol = center_coord[1]-center_tol < y_center < center_coord[1]+center_tol
         if x_tol and y_tol:
@@ -248,8 +245,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             gens_ctr[index] = (x_center_m, y_center_m)
 
             print(f"x_center: {x_center}, y_center: {y_center}")
-            print(f"x_center_m: {x_center_m}, y_center_m: {y_center_m}")
-
+            
     for index, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
