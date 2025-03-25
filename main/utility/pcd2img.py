@@ -199,6 +199,7 @@ def ann_ctr_img(img, step_size, text, center, color):
     # Add a dot and text for the center
     center_text = f"{text} {center}"
     center_position = (int(img.shape[0] - center[0] / step_size), int(img.shape[0] - center[1] / step_size))  # Scale center to image coordinates
+    print("center_position",center_position)
     cv2.circle(img, center_position, 5, color, -1)  # Draw a dot
     cv2.putText(img, center_text, (center_position[0] + 10, center_position[1]), font, font_scale, color, thickness, cv2.LINE_AA)
 
