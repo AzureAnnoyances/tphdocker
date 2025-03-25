@@ -221,12 +221,14 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_h = {}
     z_min_pcd = points[:,2].min()
     x_min_pcd, x_max_pcd = points[:,0].min(), points[:,0].max()
-    y_min_pcd, y_max_pcd = points[:,1].min(), points[:,1].max()
+    y_min_pcd, y_max_pcd = abs(points[:,1].max()), abs(points[:,1].min())
+    print(f'x_min_pcd: {x_min_pcd}, x_max_pcd: {x_max_pcd}')
+    print(f'y_min_pcd: {y_min_pcd}, y_max_pcd: {y_max_pcd}')
     gens_ctr = []
     gens_ground = []
     gens_h = []
     pred_x_center_m = x_max_pcd - center_coord[0]
-    pred_y_center_m = abs(y_max_pcd) - center_coord[1]
+    pred_y_center_m = y_max_pcd - center_coord[1]
     center_coord_m = (pred_x_center_m, pred_y_center_m)
     print(f'center_coord: {center_coord}')
     print(f'pred_x_center_m: {pred_x_center_m}, pred_y_center_m: {pred_y_center_m}')
@@ -240,7 +242,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         if x_tol and y_tol:
             filtered_center[index] = cloud
             x_center_m = x_max_pcd - x_center
-            y_center_m = abs(y_max_pcd) - abs(y_center)
+            y_center_m = y_max_pcd - abs(y_center)
             gens_ctr.append([index, x_center_m, y_center_m])
 
             print(f"x_center: {x_center}, y_center: {y_center}")
