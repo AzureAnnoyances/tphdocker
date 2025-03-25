@@ -224,7 +224,6 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     gens_ground = []
     gens_h = []
     # Filter clouds except the last one (the last is the leftover)
-    print(f"center coord: {center_coord}")
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
         x_center, y_center = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
@@ -233,17 +232,15 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         y_tol = center_coord[1]-center_tol < abs(y_center) < center_coord[1]+center_tol
         if x_tol and y_tol:
             filtered_center[index] = cloud
-            gens_ctr.append([index, x_center, y_center])
-            print(f"x_center: {x_center}, y_center: {y_center}")
+            gens_ctr.append([index, x_center, abs(y_center)])
 
-    for k, cloud in filtered_center.items():
+    for index, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
         z_tols = z_min_pcd-z_tol < z_min < z_min_pcd+z_tol
-        print(f"z_min_pcd: {z_min_pcd}, z_min: {z_min}, z_tols: {z_tols}")
         if z_tols:
             gens_ground.append(index)
-            filtered_h[k] = cloud 
+            filtered_h[index] = cloud 
 
             height = z_max - z_min
             h_tols = height > h_list[0] - h_tol
