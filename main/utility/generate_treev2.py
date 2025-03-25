@@ -234,11 +234,13 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         if x_tol and y_tol:
             filtered_center[index] = cloud
             gens_ctr.append([index, x_center, y_center])
+            print(f"x_center: {x_center}, y_center: {y_center}")
 
     for k, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
         z_tols = z_min_pcd-z_tol < z_min < z_min_pcd+z_tol
+        print(f"z_min_pcd: {z_min_pcd}, z_min: {z_min}, z_tols: {z_tols}")
         if z_tols:
             gens_ground.append(index)
             filtered_h[k] = cloud 
