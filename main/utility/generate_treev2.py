@@ -225,6 +225,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     gens_ctr = []
     gens_ground = []
     gens_h = []
+    pred_x_center = x_max_pcd - center_coord[0]
+    pred_y_center = x_max_pcd - center_coord[1]
+    print(f'pred_x_center: {pred_x_center}, pred_y_center: {pred_y_center}')
     # Filter clouds except the last one (the last is the leftover)
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
@@ -236,8 +239,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             filtered_center[index] = cloud
             x_len, y_len = x_max_pcd - x_min_pcd, abs(y_max_pcd) - abs(y_min_pcd)
             x_center_m = (x_max_pcd - (x_len - x_center))
-            y_center_m = (abs(y_max_pcd) - (y_len - abs(y_center)))
+            y_center_m = (abs(y_max_pcd) - y_len - abs(y_center))
             gens_ctr.append([index, x_center_m, y_center_m])
+
+            print(f"x_center: {x_center}, y_center: {y_center}")
             print(f"x_center_m: {x_center_m}, y_center_m: {y_center_m}")
 
     for index, cloud in filtered_center.items():
