@@ -115,7 +115,7 @@ def pcd2img_np(pcd:o3d.cuda.pybind.geometry.PointCloud, axis:str, stepsize:float
 
 # Kasya
 # Assign unique colors to the trunk and tree points
-def assign_colors_to_cloud(cloud, color):
+def ccColor2pcd(cloud, color):
     """
     Assign a specific color to all points in the cloud.
 
@@ -132,7 +132,7 @@ def assign_colors_to_cloud(cloud, color):
     return np.hstack((cloud, colors))  # Combine the points with their colors
 
 # Convert the combined point cloud to an image
-def cloud_to_image(cloud, axis, stepsize):
+def ccpcd2img(cloud, axis, stepsize):
     """
     Convert a colored point cloud to a 2D image.
 
@@ -176,7 +176,7 @@ def cloud_to_image(cloud, axis, stepsize):
     img[dim2_scaled, dim1_scaled] = colors.astype(np.uint8)
     return img
 
-def annotate_h_img(img, step_size, text, height, color):
+def ann_h_img(img, step_size, text, height, color):
     # Add a dot and text for h_list height
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 0.5

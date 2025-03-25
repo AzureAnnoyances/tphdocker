@@ -233,7 +233,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         if x_tol and y_tol:
             print(f"x_center: {x_center}, y_center: {abs(y_center)}")
             filtered_center[index] = cloud
-            
+
     for k, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
@@ -248,9 +248,6 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append([index, height])
     filtered_h["leftover"] = clouds[-1]
 
-    import sys 
-    sys.exit()
-
     # Append results to the list
     combined_img_x, combined_img_z = None, None
     trunk_img_x, trunk_img_z = None, None
@@ -263,26 +260,23 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         trunk_color = (0, 0, 255)  # Blue for the trunk
         tree_color = (255, 255, 255)  # White for the tree
 
-        trunk_cloud_colored = assign_colors_to_cloud(clouds[max(gens_h, key=lambda x: x[1])[0]], trunk_color)
-        tree_cloud_colored = assign_colors_to_cloud(clouds[-1], tree_color)
+        trunk_cloud_colored = ccColor2pcd(clouds[max(gens_h, key=lambda x: x[1])[0]], trunk_color)
+        tree_cloud_colored = ccColor2pcd(clouds[-1], tree_color)
 
         # Combine the trunk and tree clouds
         combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
 
         # Convert the combined cloud to an image
-        combined_img_z = cloud_to_image(combined_cloud, axis='z', stepsize=0.02)
-        combined_img_x = cloud_to_image(combined_cloud, axis='x', stepsize=0.02)
+        combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=0.02)
+        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
 
-        combined_img_x = annotate_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
-        combined_img_x = annotate_h_img(combined_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
+        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
+        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
 
-        trunk_img_x = cloud_to_image(trunk_cloud_colored, axis='x', stepsize=0.02)
-        trunk_img_z = cloud_to_image(trunk_cloud_colored, axis='z', stepsize=0.02)
+        trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=0.02)
+        trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=0.02)
 
-        trunk_img_x = annotate_h_img(trunk_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
-        trunk_img_x = annotate_h_img(trunk_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
-
-    return meshes, filtered_gens, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
+    return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
     
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
