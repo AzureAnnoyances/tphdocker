@@ -224,7 +224,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     y_min_pcd, y_max_pcd = abs(points[:,1].max()), abs(points[:,1].min())
     print(f'x_min_pcd: {x_min_pcd}, x_max_pcd: {x_max_pcd}')
     print(f'y_min_pcd: {y_min_pcd}, y_max_pcd: {y_max_pcd}')
-    gens_ctr = []
+    gens_ctr = {}
     gens_ground = []
     gens_h = []
     pred_x_center_m = x_max_pcd - center_coord[0]
@@ -243,7 +243,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             filtered_center[index] = cloud
             x_center_m = x_max_pcd - x_center
             y_center_m = y_max_pcd - abs(y_center)
-            gens_ctr.append([index, x_center_m, y_center_m])
+            gens_ctr[index] = (x_center_m, y_center_m)
 
             print(f"x_center: {x_center}, y_center: {y_center}")
             print(f"x_center_m: {x_center_m}, y_center_m: {y_center_m}")
@@ -274,7 +274,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         trunk_color = (0, 0, 255)  # Blue for the trunk
         tree_color = (255, 255, 255)  # White for the tree
 
-        trunk_cloud_colored = ccColor2pcd(clouds[max(gens_h, key=lambda x: x[1])[0]], trunk_color)
+        max_h_index = max(gens_h, key=lambda x: x[1])[0]
+        trunk_cloud_colored = ccColor2pcd(clouds[max_h_index], trunk_color)
         tree_cloud_colored = ccColor2pcd(clouds[-1], tree_color)
 
         # Combine the trunk and tree clouds
@@ -283,10 +284,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Convert the combined cloud to an image
         combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=0.02)
         combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_pred:", center_coord_m, (255,0,0))
+        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_gens:", gens_ctr[max_h_index], (0,0,255))
 
         combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
         combined_img_x = ann_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
-        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_gens height:", max(gens_h, key=lambda x: x[1])[1], (0,0,255))
+        max_h_height = max(gens_h, key=lambda x: x[1])[1]
+        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_gens height:", max_h_height, (0,0,255))
 
         trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=0.02)
         trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=0.02)
