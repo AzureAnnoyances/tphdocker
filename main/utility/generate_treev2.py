@@ -20,6 +20,7 @@ cc.initCC()
 import pandas as pd
 import logging
 import os
+from .diamNCrown import AdTree_cls
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
@@ -30,6 +31,7 @@ logging.basicConfig(
     format='%(asctime)s - %(message)s',  # Log format
     level=logging.INFO  # Log level
 )
+
 
 """
 1. Bounding Box Done
@@ -408,6 +410,7 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
 
+                AdTree_cls.segment_tree(singular_tree)
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
@@ -423,11 +426,12 @@ class TreeGen():
                     "h_preds": h_list[0],
                     "n_supp": prim,
                     "n_gens": 0,
-                    "h_gens": 0
+                    "h_gens": 0,
+                    "gen_h": None
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                if clouds is not None:
+                if ransac_results['gen_h'] is not None:
                     find_crown(singular_tree, clouds, ransac_results)
                 
                 results_df = pd.DataFrame([ransac_results])
