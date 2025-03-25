@@ -234,8 +234,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         y_tol = center_coord[1]-center_tol < abs(y_center) < center_coord[1]+center_tol
         if x_tol and y_tol:
             filtered_center[index] = cloud
-            x_center_m = (x_max_pcd - x_min_pcd - x_center) / 0.1
-            y_center_m = (abs(y_max_pcd) - abs(y_min_pcd) - abs(y_center)) / 0.1
+            x_len, y_len = x_max_pcd - x_min_pcd, abs(y_max_pcd) - abs(y_min_pcd)
+            x_center_m = (x_max_pcd - (x_len - x_center))
+            y_center_m = (abs(y_max_pcd) - (y_len - abs(y_center)))
             gens_ctr.append([index, x_center_m, y_center_m])
             print(f"x_center_m: {x_center_m}, y_center_m: {y_center_m}")
 
