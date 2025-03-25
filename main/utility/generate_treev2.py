@@ -220,6 +220,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_center = {}
     filtered_h = {}
     z_min_pcd = points[:,2].min()
+    x_min_pcd, x_max_pcd = cloud_pts[:,0].min(), cloud_pts[:,0].max()
+    y_min_pcd, y_max_pcd = cloud_pts[:,1].min(), cloud_pts[:,1].max()
     gens_ctr = []
     gens_ground = []
     gens_h = []
@@ -227,12 +229,15 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
         x_center, y_center = cloud_pts[:,0].mean(), cloud_pts[:,1].mean()
-        
+
         x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
         y_tol = center_coord[1]-center_tol < abs(y_center) < center_coord[1]+center_tol
         if x_tol and y_tol:
             filtered_center[index] = cloud
-            gens_ctr.append([index, x_center, abs(y_center)])
+            x_center_m = (x_max_pcd - x_min_pcd - x_center) / 0.1
+            y_center_m = (abs(y_max_pcd) - abs(y_min_pcd) - abs(y_center)) / 0.1
+            gens_ctr.append([index, x_center_m, y_center_m])
+            print(f"x_center_m: {x_center_m}, y_center_m: {y_center_m}")
 
     for index, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
