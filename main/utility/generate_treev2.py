@@ -245,7 +245,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             gens_ctr[index] = (x_center_m, y_center_m)
 
             print(f"x_center: {x_center}, y_center: {y_center}")
-            
+
     for index, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
@@ -291,6 +291,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=0.02)
         trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=0.02)
+        trunk_img_z = ann_ctr_img(trunk_img_z, 0.02, "c_gens:", gens_ctr[max_h_index], (0,0,255))
 
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
     
