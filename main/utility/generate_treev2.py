@@ -208,9 +208,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     """
     Algo:
     - Iterate clouds
-        - find the cloud with the closest z to the ground (eliminate leaves)
-        - find the cloud with the closest z to the top (closest to crown)
-        - save if height cloud closest to top > 0 
+        1. find cloud within the center coordinate
+        2. find cloud above ground
+        3. find cloud with height within the range of predicted height
+        4. save cloud and height 
     """
     # RANSAC data filter parameters
     center_tol = 0.7
@@ -222,23 +223,17 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     z_min_pcd = points[:,2].min()
     x_min_pcd, x_max_pcd = points[:,0].min(), points[:,0].max()
     y_min_pcd, y_max_pcd = abs(points[:,1].max()), abs(points[:,1].min())
-    print(f'x_min_pcd: {x_min_pcd}, x_max_pcd: {x_max_pcd}')
-    print(f'y_min_pcd: {y_min_pcd}, y_max_pcd: {y_max_pcd}')
     gens_ctr = {}
     gens_ground = []
     gens_h = []
     pred_x_center_m = x_max_pcd - center_coord[0]
     pred_y_center_m = y_max_pcd - center_coord[1]
     center_coord_m = (pred_x_center_m, pred_y_center_m)
-    print(f'center_coord: {center_coord}')
-    # Filter clouds except the last one (the last is the leftover)
+
+    # Filter for center clouds except the last one (the last is the leftover)
     for index, cloud in enumerate(clouds[:-1]):
         cloud_pts = cloud.toNpArray()
-        # Use min max to find the center of the cloud
-        # x_center = cloud_pts[:,0].max() - (cloud_pts[:,0].max() - cloud_pts[:,0].min())
-        # y_center = abs(cloud_pts[:,1].min()) - (abs(cloud_pts[:,1].min()) - abs(cloud_pts[:,1].max()))
-        
-        # Use mean to find the center of the cloud
+        # Use mean to find the center cluster of the cloud
         x_center = cloud_pts[:,0].mean()
         y_center = abs(cloud_pts[:,1].mean())
 
@@ -250,8 +245,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             y_center_m = y_max_pcd - y_center
             gens_ctr[index] = (x_center_m, y_center_m)
 
-            print(f"x_center: {x_center}, y_center: {y_center}")
-            
+    # Filter for height clouds 
     for index, cloud in filtered_center.items():
         cloud_pts = cloud.toNpArray()
         z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
@@ -261,24 +255,37 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
             filtered_h[index] = cloud 
 
             height = z_max - z_min
-            h_tols = height > h_list[0] - h_tol
+            h_tols = h_list[0] - h_tol < height < h_list[0]
             if h_tols:
                 gens_h.append([index, height])
     filtered_h["leftover"] = clouds[-1]
 
-    # Append results to the list
-    combined_img_x, combined_img_z = None, None
-    trunk_img_x, trunk_img_z = None, None
+    # Height index and value
+    max_h_height = max(gens_h, key=lambda x: x[1])[1]
+    max_h_index = max(gens_h, key=lambda x: x[1])[0]
+
+    # Get trunk diameter
+    
+    # Get trunk volume
+
+    # Save the results to a CSV file
     if len(gens_h) > 0:
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
-        ransac_results[f"h_gens"] = max(gens_h, key=lambda x: x[1])[1]
+        ransac_results[f"h_gens"] = max_h_height
+        ransac_results[f"gen_h"] = gens_h
 
+    # Save to img
+    combined_img_x, combined_img_z = None, None
+    trunk_img_x, trunk_img_z = None, None
+    if len(gens_h) > 0:
         #  Assign colors to the trunk and tree clouds
         trunk_color = (0, 0, 255)  # Blue for the trunk
         tree_color = (255, 255, 255)  # White for the tree
+        pred_color = (255, 0, 0)  # Red for the predicted center
+        gens_color = (0, 0, 255)  # Blue for the generated center
+        stepsize=0.02
 
-        max_h_index = max(gens_h, key=lambda x: x[1])[0]
         trunk_cloud_colored = ccColor2pcd(clouds[max_h_index], trunk_color)
         tree_cloud_colored = ccColor2pcd(clouds[-1], tree_color)
 
@@ -286,20 +293,25 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
 
         # Convert the combined cloud to an image
-        combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=0.02)
-        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_pred:", center_coord_m, (255,0,0))
-        combined_img_z = ann_ctr_img(combined_img_z, 0.02, "c_gens:", gens_ctr[max_h_index], (0,0,255))
+        combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=stepsize)
+        combined_img_z = ann_ctr_img(combined_img_z, stepsize, "c_pred:", center_coord_m, pred_color)
+        combined_img_z = ann_ctr_img(combined_img_z, stepsize, "c_gens:", gens_ctr[max_h_index], gens_color)
 
-        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=0.02)
-        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_pred height:", h_list[0], (255,0,0))
-        max_h_height = max(gens_h, key=lambda x: x[1])[1]
-        combined_img_x = ann_h_img(combined_img_x, 0.02, "h_gens height:", max_h_height, (0,0,255))
+        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=stepsize)
+        combined_img_x = ann_h_img(combined_img_x, stepsize, "h_pred height:", h_list[0], pred_color)
+        combined_img_x = ann_h_img(combined_img_x, stepsize, "h_gens height:", max_h_height, gens_color)
 
-        trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=0.02)
-        trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=0.02)
+        trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=stepsize)
+        trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=stepsize)
 
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
-    
+
+def find_crown(pcd, clouds, ransac_results):
+    max_h_height = max(ransac_results['gen_h'], key=lambda x: x[1])[1]
+    max_h_index = max(ransac_results['gen_h'], key=lambda x: x[1])[0]
+    print(f"Max height: {max_h_height}")
+    print(f"Max index: {max_h_index}")
+
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
         self.pcd_name = pcd_name
@@ -415,6 +427,7 @@ class TreeGen():
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                find_crown(singular_tree, clouds, ransac_results)
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 if img_x is not None or img_z is not None or img_x_t is not None or img_z_t is not None:
