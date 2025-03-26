@@ -309,6 +309,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
 
 def find_crown(pcd, clouds, ransac_results):
+    print(f'ransac_results: {ransac_results}')  
     max_h_height = max(ransac_results['gen_h'], key=lambda x: x[1])[1]
     max_h_index = max(ransac_results['gen_h'], key=lambda x: x[1])[0]
     print(f"Max height: {max_h_height}")
