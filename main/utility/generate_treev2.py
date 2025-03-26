@@ -288,7 +288,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Get trunk diameter and volume
         trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min_pcd)
-        _, trunk_v = crown_to_mesh(trunk_pcd, 'alphashape')
+        trunk_mesh, trunk_v = crown_to_mesh(trunk_pcd, 'alphashape')
+        show_mesh_cloud(trunk_mesh, trunk_pcd)
 
         if trunk_d is None:
             return None, None, ransac_results, None, None, None, None
@@ -366,7 +367,8 @@ def find_crown(pcd, clouds, ransac_results):
     crown_pcd = o3d.geometry.PointCloud()
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
-    _, crown_v = crown_to_mesh(crown_pcd, 'alphashape')
+    crown_mesh, crown_v = crown_to_mesh(crown_pcd, 'alphashape')
+    show_mesh_cloud(crown_mesh, crown_pcd)
 
     ransac_results['crown_d'] = crown_d
     ransac_results['crown_v'] = crown_v
@@ -566,6 +568,11 @@ def crown_to_mesh(crown_cloud, method, alpha=.8):
         print('Error at %s', 'tree_utils error', exc_info=e)
         return None, None
 
+def show_mesh_cloud(mesh, cloud):
+    """Shown cloud with mesh lines."""
+    lines = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+    lines.paint_uniform_color([0.8, .2, 0])
+    o3d.visualization.draw_geometries([cloud, lines])
 
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
