@@ -20,7 +20,7 @@ cc.initCC()
 import pandas as pd
 import logging
 import os
-from .diamNCrown import AdTree_cls
+
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
@@ -314,6 +314,17 @@ def find_crown(pcd, clouds, ransac_results):
     print(f"Max height: {max_h_height}")
     print(f"Max index: {max_h_index}")
 
+    cloud = clouds[max_h_index]
+    cloud_pts = cloud.toNpArray()
+    z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
+    x_min, x_max = cloud_pts[:,0].min(), cloud_pts[:,0].max()
+    y_min, y_max = cloud_pts[:,1].min(), cloud_pts[:,1].max()
+
+    print(f'z_min: {z_min}, z_max: {z_max}')
+    print(f'x_min: {x_min}, x_max: {x_max}')
+    print(f'y_min: {y_min}, y_max: {y_max}')
+
+
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
         self.pcd_name = pcd_name
@@ -410,7 +421,6 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 singular_tree = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
 
-                AdTree_cls.segment_tree(singular_tree)
                 # Kasya: Visualize the tree
                 # print(type(singular_tree)) # <class 'open3d.cuda.pybind.geometry.PointCloud'>
                 # o3d.visualization.draw_geometries([singular_tree])
