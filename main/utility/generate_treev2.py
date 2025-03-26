@@ -274,20 +274,20 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
                 gens_h.append([index, height])
     filtered_h["leftover"] = clouds[-1]
 
-    # Height index and value
+    # Get trunk diameter and volume
     if len(gens_h) > 0:
         max_h_height = max(gens_h, key=lambda x: x[1])[1]
         max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
         # Get trunk diameter and volume
-        diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
+        trunk_d = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
 
-        if diameter is None:
+        if trunk_d is None:
             return None, None, ransac_results, None, None, None, None
         
-        ransac_results[f"gen_h"] = max_h_height
-        ransac_results[f"gen_d"] = diameter
-        ransac_results[f"gen_v"] = diameter*max_h_height
+        ransac_results[f"trunk_h"] = max_h_height
+        ransac_results[f"trunk_d"] = trunk_d
+        ransac_results[f"trunk_v"] = trunk_d*max_h_height
 
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -356,6 +356,15 @@ def find_crown(pcd, clouds, ransac_results):
     # Convert to ccPointCloud
     crown_pcd = cc.ccPointCloud('cloud')
     crown_pcd.coordsFromNPArray_copy(crown_points)
+
+    # Get crown diameter and height and volume
+    crown_d = crown_diameter(crown_pcd)
+    crown_h = crown_height(crown_pcd)
+    crown_v = crown_d * crown_h
+
+    ransac_results['crown_d'] = crown_d
+    ransac_results['crown_h'] = crown_h
+    ransac_results['crown_v'] = crown_v
 
     # Save to img
     crown_img = ccpcd2img(ccColor2pcd(crown_pcd, (255, 255, 255)), axis='x', stepsize=0.02)
@@ -638,13 +647,16 @@ class TreeGen():
                     "n_supp": prim,
                     "n_gens": 0,
                     "h_gens": [],
-                    "gen_h": 0.0,
-                    "gen_d": 0.0,
-                    "gen_v": 0.0
+                    "trunk_h": 0.0,
+                    "trunk_d": 0.0,
+                    "trunk_v": 0.0,
+                    "crown_d": 0.0,
+                    "crown_h": 0.0,
+                    "crown_v": 0.0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=45)
-                if ransac_results['gen_h'] > 0:
+                if ransac_results['trunk_h'] > 0:
                     crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
                     cv2.imwrite(f"{ransac_daq_path}/out_crown.jpg", crown_img)
                     cc.SavePointCloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.bin")
