@@ -23,13 +23,15 @@ import os
 import warnings
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
-from make_circle import make_circle
+
 
 import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 import adTreeutils.math_utils as math_utils
 from adTreeutils import (
       clip_utils)
+sys.path.append('/home/wawj-u/Documents/codes/sdp_tph/main/utility/')
+from make_circle import make_circle
 
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
