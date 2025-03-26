@@ -602,8 +602,8 @@ class TreeGen():
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                if ransac_results['gen_h'] is not None:
-                    crown_img = find_crown(singular_tree, clouds, ransac_results)
+                # if ransac_results['gen_h'] is not None:
+                #     crown_img = find_crown(singular_tree, clouds, ransac_results)
                 
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
