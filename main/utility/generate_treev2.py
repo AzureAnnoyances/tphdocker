@@ -23,9 +23,9 @@ import os
 import warnings
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
-from alphashape import alphashape
-import trimesh
-import pymeshfix
+# from alphashape import alphashape
+# import trimesh
+# import pymeshfix
 
 import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
@@ -546,17 +546,17 @@ def crown_to_mesh(crown_cloud, method, alpha=.8):
             'wood': [0.45, 0.23, 0.07]
     }   
     try:
-        if method == 'alphashape':
-            crown_cloud_sampled = crown_cloud.voxel_down_sample(0.4)
-            pts = np.asarray(crown_cloud_sampled.points)
-            mesh = alphashape(pts, alpha)
-            clean_points, clean_faces = pymeshfix.clean_from_arrays(mesh.vertices,  mesh.faces)
-            mesh = trimesh.base.Trimesh(clean_points, clean_faces)
-            mesh.fix_normals()
-            o3d_mesh = mesh.as_open3d
-        else:
-            crown_cloud_sampled = crown_cloud.voxel_down_sample(0.2)
-            o3d_mesh, _ = crown_cloud_sampled.compute_convex_hull()
+        # if method == 'alphashape':
+        #     crown_cloud_sampled = crown_cloud.voxel_down_sample(0.4)
+        #     pts = np.asarray(crown_cloud_sampled.points)
+        #     mesh = alphashape(pts, alpha)
+        #     clean_points, clean_faces = pymeshfix.clean_from_arrays(mesh.vertices,  mesh.faces)
+        #     mesh = trimesh.base.Trimesh(clean_points, clean_faces)
+        #     mesh.fix_normals()
+        #     o3d_mesh = mesh.as_open3d
+        # else:
+        crown_cloud_sampled = crown_cloud.voxel_down_sample(0.2)
+        o3d_mesh, _ = crown_cloud_sampled.compute_convex_hull()
 
         o3d_mesh.compute_vertex_normals()
         o3d_mesh.paint_uniform_color(tree_colors['foliage'])
