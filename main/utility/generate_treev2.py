@@ -611,8 +611,6 @@ class TreeGen():
                     crown_img = find_crown(singular_tree, clouds, ransac_results)
                     cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
                 
-                results_df = pd.DataFrame([ransac_results])
-                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
                 if img_x is not None or img_z is not None or img_x_t is not None or img_z_t is not None:
                     # Save the images
                     cv2.imwrite(f"{ransac_daq_path}/tree_x_{index}.jpg", img_x)
@@ -627,6 +625,9 @@ class TreeGen():
                     for k, v in clouds.items():
                         cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{index}_{k}.bin")
 
+                results_df = pd.DataFrame([ransac_results])
+                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
+                
                 # save_pointcloud(singular_tree, f"{self.sideViewOut}/{self.pcd_name}_{index}.ply")
                 # self.adTreeCls.separate_via_dbscan(singular_tree)
                 # self.adTreeCls.segment_tree(singular_tree)
