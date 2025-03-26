@@ -343,9 +343,10 @@ def find_crown(pcd, clouds, ransac_results):
 
     # Apply mask to keep only crown points
     crown_points = tree_points[mask]
-
-    print(f'crown_pts: {crown_points}')
-
+    crown_img = ccpcd2img(ccColor2pcd(crown_points, (0, 255, 0)), axis='x', stepsize=0.02)
+    
+    print(f'Crown done')
+    return crown_img
 
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -464,7 +465,7 @@ class TreeGen():
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 if ransac_results['gen_h'] is not None:
-                    find_crown(singular_tree, clouds, ransac_results)
+                    crown_img = find_crown(singular_tree, clouds, ransac_results)
                 
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
@@ -477,6 +478,7 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_x.jpg", img_x)
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_z.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
+                    cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
 
                     # Save the point clouds
                     for k, v in clouds.items():
