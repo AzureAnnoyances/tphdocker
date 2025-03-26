@@ -27,8 +27,7 @@ from scipy.optimize import leastsq
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 import adTreeutils.math_utils as math_utils
 from adTreeutils import (
-      clip_utils,
-      o3d_utils)
+      clip_utils)
 from adTreeutils.smallestenclosingcircle import make_circle
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
@@ -490,7 +489,7 @@ def crown_diameter(crown_cloud):
     """Function to compute crown diameter from o3d crown point cloud."""
 
     try:
-        proj_pts = o3d_utils.project(crown_cloud, 2, .2)
+        proj_pts = project(crown_cloud, 2, .2)
         radius = make_circle(proj_pts)[2]
 
         # Visualize
@@ -510,11 +509,26 @@ def crown_diameter(crown_cloud):
 def crown_height(crown_cloud):
     """Function to get the crown height."""
     try:
-        return o3d_utils.cloud_height(crown_cloud)
+        return cloud_height(crown_cloud)
     except Exception as e:
         print('Error at %s', 'tree_utils error', exc_info=e)
         return None
     
+def project(pcd, axis, voxel_size=None):
+    """Project point cloud wrt axis and voxelize if wanted."""
+    pts = np.array(pcd.points)
+    pts[:,axis] = 0
+    pcd_ = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(pts))
+    if voxel_size:
+        pcd_ = pcd_.voxel_down_sample(voxel_size)
+    pts = np.asarray(pcd_.points)[:,:2]
+    return pts
+
+def cloud_height(cloud):
+    """Function to get cloud height."""
+    height = cloud.get_max_bound()[2] - cloud.get_min_bound()[2]
+    return height
+
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
         self.pcd_name = pcd_name
