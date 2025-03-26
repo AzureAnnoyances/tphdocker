@@ -20,7 +20,12 @@ cc.initCC()
 import pandas as pd
 import logging
 import os
-
+import warnings
+from scipy.spatial.transform import Rotation as R
+from adTreeutils import (
+      clip_utils,)
+from scipy.optimize import leastsq
+import adTreeutils.math_utils as math_utils
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
@@ -268,7 +273,8 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
     # Get trunk diameter
-    
+    diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
+    print(f'diameter: {diameter}')
     # Get trunk volume
 
     # Save the results to a CSV file
@@ -326,29 +332,157 @@ def find_crown(pcd, clouds, ransac_results):
     print(f'x_min: {x_min}, x_max: {x_max}')
     print(f'y_min: {y_min}, y_max: {y_max}')
 
-    tree_points = np.asarray(pcd.points)
-    # Use KDTree to find trunk points in the tree point cloud
-    tree_kdtree = o3d.geometry.KDTreeFlann(pcd)
-
-    # Define distance threshold for removal (adjust as needed)
-    distance_threshold = 0.05  # Adjust based on point spacing
-
-    # Identify tree points that are near the trunk
-    mask = np.ones(len(tree_points), dtype=bool)  # Default: Keep all points
-
-    for trunk_point in trunk_pcd_np:
-        [_, idx, _] = tree_kdtree.search_knn_vector_3d(trunk_point, 1)  # Find nearest neighbor in tree
-        if np.linalg.norm(tree_points[idx] - trunk_point) < distance_threshold:
-            mask[idx] = False  # Remove the matching tree point
-
-    # Apply mask to keep only crown points
-    crown_points = tree_points[mask]
-    cloud = cc.ccPointCloud('cloud')
-    cloud.coordsFromNPArray_copy(crown_points)
-    crown_img = ccpcd2img(ccColor2pcd(cloud, (0, 255, 0)), axis='x', stepsize=0.02)
+    # Filter cloud for stem points
+    tree_points = np.array(pcd.points)
+    labels = np.zeros(len(tree_points), dtype=bool)
+    mask_idx = np.where(tree_points[:,2] < z_max)[0]
     
+    # TODO Filter tree points
+    tree = KDTree(tree_points[mask_idx])
+    selection = set()
+    
+    # Get start and end points
+    start_pt = skeleton_pts[0]
+    end_temp = start_pt + np.array([0,0,height])
+    end_pt = tree_points[tree.query(end_temp, )[1]]
+    print("starting point",start_pt)
+    print("temp_end", end_temp)
+    print("real_end", end_pt)
+    print("max_z",tree_points[mask_idx][:,2].max())
+
+    # Apply mask to get only the crown points
+    crown_points = tree_points[mask]
+
     print(f'Crown done')
-    return crown_img
+
+def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
+    """Function to estimate diameter at breastheight."""
+    try:
+        stem_points = np.asarray(stem_cloud.points)
+        z = ground_level + breastheight
+
+        # clip slice
+        mask = clip_utils.axis_clip(stem_points, 2, z-.15, z+.15)
+        stem_slice = stem_points[mask]
+        if len(stem_slice) < 20:
+            return None
+
+        # fit cylinder
+        radius = fit_vertical_cylinder_3D(stem_slice, .04)[2]
+
+        return 2*radius
+    except Exception as e:
+        print('Error at %s', 'tree_utils error', exc_info=e)
+        return None
+
+def fit_vertical_cylinder_3D(xyz, th):
+        """
+        This is a fitting for a vertical cylinder fitting
+        Reference:
+        http://www.int-arch-photogramm-remote-sens-spatial-inf-sci.net/XXXIX-B5/169/2012/isprsarchives-XXXIX-B5-169-2012.pdf
+
+        xyz is a matrix contain at least 5 rows, and each row stores x y z of a cylindrical surface
+        p is initial values of the parameter;
+        p[0] = Xc, x coordinate of the cylinder centre
+        P[1] = Yc, y coordinate of the cylinder centre
+        P[2] = alpha, rotation angle (radian) about the x-axis
+        P[3] = beta, rotation angle (radian) about the y-axis
+        P[4] = r, radius of the cylinder
+
+        th, threshold for the convergence of the least squares
+
+        """
+        xyz_mean = np.mean(xyz, axis=0)
+        xyz_centered = xyz - xyz_mean
+        x = xyz_centered[:,0]
+        y = xyz_centered[:,1]
+        z = xyz_centered[:,2]
+
+        # init parameters
+        p = [0, 0, 0, 0, max(np.abs(y).max(), np.abs(x).max())]
+
+        # fit
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            fitfunc = lambda p, x, y, z: (- np.cos(p[3])*(p[0] - x) - z*np.cos(p[2])*np.sin(p[3]) - np.sin(p[2])*np.sin(p[3])*(p[1] - y))**2 + (z*np.sin(p[2]) - np.cos(p[2])*(p[1] - y))**2 #fit function
+            errfunc = lambda p, x, y, z: fitfunc(p, x, y, z) - p[4]**2 #error function 
+            est_p = leastsq(errfunc, p, args=(x, y, z), maxfev=1000)[0]
+            inliers = np.where(errfunc(est_p,x,y,z)<th)[0]
+        
+        # convert
+        center = np.array([est_p[0],est_p[1],0]) + xyz_mean
+        radius = est_p[4]
+        
+        rotation = R.from_rotvec([est_p[2], 0, 0])
+        axis = rotation.apply([0,0,1])
+        rotation = R.from_rotvec([0, est_p[3], 0])
+        axis = rotation.apply(axis)
+
+        # circumferential completeness index (CCI)
+        P_xy = math_utils.rodrigues_rot(xyz_centered, axis, [0, 0, 1])
+        CCI = circumferential_completeness_index([est_p[0], est_p[1]], radius, P_xy)
+        
+        # visualize
+        # voxel_cloud = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(xyz))
+        # mesh = trimesh.creation.cylinder(radius=radius,
+        #                  sections=20, 
+        #                  segment=(center+axis*z.min(),center+axis*z.max())).as_open3d
+        # mesh_lines = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+        # mesh_lines.paint_uniform_color((0, 0, 0))
+
+        # inliers_pcd = voxel_cloud.select_by_index(inliers)
+        # inliers_pcd.paint_uniform_color([0,1,0])
+        # outlier_pcd = voxel_cloud.select_by_index(inliers, invert=True)
+        # outlier_pcd.paint_uniform_color([1,0,0])
+
+        # o3d.visualization.draw_geometries([inliers_pcd, outlier_pcd, mesh_lines])
+
+        return center, axis, radius, inliers, CCI
+
+def circumferential_completeness_index(fitted_circle_centre, estimated_radius, slice_points):
+    """
+    Computes the Circumferential Completeness Index (CCI) of a fitted circle.
+    Args:
+        fitted_circle_centre: x, y coords of the circle centre
+        estimated_radius: circle radius
+        slice_points: the points the circle was fitted to
+    Returns:
+        CCI
+    """
+
+    sector_angle = 4.5  # degrees
+    num_sections = int(np.ceil(360 / sector_angle))
+    sectors = np.linspace(-180, 180, num=num_sections, endpoint=False)
+
+    centre_vectors = slice_points[:, :2] - fitted_circle_centre
+    norms = np.linalg.norm(centre_vectors, axis=1)
+
+    centre_vectors = centre_vectors / np.atleast_2d(norms).T
+    centre_vectors = centre_vectors[
+        np.logical_and(norms >= 0.8 * estimated_radius, norms <= 1.2 * estimated_radius)
+    ]
+
+    sector_vectors = np.vstack((np.cos(sectors), np.sin(sectors))).T
+    CCI = (
+        np.sum(
+            [
+                np.any(
+                    np.degrees(
+                        np.arccos(
+                            np.clip(np.einsum("ij,ij->i", np.atleast_2d(sector_vector), centre_vectors), -1, 1)
+                        )
+                    )
+                    < sector_angle / 2
+                )
+                for sector_vector in sector_vectors
+            ]
+        )
+        / num_sections
+    )
+
+    return CCI
+
+
 
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
