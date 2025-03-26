@@ -278,6 +278,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
         print(f'diameter: {diameter}')
         # Get trunk volume
+        print(f'vol: {diameter*max_h_height}')
 
     # Save the results to a CSV file
     if len(gens_h) > 0:
@@ -616,7 +617,7 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_x.jpg", img_x)
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_z.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
-                    cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
+                    # cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
 
                     # Save the point clouds
                     for k, v in clouds.items():
