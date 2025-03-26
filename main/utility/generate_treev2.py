@@ -339,7 +339,7 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
         # Get trunk diameter and volume
         trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min)
         trunk_v = np.pi * trunk_d * max_h_height
-        trunk_mesh, trunk_v_c = crown_to_mesh(trunk_pcd)
+        trunk_mesh, trunk_v_c = crown_to_mesh(trunk_pcd, 'hull')
         # show_mesh_cloud(trunk_mesh, trunk_pcd) // debug
 
         return trunk_pcd, max_h_height, trunk_d, trunk_v, trunk_v_c
@@ -522,7 +522,14 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
 def find_crown2(pcd, trunk_pcd):
     """
-    
+    Find the crown of the tree using the trunk point cloud
+    Args:
+        pcd (open3d.PointCloud): Tree point cloud
+        trunk_pcd (open3d.PointCloud): Trunk point cloud
+    Returns:
+        open3d.PointCloud: Crown point cloud
+        float: Crown diameter
+        float: Crown volume
     """
 
     # Compute the trunk's bounding box
@@ -549,7 +556,7 @@ def find_crown2(pcd, trunk_pcd):
     crown_pcd = o3d.geometry.PointCloud()
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
-    crown_mesh, crown_v = crown_to_mesh(crown_pcd)
+    crown_mesh, crown_v = crown_to_mesh(crown_pcd, 'hull')
     # show_mesh_cloud(crown_mesh, crown_pcd)
 
     if crown_d is None or crown_v is None:
