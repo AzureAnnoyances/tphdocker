@@ -361,7 +361,7 @@ def find_crown(pcd, clouds, ransac_results):
     crown_img = ccpcd2img(ccColor2pcd(crown_pcd, (255, 255, 255)), axis='x', stepsize=0.02)
 
     print(f'Crown done')
-    return crown_img
+    return crown_pcd, crown_img
 
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
     """Function to estimate diameter at breastheight."""
@@ -610,22 +610,23 @@ class TreeGen():
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
                 if ransac_results['gen_h'] > 0:
-                    crown_img = find_crown(singular_tree, clouds, ransac_results)
-                    cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
-                
+                    crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
+                    cv2.imwrite(f"{ransac_daq_path}/out_crown.jpg", crown_img)
+                    cc.SavePointCloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.bin")
+
                 if img_x is not None or img_z is not None or img_x_t is not None or img_z_t is not None:
                     # Save the images
                     cv2.imwrite(f"{ransac_daq_path}/tree_x_{index}.jpg", img_x)
                     cv2.imwrite(f"{ransac_daq_path}/tree_z_{index}.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", img_x_t)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_z_{index}.jpg", img_z_t)
-                    cv2.imwrite(f"{ransac_daq_path}/tree_out_x.jpg", img_x)
-                    cv2.imwrite(f"{ransac_daq_path}/tree_out_z.jpg", img_z)
-                    cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
+                    cv2.imwrite(f"{ransac_daq_path}/out_tree_x.jpg", img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/out_tree_z.jpg", img_z)
+                    cv2.imwrite(f"{ransac_daq_path}/out_trunk.jpg", img_x_t)
 
                     # Save the point clouds
                     for k, v in clouds.items():
-                        cc.SavePointCloud(v, f"{ransac_daq_path}/cloud_{index}_{k}.bin")
+                        cc.SavePointCloud(v, f"{ransac_daq_path}/trunk_{index}_{k}.bin")
 
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
