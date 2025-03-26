@@ -23,7 +23,9 @@ import os
 import warnings
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
-
+from alphashape import alphashape
+import trimesh
+import pymeshfix
 
 import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
@@ -279,15 +281,22 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         max_h_height = max(gens_h, key=lambda x: x[1])[1]
         max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
+        # Convert ccpcd to o3d pcd  
+        trunk_ccpcd_np = filtered_h[max_h_index].toNpArray()
+        trunk_pcd = o3d.geometry.PointCloud()
+        trunk_pcd.points = o3d.utility.Vector3dVector(trunk_ccpcd_np)
+
         # Get trunk diameter and volume
-        trunk_d = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
+        trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min_pcd)
+        _, vol = crown_to_mesh(trunk_pcd, 'alphashape')
+        print(f'Trunk diameter: {trunk_d}, Trunk volume: {vol}')
 
         if trunk_d is None:
             return None, None, ransac_results, None, None, None, None
         
         ransac_results[f"trunk_h"] = max_h_height
         ransac_results[f"trunk_d"] = trunk_d
-        ransac_results[f"trunk_v"] = trunk_d*max_h_height
+        ransac_results[f"trunk_v"] = np.pi * trunk_d * max_h_height
 
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -357,10 +366,8 @@ def find_crown(pcd, clouds, ransac_results):
     crown_pcd = o3d.geometry.PointCloud()
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
-    crown_h = crown_height(crown_pcd)
-    crown_v = crown_d * (crown_h - trunk_h)
+    _, crown_v = crown_to_mesh(crown_pcd, 'alphashape')
 
-    ransac_results['crown_h'] = crown_h
     ransac_results['crown_d'] = crown_d
     ransac_results['crown_v'] = crown_v
 
@@ -376,7 +383,7 @@ def find_crown(pcd, clouds, ransac_results):
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
     """Function to estimate diameter at breastheight."""
     try:
-        stem_points = stem_cloud.toNpArray()
+        stem_points = np.asarray(stem_cloud.points)
         z = ground_level + breastheight
 
         # clip slice
@@ -521,14 +528,6 @@ def crown_diameter(crown_cloud):
         print('Error at %s', 'tree_utils error', exc_info=e)
         return None
     
-def crown_height(crown_cloud):
-    """Function to get the crown height."""
-    try:
-        return cloud_height(crown_cloud)
-    except Exception as e:
-        print('Error at %s', 'tree_utils error', exc_info=e)
-        return None
-    
 def project(pcd, axis, voxel_size=None):
     """Project point cloud wrt axis and voxelize if wanted."""
     pts = np.array(pcd.points)
@@ -539,10 +538,34 @@ def project(pcd, axis, voxel_size=None):
     pts = np.asarray(pcd_.points)[:,:2]
     return pts
 
-def cloud_height(cloud):
-    """Function to get cloud height."""
-    height = cloud.get_max_bound()[2] - cloud.get_min_bound()[2]
-    return height
+def crown_to_mesh(crown_cloud, method, alpha=.8):
+    """Function to convert to o3d crown point cloud to a mesh."""
+    tree_colors = {
+            'stem': [0.36,0.25, 0.2],
+            'foliage': [0,0.48,0],
+            'wood': [0.45, 0.23, 0.07]
+    }   
+    try:
+        if method == 'alphashape':
+            crown_cloud_sampled = crown_cloud.voxel_down_sample(0.4)
+            pts = np.asarray(crown_cloud_sampled.points)
+            mesh = alphashape(pts, alpha)
+            clean_points, clean_faces = pymeshfix.clean_from_arrays(mesh.vertices,  mesh.faces)
+            mesh = trimesh.base.Trimesh(clean_points, clean_faces)
+            mesh.fix_normals()
+            o3d_mesh = mesh.as_open3d
+        else:
+            crown_cloud_sampled = crown_cloud.voxel_down_sample(0.2)
+            o3d_mesh, _ = crown_cloud_sampled.compute_convex_hull()
+
+        o3d_mesh.compute_vertex_normals()
+        o3d_mesh.paint_uniform_color(tree_colors['foliage'])
+        return o3d_mesh, o3d_mesh.get_volume()
+
+    except Exception as e:
+        print('Error at %s', 'tree_utils error', exc_info=e)
+        return None, None
+
 
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
@@ -566,7 +589,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_h", "crown_d", "crown_v"]
+        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_d", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
@@ -652,7 +675,6 @@ class TreeGen():
                     "trunk_h": 0.0,
                     "trunk_d": 0.0,
                     "trunk_v": 0.0,
-                    "crown_h": 0.0,
                     "crown_d": 0.0,
                     "crown_v": 0.0
                 }
@@ -660,6 +682,7 @@ class TreeGen():
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=45)
                 if ransac_results['trunk_h'] > 0:
                     crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
+                    cv2.imwrite(f"{ransac_daq_path}/crown_{index}.jpg", h_im_list[0])
                     cv2.imwrite(f"{ransac_daq_path}/out_crown.jpg", crown_img)
                     cc.SavePointCloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.bin")
 
