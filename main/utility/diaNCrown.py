@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 import sys
+import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
 
@@ -33,7 +34,7 @@ def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
 
         return 2*radius
     except Exception as e:
-        print('Error at %s', 'tree_utils error', exc_info=e)
+        print(f'Error at diamter: {e}')
         return None
 
 def fit_vertical_cylinder_3D(xyz, th):
@@ -161,7 +162,7 @@ def crown_diameter(crown_cloud):
 
         return radius*2
     except Exception as e:
-        print('Error at %s', 'tree_utils error', exc_info=e)
+        print(f'Error at crown: {e}')
         return None
     
 def project(pcd, axis, voxel_size=None):
@@ -199,7 +200,7 @@ def crown_to_mesh(crown_cloud, method, alpha=.8):
         return o3d_mesh, o3d_mesh.get_volume()
 
     except Exception as e:
-        print('Error at %s', 'tree_utils error', exc_info=e)
+        print(f'Error at crown mesh: {e}')
         return None, None
 
 def show_mesh_cloud(mesh, cloud):
