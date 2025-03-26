@@ -289,7 +289,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Get trunk diameter and volume
         trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min_pcd)
         trunk_mesh, trunk_v = crown_to_mesh(trunk_pcd, 'alphashape')
-        show_mesh_cloud(trunk_mesh, trunk_pcd)
+        # show_mesh_cloud(trunk_mesh, trunk_pcd)
 
         if trunk_d is None:
             return None, None, ransac_results, None, None, None, None
@@ -368,7 +368,7 @@ def find_crown(pcd, clouds, ransac_results):
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
     crown_mesh, crown_v = crown_to_mesh(crown_pcd, 'alphashape')
-    show_mesh_cloud(crown_mesh, crown_pcd)
+    # show_mesh_cloud(crown_mesh, crown_pcd)
 
     ransac_results['crown_d'] = crown_d
     ransac_results['crown_v'] = crown_v
