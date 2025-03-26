@@ -344,9 +344,13 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
 
         # Get trunk diameter and volume
         trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min)
-        trunk_v = np.pi * trunk_d * max_h_height
         trunk_mesh, trunk_v_c = crown_to_mesh(trunk_pcd, 'hull')
         # show_mesh_cloud(trunk_mesh, trunk_pcd) // debug
+
+        if trunk_d is None or trunk_v_c is None:
+            return None, None, None, None, None
+        
+        trunk_v = np.pi * trunk_d * max_h_height
 
         return trunk_pcd, max_h_height, trunk_d, trunk_v, trunk_v_c
     return None, None, None, None, None
@@ -832,7 +836,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "n_supp", "n_gens", "h_preds", "trunk_h", "trunk_d", "trunk_v", "trunk_v_c", "crown_d", "crown_v"]
+        header = ["index", "n_points", "n_supp", "h_ref", "trunk_h", "trunk_d", "trunk_v", "trunk_v_c", "crown_d", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
@@ -906,7 +910,7 @@ class TreeGen():
                     "index": index,
                     "n_points": len(np.asarray(singular_tree.points)),
                     "n_supp": prim,
-                    "h_preds": h_list[0],
+                    "h_ref": h_list[0],
                     "trunk_h": 0.0,
                     "trunk_d": 0.0,
                     "trunk_v": 0.0,
