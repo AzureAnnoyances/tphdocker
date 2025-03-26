@@ -314,7 +314,7 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
     prim = int(0.01*len(np.asarray(pcd.points)))
 
     # RANSAC pcd to find the trunk cylinder
-    trunk_meshes, trunk_ccpcds = ransac_gen_cylinders(pcd, prim=prim, deg=45) # 45 deg gave best result for trunk
+    trunk_meshes, trunk_ccpcds = ransac_gen_cylinders(pcd, prim=prim, dev_deg=45) # 45 deg gave best result for trunk
     
     # Extract open3d point cloud to numpy array
     points = np.asarray(pcd.points)
@@ -521,6 +521,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
 
 def find_crown2(pcd, trunk_pcd):
+    """
+    
+    """
+
     # Compute the trunk's bounding box
     trunk_bbox = trunk_pcd.get_axis_aligned_bounding_box()
 
