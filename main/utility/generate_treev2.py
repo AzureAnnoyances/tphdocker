@@ -22,12 +22,14 @@ import logging
 import os
 import sys
 import warnings
+import adTreeutils.math_utils as math_utils
 from scipy.spatial.transform import Rotation as R
+from scipy.optimize import leastsq
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 from adTreeutils import (
-      clip_utils,)
-from scipy.optimize import leastsq
-import adTreeutils.math_utils as math_utils
+      clip_utils,
+      o3d_utils)
+from adTreeutils.smallestenclosingcircle import make_circle
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
@@ -277,7 +279,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Get trunk diameter and volume
         diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
 
-        print(f'height: {max_h_height}, diameter: {diameter}')
+        if diameter is None:
+            return None, None, ransac_results, None, None, None, None
+        
         ransac_results[f"gen_h"] = max_h_height
         ransac_results[f"gen_d"] = diameter
         ransac_results[f"gen_v"] = diameter*max_h_height
@@ -318,25 +322,15 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
 
 def find_crown(pcd, clouds, ransac_results):
-    print(f'ransac_results: {ransac_results}')  
     max_h_height = max(ransac_results['h_gens'], key=lambda x: x[1])[1]
     max_h_index = max(ransac_results['h_gens'], key=lambda x: x[1])[0]
-    print(f"Max height: {max_h_height}")
-    print(f"Max index: {max_h_index}")
 
-    trunk_pcd = clouds[max_h_index]
-    trunk_pcd_np = trunk_pcd.toNpArray()
-    z_min, z_max = trunk_pcd_np[:,2].min(), trunk_pcd_np[:,2].max()
-    x_min, x_max = trunk_pcd_np[:,0].min(), trunk_pcd_np[:,0].max()
-    y_min, y_max = trunk_pcd_np[:,1].min(), trunk_pcd_np[:,1].max()
-
-    print(f'z_min: {z_min}, z_max: {z_max}')
-    print(f'x_min: {x_min}, x_max: {x_max}')
-    print(f'y_min: {y_min}, y_max: {y_max}')
-
-    # Compute the trunk's bounding box
+    trunk_ccpcd = clouds[max_h_index]
+    trunk_pcd_np = trunk_ccpcd.toNpArray()
     trunk_pcd = o3d.geometry.PointCloud()
     trunk_pcd.points = o3d.utility.Vector3dVector(trunk_pcd_np)
+
+    # Compute the trunk's bounding box
     trunk_bbox = trunk_pcd.get_axis_aligned_bounding_box()
 
     # Convert to numpy for easier processing
@@ -356,12 +350,13 @@ def find_crown(pcd, clouds, ransac_results):
     # Apply mask to get only the crown points
     crown_points = tree_points[mask]
 
-    # Save to img
+    # Convert to ccPointCloud
     crown_pcd = cc.ccPointCloud('cloud')
     crown_pcd.coordsFromNPArray_copy(crown_points)
+
+    # Save to img
     crown_img = ccpcd2img(ccColor2pcd(crown_pcd, (255, 255, 255)), axis='x', stepsize=0.02)
 
-    print(f'Crown done')
     return crown_pcd, crown_img
 
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
@@ -491,7 +486,35 @@ def circumferential_completeness_index(fitted_circle_centre, estimated_radius, s
 
     return CCI
 
+def crown_diameter(crown_cloud):
+    """Function to compute crown diameter from o3d crown point cloud."""
 
+    try:
+        proj_pts = o3d_utils.project(crown_cloud, 2, .2)
+        radius = make_circle(proj_pts)[2]
+
+        # Visualize
+        # fig, ax = plt.subplots(figsize=(6, 6))
+        # circle = Circle((x,y), r, facecolor='none',
+        #                 edgecolor=(.8, .2, .1), linewidth=3, alpha=0.5)
+        # ax.add_patch(circle)
+        # ax.scatter(proj_pts[:,0],proj_pts[:,1], color=(0,0.5,0), s=.3)
+        # ax.plot(x,y, marker='x', c='k', markersize=5)
+        # plt.show()
+
+        return radius*2
+    except Exception as e:
+        print('Error at %s', 'tree_utils error', exc_info=e)
+        return None
+    
+def crown_height(crown_cloud):
+    """Function to get the crown height."""
+    try:
+        return o3d_utils.cloud_height(crown_cloud)
+    except Exception as e:
+        print('Error at %s', 'tree_utils error', exc_info=e)
+        return None
+    
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
         self.pcd_name = pcd_name
@@ -510,13 +533,6 @@ class TreeGen():
         # self.adTreeCls = AdTree_cls()
     
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
-        # Init
-        # RANSAC Iter Parameters
-        # prim_min = 1000
-        # prim_max = 2100
-        # prim_step = 100
-        deg = 45
-
         # Save results to a CSV file
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
@@ -609,7 +625,7 @@ class TreeGen():
                     "gen_v": 0.0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
-                meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
+                meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=45)
                 if ransac_results['gen_h'] > 0:
                     crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
                     cv2.imwrite(f"{ransac_daq_path}/out_crown.jpg", crown_img)
