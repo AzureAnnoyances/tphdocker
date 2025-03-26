@@ -325,10 +325,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
 
 def find_crown(pcd, clouds, ransac_results):
-    max_h_height = max(ransac_results['h_gens'], key=lambda x: x[1])[1]
-    max_h_index = max(ransac_results['h_gens'], key=lambda x: x[1])[0]
+    trunk_h = max(ransac_results['h_gens'], key=lambda x: x[1])[1]
+    trunk_h_index = max(ransac_results['h_gens'], key=lambda x: x[1])[0]
 
-    trunk_ccpcd = clouds[max_h_index]
+    trunk_ccpcd = clouds[trunk_h_index]
     trunk_pcd_np = trunk_ccpcd.toNpArray()
     trunk_pcd = o3d.geometry.PointCloud()
     trunk_pcd.points = o3d.utility.Vector3dVector(trunk_pcd_np)
@@ -358,7 +358,7 @@ def find_crown(pcd, clouds, ransac_results):
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
     crown_h = crown_height(crown_pcd)
-    crown_v = crown_d * crown_h
+    crown_v = crown_d * (crown_h - trunk_h)
 
     ransac_results['crown_d'] = crown_d
     ransac_results['crown_h'] = crown_h
@@ -566,7 +566,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "h_preds", "n_supp", "n_gens", "h_gens"]
+        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_d", "crown_h", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
