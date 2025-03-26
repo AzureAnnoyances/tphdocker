@@ -274,10 +274,10 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         max_h_height = max(gens_h, key=lambda x: x[1])[1]
         max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
-    # Get trunk diameter
-    diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
-    print(f'diameter: {diameter}')
-    # Get trunk volume
+        # Get trunk diameter
+        diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
+        print(f'diameter: {diameter}')
+        # Get trunk volume
 
     # Save the results to a CSV file
     if len(gens_h) > 0:
@@ -360,7 +360,7 @@ def find_crown(pcd, clouds, ransac_results):
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
     """Function to estimate diameter at breastheight."""
     try:
-        stem_points = np.asarray(stem_cloud.points)
+        stem_points = stem_cloud.toNpArray()
         z = ground_level + breastheight
 
         # clip slice
