@@ -360,8 +360,8 @@ def find_crown(pcd, clouds, ransac_results):
     crown_h = crown_height(crown_pcd)
     crown_v = crown_d * (crown_h - trunk_h)
 
-    ransac_results['crown_d'] = crown_d
     ransac_results['crown_h'] = crown_h
+    ransac_results['crown_d'] = crown_d
     ransac_results['crown_v'] = crown_v
 
     # Convert to ccPointCloud
@@ -566,7 +566,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_d", "crown_h", "crown_v"]
+        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_h", "crown_d", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
@@ -645,15 +645,15 @@ class TreeGen():
                 print(f"prim: {prim}")
                 ransac_results = {
                     "n_points": len(np.asarray(singular_tree.points)),
-                    "h_preds": h_list[0],
                     "n_supp": prim,
                     "n_gens": 0,
+                    "h_preds": h_list[0],
                     "h_gens": [],
                     "trunk_h": 0.0,
                     "trunk_d": 0.0,
                     "trunk_v": 0.0,
-                    "crown_d": 0.0,
                     "crown_h": 0.0,
+                    "crown_d": 0.0,
                     "crown_v": 0.0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
