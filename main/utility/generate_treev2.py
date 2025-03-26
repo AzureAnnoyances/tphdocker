@@ -17,15 +17,15 @@ import cloudComPy.RANSAC_SD
 cc.initCC()
 
 # Kasya
-import sys
-sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 import pandas as pd
 import logging
 import os
+import sys
 import warnings
-import adTreeutils.math_utils as math_utils
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
+sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
+import adTreeutils.math_utils as math_utils
 from adTreeutils import (
       clip_utils,
       o3d_utils)
