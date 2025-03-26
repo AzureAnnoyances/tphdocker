@@ -343,7 +343,9 @@ def find_crown(pcd, clouds, ransac_results):
 
     # Apply mask to keep only crown points
     crown_points = tree_points[mask]
-    crown_img = ccpcd2img(ccColor2pcd(crown_points, (0, 255, 0)), axis='x', stepsize=0.02)
+    cloud = cc.ccPointCloud('cloud')
+    cloud.coordsFromNPArray_copy(crown_points)
+    crown_img = ccpcd2img(ccColor2pcd(cloud, (0, 255, 0)), axis='x', stepsize=0.02)
     
     print(f'Crown done')
     return crown_img
