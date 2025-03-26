@@ -288,8 +288,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
 
         # Get trunk diameter and volume
         trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min_pcd)
-        _, vol = crown_to_mesh(trunk_pcd, 'alphashape')
-        print(f'Trunk diameter: {trunk_d}, Trunk volume: {vol}')
+        _, trunk_v = crown_to_mesh(trunk_pcd, 'alphashape')
 
         if trunk_d is None:
             return None, None, ransac_results, None, None, None, None
@@ -297,6 +296,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         ransac_results[f"trunk_h"] = max_h_height
         ransac_results[f"trunk_d"] = trunk_d
         ransac_results[f"trunk_v"] = np.pi * trunk_d * max_h_height
+        ransac_results[f'trunk_v_c'] = trunk_v
 
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
@@ -589,7 +589,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "crown_d", "crown_v"]
+        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "trunk_v_c", "crown_d", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
@@ -675,6 +675,7 @@ class TreeGen():
                     "trunk_h": 0.0,
                     "trunk_d": 0.0,
                     "trunk_v": 0.0,
+                    "trunk_v_c": 0.0,
                     "crown_d": 0.0,
                     "crown_v": 0.0
                 }
