@@ -306,7 +306,7 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
         open3d.PointCloud: Trunk point cloud
         float: Trunk height
         float: Trunk diameter
-        float: Trunk volume
+        float: Trunk volume using cylinder calculation
         float: Trunk volume from crown calculation
     """
     # Primitive ratio based on the number of points
@@ -897,7 +897,7 @@ class TreeGen():
                     "crown_d": 0.0,
                     "crown_v": 0.0
                 }
-                # for prim in range(prim_min, prim_max, prim_step)
+
                 # meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=45)
                 trunk_pcd, trunk_h, trunk_d, trunk_v, trunk_v_c = find_trunk2(singular_tree, coord, h_list[0])
                 if trunk_pcd is not None:
@@ -910,6 +910,9 @@ class TreeGen():
                     ransac_results['trunk_v_c'] = trunk_v_c
                     ransac_results['crown_d'] = crown_d
                     ransac_results['crown_v'] = crown_v
+
+                    cc.SavePointCloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.bin")
+                    cc.SavePointCloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.bin")
 
                 # if ransac_results['trunk_h'] > 0:
                 #     crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
