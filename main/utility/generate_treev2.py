@@ -923,8 +923,8 @@ class TreeGen():
                     ransac_results['crown_d'] = crown_d
                     ransac_results['crown_v'] = crown_v
 
-                    cc.SavePointCloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.bin")
-                    cc.SavePointCloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.bin")
+                    save_pointcloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.ply")
+                    save_pointcloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.ply")
 
                 # if ransac_results['trunk_h'] > 0:
                 #     crown_pcd, crown_img = find_crown(singular_tree, clouds, ransac_results)
