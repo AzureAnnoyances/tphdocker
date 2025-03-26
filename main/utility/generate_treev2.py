@@ -353,11 +353,9 @@ def find_crown(pcd, clouds, ransac_results):
     # Apply mask to get only the crown points
     crown_points = tree_points[mask]
 
-    # Convert to ccPointCloud
-    crown_pcd = cc.ccPointCloud('cloud')
-    crown_pcd.coordsFromNPArray_copy(crown_points)
-
     # Get crown diameter and height and volume
+    crown_pcd = o3d.geometry.PointCloud()
+    crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
     crown_h = crown_height(crown_pcd)
     crown_v = crown_d * crown_h
@@ -366,10 +364,14 @@ def find_crown(pcd, clouds, ransac_results):
     ransac_results['crown_h'] = crown_h
     ransac_results['crown_v'] = crown_v
 
-    # Save to img
-    crown_img = ccpcd2img(ccColor2pcd(crown_pcd, (255, 255, 255)), axis='x', stepsize=0.02)
+    # Convert to ccPointCloud
+    crown_ccpcd = cc.ccPointCloud('cloud')
+    crown_ccpcd.coordsFromNPArray_copy(crown_points)
 
-    return crown_pcd, crown_img
+    # Save to img
+    crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
+
+    return crown_ccpcd, crown_img
 
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
     """Function to estimate diameter at breastheight."""
