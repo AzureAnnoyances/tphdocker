@@ -312,12 +312,14 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
     x_min, x_max = points[:,0].min(), points[:,0].max()
     y_min, y_max = abs(points[:,1].max()), abs(points[:,1].min())
 
-    filtered_centers_ccpd, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
+    filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(trunk_ccpcds, h_ref, z_min, z_tol, h_tol)
 
-    if filtered_centers_ccpd is None:
-        return None, None, None, None, None
+    # filtered_centers_ccpd, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
+
+    # if filtered_centers_ccpd is None:
+    #     return None, None, None, None, None
     
-    filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(filtered_centers_ccpd, h_ref, z_min, z_tol, h_tol)
+    # filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(filtered_centers_ccpd, h_ref, z_min, z_tol, h_tol)
 
     # Get trunk diameter and volume
     if filtered_heights_m is not None:
@@ -765,13 +767,13 @@ class TreeGen():
                     trunk_ccpcd = cc.ccPointCloud('cloud')
                     trunk_ccpcd.coordsFromNPArray_copy(np.asarray(trunk_pcd.points))
                     trunk_img = ccpcd2img(ccColor2pcd(trunk_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
-                    cv2.imwrite(f"{ransac_daq_path}/trunk_{index}.jpg", trunk_img)
+                    cv2.imwrite(f"{ransac_daq_path}/trunk_x_{index}.jpg", trunk_img)
 
                     # Convert the crown cloud to an image
                     crown_ccpcd = cc.ccPointCloud('cloud')
                     crown_ccpcd.coordsFromNPArray_copy(np.asarray(crown_pcd.points))
                     crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
-                    cv2.imwrite(f"{ransac_daq_path}/crown_{index}.jpg", crown_img)
+                    cv2.imwrite(f"{ransac_daq_path}/crown_x_{index}.jpg", crown_img)
 
                     cv2.imwrite(f"{ransac_daq_path}/out_tree_x.jpg", combined_img_x)
                     cv2.imwrite(f"{ransac_daq_path}/out_tree_z.jpg", combined_img_z)
