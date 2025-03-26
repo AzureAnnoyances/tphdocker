@@ -120,7 +120,7 @@ def ccColor2pcd(cloud, color):
     Assign a specific color to all points in the cloud.
 
     Args:
-        cloud: The point cloud (numpy array of shape Nx3 or Nx4).
+        cloud: ccPointCloud object.
         color: A tuple representing the RGB color (e.g., (255, 0, 0) for blue).
 
     Returns:

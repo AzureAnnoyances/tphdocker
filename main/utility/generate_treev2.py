@@ -274,14 +274,12 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         max_h_height = max(gens_h, key=lambda x: x[1])[1]
         max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
-        # Get trunk diameter
+        # Get trunk diameter and volume
         diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
-        print(f'diameter: {diameter}')
-        # Get trunk volume
-        print(f'vol: {diameter*max_h_height}')
 
-    # Save the results to a CSV file
-    if len(gens_h) > 0:
+        ransac_results[f"gen_d"] = diameter
+        ransac_results[f"gen_v"] = diameter*max_h_height
+
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
         ransac_results[f"h_gens"] = max_h_height
@@ -335,28 +333,35 @@ def find_crown(pcd, clouds, ransac_results):
     print(f'x_min: {x_min}, x_max: {x_max}')
     print(f'y_min: {y_min}, y_max: {y_max}')
 
-    # Filter cloud for stem points
-    tree_points = np.array(pcd.points)
-    labels = np.zeros(len(tree_points), dtype=bool)
-    mask_idx = np.where(tree_points[:,2] < z_max)[0]
-    
-    # TODO Filter tree points
-    tree = KDTree(tree_points[mask_idx])
-    selection = set()
-    
-    # Get start and end points
-    start_pt = skeleton_pts[0]
-    end_temp = start_pt + np.array([0,0,height])
-    end_pt = tree_points[tree.query(end_temp, )[1]]
-    print("starting point",start_pt)
-    print("temp_end", end_temp)
-    print("real_end", end_pt)
-    print("max_z",tree_points[mask_idx][:,2].max())
+    # Compute the trunk's bounding box
+    trunk_pcd = o3d.geometry.PointCloud()
+    trunk_pcd.points = o3d.utility.Vector3dVector(trunk_pcd_np)
+    trunk_bbox = trunk_pcd.get_axis_aligned_bounding_box()
+
+    # Convert to numpy for easier processing
+    tree_points = np.asarray(pcd.points)
+
+    # Get min/max coordinates of the trunk's bounding box
+    min_bound = trunk_bbox.min_bound
+    max_bound = trunk_bbox.max_bound
+
+    # Create a mask to keep only points **outside** the trunk bounding box
+    mask = np.logical_or.reduce((
+        tree_points[:, 0] < min_bound[0], tree_points[:, 0] > max_bound[0],  # X-axis
+        tree_points[:, 1] < min_bound[1], tree_points[:, 1] > max_bound[1],  # Y-axis
+        tree_points[:, 2] < min_bound[2], tree_points[:, 2] > max_bound[2]   # Z-axis
+    ))
 
     # Apply mask to get only the crown points
     crown_points = tree_points[mask]
 
+    # Save to img
+    crown_pcd = cc.ccPointCloud('cloud')
+    crown_pcd.coordsFromNPArray_copy(crown_points)
+    crown_img = ccpcd2img(ccColor2pcd(crown_pcd, (255, 255, 255)), axis='x', stepsize=0.02)
+
     print(f'Crown done')
+    return crown_img
 
 def diameter_at_breastheight(stem_cloud, ground_level=0, breastheight = 1.3):
     """Function to estimate diameter at breastheight."""
@@ -486,7 +491,6 @@ def circumferential_completeness_index(fitted_circle_centre, estimated_radius, s
     return CCI
 
 
-
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
         self.pcd_name = pcd_name
@@ -603,8 +607,9 @@ class TreeGen():
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                # if ransac_results['gen_h'] is not None:
-                #     crown_img = find_crown(singular_tree, clouds, ransac_results)
+                if ransac_results['gen_h'] is not None:
+                    crown_img = find_crown(singular_tree, clouds, ransac_results)
+                    cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
                 
                 results_df = pd.DataFrame([ransac_results])
                 results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
@@ -617,7 +622,6 @@ class TreeGen():
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_x.jpg", img_x)
                     cv2.imwrite(f"{ransac_daq_path}/tree_out_z.jpg", img_z)
                     cv2.imwrite(f"{ransac_daq_path}/trunk_out.jpg", img_x_t)
-                    # cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
 
                     # Save the point clouds
                     for k, v in clouds.items():
