@@ -277,14 +277,14 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Get trunk diameter and volume
         diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
 
+        ransac_results[f"gen_h"] = max_h_height
         ransac_results[f"gen_d"] = diameter
         ransac_results[f"gen_v"] = diameter*max_h_height
 
         ransac_results[f"n_supp"] = prim
         ransac_results[f"n_gens"] = len(clouds)
-        ransac_results[f"h_gens"] = max_h_height
-        ransac_results[f"gen_h"] = gens_h
-
+        ransac_results[f"h_gens"] = gens_h
+        
     # Save to img
     combined_img_x, combined_img_z = None, None
     trunk_img_x, trunk_img_z = None, None
@@ -602,12 +602,14 @@ class TreeGen():
                     "h_preds": h_list[0],
                     "n_supp": prim,
                     "n_gens": 0,
-                    "h_gens": 0,
-                    "gen_h": None
+                    "h_gens": [],
+                    "gen_h": 0.0,
+                    "gen_d": 0.0,
+                    "gen_v": 0.0
                 }
                 # for prim in range(prim_min, prim_max, prim_step)
                 meshes, clouds, ransac_results, img_x, img_z, img_x_t, img_z_t = find_trunk(singular_tree, coord, h_list, h, ransac_results, prim=prim, dev_deg=deg)
-                if ransac_results['gen_h'] is not None:
+                if ransac_results['gen_h'] > 0:
                     crown_img = find_crown(singular_tree, clouds, ransac_results)
                     cv2.imwrite(f"{ransac_daq_path}/crown_out.jpg", crown_img)
                 
