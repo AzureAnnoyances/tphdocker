@@ -254,7 +254,8 @@ def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 
     """
     filtered_h_ccpd = {}
     gens_h = []
-    for index, trunk_ccpcd in filtered_centers.items():
+    # for index, trunk_ccpcd in filtered_centers.items():
+    for index, trunk_ccpcd in enumerate(filtered_centers[:-1]):
         trunk_np = trunk_ccpcd.toNpArray()
         trunk_z_min, trunk_z_max = trunk_np[:,2].min(), trunk_np[:,2].max()
         z_tols = trunk_z_min-z_tol < z_min < trunk_z_max+z_tol
