@@ -344,6 +344,8 @@ def find_crown(pcd, clouds, ransac_results):
     # Apply mask to keep only crown points
     crown_points = tree_points[mask]
 
+    print(f'crown_pts: {crown_points}')
+
 
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name):
