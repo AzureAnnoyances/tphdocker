@@ -263,8 +263,9 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     filtered_h["leftover"] = clouds[-1]
 
     # Height index and value
-    max_h_height = max(gens_h, key=lambda x: x[1])[1]
-    max_h_index = max(gens_h, key=lambda x: x[1])[0]
+    if len(gens_h) > 0:
+        max_h_height = max(gens_h, key=lambda x: x[1])[1]
+        max_h_index = max(gens_h, key=lambda x: x[1])[0]
 
     # Get trunk diameter
     
