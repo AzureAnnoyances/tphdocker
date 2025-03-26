@@ -277,6 +277,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
         # Get trunk diameter and volume
         diameter = diameter_at_breastheight(filtered_h[max_h_index], ground_level=z_min_pcd)
 
+        print(f'height: {max_h_height}, diameter: {diameter}')
         ransac_results[f"gen_h"] = max_h_height
         ransac_results[f"gen_d"] = diameter
         ransac_results[f"gen_v"] = diameter*max_h_height
