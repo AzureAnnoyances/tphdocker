@@ -254,8 +254,8 @@ def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 
     """
     filtered_h_ccpd = {}
     gens_h = []
-    # for index, trunk_ccpcd in filtered_centers.items(): # TODO: Test with center filtering
-    for index, trunk_ccpcd in enumerate(filtered_centers[:-1]): # TODO: Test without filtering the center
+    for index, trunk_ccpcd in filtered_centers.items(): # TODO: Test with center filtering
+    # for index, trunk_ccpcd in enumerate(filtered_centers[:-1]): # TODO: Test without filtering the center
         trunk_np = trunk_ccpcd.toNpArray()
         trunk_z_min, trunk_z_max = trunk_np[:,2].min(), trunk_np[:,2].max()
         z_tols = trunk_z_min-z_tol < z_min < trunk_z_max+z_tol
@@ -314,15 +314,15 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
     y_min, y_max = abs(points[:,1].max()), abs(points[:,1].min())
 
     # TODO: Test without filtering the center
-    filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(trunk_ccpcds, h_ref, z_min, z_tol, h_tol)
+    # filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(trunk_ccpcds, h_ref, z_min, z_tol, h_tol)
 
     # TODO: Test with filtering the center
-    # filtered_centers_ccpd, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
+    filtered_centers_ccpd, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
 
-    # if filtered_centers_ccpd is None:
-    #     return None, None, None, None, None
+    if filtered_centers_ccpd is None:
+        return None, None, None, None, None
     
-    # filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(filtered_centers_ccpd, h_ref, z_min, z_tol, h_tol)
+    filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(filtered_centers_ccpd, h_ref, z_min, z_tol, h_tol)
     # end of filtering
 
     # Get trunk diameter and volume
@@ -523,7 +523,7 @@ def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None,
     return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
 
 
-def find_crown2(pcd, trunk_pcd, offset:float = 0.5):
+def find_crown2(pcd, trunk_pcd, offset:float = 0.3):
     """
     Find the crown of the tree using the trunk point cloud
     Args:
@@ -548,9 +548,9 @@ def find_crown2(pcd, trunk_pcd, offset:float = 0.5):
 
     # Create a mask to keep only points **outside** the trunk bounding box
     mask = np.logical_or.reduce((
-        tree_points[:, 0] < min_bound[0], tree_points[:, 0] > max_bound[0],  # X-axis
-        tree_points[:, 1] < min_bound[1], tree_points[:, 1] > max_bound[1],  # Y-axis
-        tree_points[:, 2] < min_bound[2], tree_points[:, 2] > max_bound[2]   # Z-axis
+        tree_points[:, 0] < min_bound[0] - offset, tree_points[:, 0] > max_bound[0] + offset,  # X-axis
+        tree_points[:, 1] < min_bound[1] - offset, tree_points[:, 1] > max_bound[1] + offset,  # Y-axis
+        tree_points[:, 2] < min_bound[2] - offset, tree_points[:, 2] > max_bound[2]   # Z-axis
     ))
 
     # Apply mask to get only the crown points
