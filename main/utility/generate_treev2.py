@@ -316,15 +316,33 @@ def find_crown(pcd, clouds, ransac_results):
     print(f"Max height: {max_h_height}")
     print(f"Max index: {max_h_index}")
 
-    cloud = clouds[max_h_index]
-    cloud_pts = cloud.toNpArray()
-    z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
-    x_min, x_max = cloud_pts[:,0].min(), cloud_pts[:,0].max()
-    y_min, y_max = cloud_pts[:,1].min(), cloud_pts[:,1].max()
+    trunk_pcd = clouds[max_h_index]
+    trunk_pcd_np = trunk_pcd.toNpArray()
+    z_min, z_max = trunk_pcd_np[:,2].min(), trunk_pcd_np[:,2].max()
+    x_min, x_max = trunk_pcd_np[:,0].min(), trunk_pcd_np[:,0].max()
+    y_min, y_max = trunk_pcd_np[:,1].min(), trunk_pcd_np[:,1].max()
 
     print(f'z_min: {z_min}, z_max: {z_max}')
     print(f'x_min: {x_min}, x_max: {x_max}')
     print(f'y_min: {y_min}, y_max: {y_max}')
+
+    tree_points = np.asarray(pcd.points)
+    # Use KDTree to find trunk points in the tree point cloud
+    tree_kdtree = o3d.geometry.KDTreeFlann(pcd)
+
+    # Define distance threshold for removal (adjust as needed)
+    distance_threshold = 0.05  # Adjust based on point spacing
+
+    # Identify tree points that are near the trunk
+    mask = np.ones(len(tree_points), dtype=bool)  # Default: Keep all points
+
+    for trunk_point in trunk_pcd_np:
+        [_, idx, _] = tree_kdtree.search_knn_vector_3d(trunk_point, 1)  # Find nearest neighbor in tree
+        if np.linalg.norm(tree_points[idx] - trunk_point) < distance_threshold:
+            mask[idx] = False  # Remove the matching tree point
+
+    # Apply mask to keep only crown points
+    crown_points = tree_points[mask]
 
 
 class TreeGen():
