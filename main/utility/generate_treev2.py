@@ -20,15 +20,17 @@ cc.initCC()
 import pandas as pd
 import logging
 import os
-import sys
 import warnings
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
+
+import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 import adTreeutils.math_utils as math_utils
 from adTreeutils import (
       clip_utils)
-from adTreeutils.smallestenclosingcircle import make_circle
+from make_circle import make_circle
+
 # Configure logging
 ransac_daq_path = "/root/pcds/p01e_B/ransac_data"
 if not os.path.exists(ransac_daq_path):
