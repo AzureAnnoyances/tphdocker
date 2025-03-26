@@ -20,8 +20,10 @@ cc.initCC()
 import pandas as pd
 import logging
 import os
+import sys
 import warnings
 from scipy.spatial.transform import Rotation as R
+sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 from adTreeutils import (
       clip_utils,)
 from scipy.optimize import leastsq
