@@ -226,10 +226,10 @@ def filter_cyl_center(trunk_ccpcds, center_coord:tuple, x_max:float, y_max:float
         y_max (float): Max y coordinate of the tree
         center_tol (float, optional): Tolerance for the center coordinate. Defaults to 0.7.
     Returns:
-        dict: Filtered center clouds
+        dict: Filtered center clouds in ccPointCloud
         dict: Generated center coordinates
     """
-    filtered_centers = {}
+    filtered_centers_ccpd = {}
     gens_ctr = {}
     for index, trunk_ccpcd in enumerate(trunk_ccpcds[:-1]):
         trunk_np = trunk_ccpcd.toNpArray()
@@ -244,14 +244,14 @@ def filter_cyl_center(trunk_ccpcds, center_coord:tuple, x_max:float, y_max:float
             trunk_x_center_m = x_max - trunk_x_center
             trunk_y_center_m = y_max - trunk_y_center
             gens_ctr[index] = (trunk_x_center_m, trunk_y_center_m)
-            filtered_centers[index] = trunk_ccpcd
-    filtered_centers[index+1] = trunk_ccpcds[-1]
+            filtered_centers_ccpd[index] = trunk_ccpcd
+    filtered_centers_ccpd[index+1] = trunk_ccpcds[-1]
 
     if len(gens_ctr) == 0:
         print("No center found")
         return None, None
     
-    return filtered_centers, gens_ctr
+    return filtered_centers_ccpd, gens_ctr
     
 def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 0.1, h_tol:int = 3):
     """
@@ -262,17 +262,17 @@ def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 
         z_min (float): Ground coordinate of the pcd
         z_tol (float, optional): Tolerance for the z coordinate. Defaults to 0.1.
     Returns:
-        dict: Filtered height clouds
+        dict: Filtered height clouds in ccPointCloud
         list: Generated index and height
     """
-    filtered_h = {}
+    filtered_h_ccpd = {}
     gens_h = []
     for index, trunk_ccpcd in filtered_centers.items():
         trunk_np = trunk_ccpcd.toNpArray()
         trunk_z_min, trunk_z_max = trunk_np[:,2].min(), trunk_np[:,2].max()
         z_tols = trunk_z_min-z_tol < z_min < trunk_z_max+z_tol
         if z_tols:
-            filtered_h[index] = trunk_ccpcd 
+            filtered_h_ccpd[index] = trunk_ccpcd 
 
             trunk_h = trunk_z_max - trunk_z_min
             h_tols = h_ref - h_tol < trunk_h < h_ref
@@ -283,7 +283,7 @@ def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 
         print("No height found")
         return None, None
     
-    return filtered_h, gens_h
+    return filtered_h_ccpd, gens_h
 
 def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_tol:float = 0.1, h_tol:int = 3):
     """
@@ -316,15 +316,21 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
     # RANSAC pcd to find the trunk cylinder
     trunk_meshes, trunk_ccpcds = ransac_gen_cylinders(pcd, prim=prim, dev_deg=45) # 45 deg gave best result for trunk
     
+    if trunk_ccpcds is None:
+        return None, None, None, None, None
+
     # Extract open3d point cloud to numpy array
     points = np.asarray(pcd.points)
     z_min = points[:,2].min()
     x_min, x_max = points[:,0].min(), points[:,0].max()
     y_min, y_max = abs(points[:,1].max()), abs(points[:,1].min())
 
-    filtered_centers, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
+    filtered_centers_ccpd, filtered_centers_m = filter_cyl_center(trunk_ccpcds, center_coord, x_max, y_max, center_tol)
 
-    filtered_heights, filtered_heights_m = filter_cyl_height(filtered_centers, h_ref, z_min, z_tol, h_tol)
+    if filtered_centers_ccpd is None:
+        return None, None, None, None, None
+    
+    filtered_heights_ccpd, filtered_heights_m = filter_cyl_height(filtered_centers_ccpd, h_ref, z_min, z_tol, h_tol)
 
     # Get trunk diameter and volume
     if filtered_heights_m is not None:
@@ -332,7 +338,7 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
         max_h_index = max(filtered_heights_m, key=lambda x: x[1])[0]
 
         # Convert ccpcd to o3d pcd  
-        trunk_ccpcd_np = filtered_heights[max_h_index].toNpArray()
+        trunk_ccpcd_np = filtered_heights_ccpd[max_h_index].toNpArray()
         trunk_pcd = o3d.geometry.PointCloud()
         trunk_pcd.points = o3d.utility.Vector3dVector(trunk_ccpcd_np)
 
@@ -557,7 +563,7 @@ def find_crown2(pcd, trunk_pcd):
     crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
     crown_d = crown_diameter(crown_pcd)
     crown_mesh, crown_v = crown_to_mesh(crown_pcd, 'hull')
-    # show_mesh_cloud(crown_mesh, crown_pcd)
+    # show_mesh_cloud(crown_mesh, crown_pcd) // debug
 
     if crown_d is None or crown_v is None:
         return None, None, None
@@ -826,7 +832,7 @@ class TreeGen():
         # Define the path for the CSV file
         csv_file_path = f"{ransac_daq_path}/ransac_results.csv" 
         # Define the header for the CSV file
-        header = ["n_points", "n_supp", "n_gens", "h_preds", "h_gens", "trunk_h", "trunk_d", "trunk_v", "trunk_v_c", "crown_d", "crown_v"]
+        header = ["n_points", "n_supp", "n_gens", "h_preds", "trunk_h", "trunk_d", "trunk_v", "trunk_v_c", "crown_d", "crown_v"]
         # Check if the file exists; if not, create it with the header
         if not os.path.exists(csv_file_path):
             # Create an empty DataFrame with the predefined header
