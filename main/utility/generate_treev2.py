@@ -731,10 +731,52 @@ class TreeGen():
                     save_pointcloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.ply")
                     save_pointcloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.ply")
 
+                    # Save the images
+                    trunk_color = (0, 0, 255)  # Blue for the trunk
+                    tree_color = (255, 255, 255)  # White for the tree
+                    pred_color = (255, 0, 0)  # Red for the predicted center
+                    gens_color = (0, 0, 255)  # Blue for the generated center
+                    stepsize=0.02
+
+                    tree_pcd_np = np.asarray(singular_tree.points)
+
+                    # Assign colors to the trunk and tree clouds
+                    trunk_ccpcd = cc.ccPointCloud('cloud')
+                    trunk_ccpcd.coordsFromNPArray_copy(np.asarray(trunk_pcd.points))
+                    trunk_cloud_colored = ccColor2pcd(trunk_ccpcd, trunk_color)
+
+                    tree_ccpcd = cc.ccPointCloud('cloud')
+                    tree_ccpcd.coordsFromNPArray_copy(tree_pcd_np)
+                    tree_cloud_colored = ccColor2pcd(tree_ccpcd, tree_color)
+
+                    # Combine the trunk and tree clouds
+                    combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
+
+                    # Convert the combined cloud to an image
+                    combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=stepsize)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_z_{index}.jpg", combined_img_z)
+
+                    combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=stepsize)
+                    combined_img_x = ann_h_img(combined_img_x, stepsize, "h_pred height:", h_list[0], pred_color)
+                    combined_img_x = ann_h_img(combined_img_x, stepsize, "h_gens height:", trunk_h, gens_color)
+                    cv2.imwrite(f"{ransac_daq_path}/tree_x_{index}.jpg", combined_img_x)
+
+                    # Convert the trunk cloud to an image
+                    trunk_ccpcd = cc.ccPointCloud('cloud')
+                    trunk_ccpcd.coordsFromNPArray_copy(np.asarray(trunk_pcd.points))
+                    trunk_img = ccpcd2img(ccColor2pcd(trunk_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
+                    cv2.imwrite(f"{ransac_daq_path}/trunk_{index}.jpg", trunk_img)
+
+                    # Convert the crown cloud to an image
                     crown_ccpcd = cc.ccPointCloud('cloud')
                     crown_ccpcd.coordsFromNPArray_copy(np.asarray(crown_pcd.points))
                     crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
                     cv2.imwrite(f"{ransac_daq_path}/crown_{index}.jpg", crown_img)
+
+                    cv2.imwrite(f"{ransac_daq_path}/out_tree_x.jpg", combined_img_x)
+                    cv2.imwrite(f"{ransac_daq_path}/out_tree_z.jpg", combined_img_z)
+                    cv2.imwrite(f"{ransac_daq_path}/out_trunk.jpg", trunk_img)
+                    cv2.imwrite(f"{ransac_daq_path}/out_crown.jpg", crown_img)
 
 
                 # if ransac_results['trunk_h'] > 0:
