@@ -177,7 +177,17 @@ def ccpcd2img(cloud, axis, stepsize):
     return img
 
 def ann_h_img(img, step_size, text, height, color):
-    # Add a dot and text for h_list height
+    """
+    Add height information to the image.
+    Args:
+        img: The image to annotate.
+        step_size: The resolution of the image.
+        text: The text to display.
+        height: The height value.
+        color: The color of the text and dot.
+    Returns:
+        The annotated image.
+    """
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 0.5
     thickness = 1
@@ -190,18 +200,20 @@ def ann_h_img(img, step_size, text, height, color):
 
     return img
 
-def ann_ctr_img(img, step_size, text, center, color):
-    # Add a dot and text for the center
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 0.5
-    thickness = 1
-
-    # Add a dot and text for the center
-    center_text = f"{text} {center}"
-    w_center = img.shape[0] - (img.shape[0] - center[0] / step_size)
-    h_center = img.shape[1] - (img.shape[1] - center[1] / step_size)
+def ann_ctr_img(img, radius, step_size, color):
+    """
+    Add a hollow circle at the center of the image.
+    Args:
+        img: The image to annotate.
+        radius: The radius of the circle.
+        step_size: The resolution of the image.
+        color: The color of the circle.
+    Returns:
+        The annotated image.
+    """
+    w_center = img.shape[0] // 2
+    h_center = img.shape[1] // 2
     center_position = (int(h_center), int(w_center))  # Scale center to image coordinates
-    cv2.circle(img, center_position, 5, color, -1)  # Draw a dot
-    cv2.putText(img, center_text, (center_position[0] + 10, center_position[1]), font, font_scale, color, thickness, cv2.LINE_AA)
-
+    cv2.circle(img, center_position, int(radius//step_size), color, 2)  # Draw a dot
+    
     return img

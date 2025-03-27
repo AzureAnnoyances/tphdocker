@@ -348,181 +348,6 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
         return trunk_pcd, max_h_height, trunk_d, trunk_v, trunk_v_c
     return None, None, None, None, None
 
-
-def find_trunk(pcd, center_coord, h_list, h, ransac_results, ratio:float = None, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
-    """
-    Find the trunk using the center of the tree via RANSAC
-
-    Args:
-        pcd (open3d.PointCloud): Filtered tree pcd
-        center_coord (tuple): Center coordinate of the tree
-        h_list (list): List of heights of the tree from pred
-        h (np.float): Height of the tree from pred (seems to not be correct)
-        ratio (float, optional): Ratio for the primitive, ratio of N points from tree.
-        prim (int, optional): Min N points for primitive. Defaults to 500.
-        dev_deg (int, optional): Max deviation of shape in degrees. Defaults to 25.
-        r_min (float, optional): Min radius of the cylinder. Defaults to 0.4.
-        r_max (float, optional): Max radius of the cylinder. Defaults to 0.7.
-    """
-
-    # points = np.vstack((pcd.x, pcd.y, pcd.z)).T.astype(np.float32) 
-    points = np.asarray(pcd.points)
-    cloud = cc.ccPointCloud('cloud')
-    cloud.coordsFromNPArray_copy(points)
-    
-    # RANSAC Parameters
-    ransac_params = cc.RANSAC_SD.RansacParams()
-
-    # RANSAC save leftover points (Default: true)
-    ransac_params.createCloudFromLeftOverPoints = True
-    # RANSAC least square fitting (important for trunk cylinder, Default: true)
-    ransac_params.allowFitting = True
-    # RANSAC attempt to simplify shape (Default: true)
-    ransac_params.allowSimplification = True
-    # RANSAC set random color for each shape found (Default: true) 
-    ransac_params.randomColor = True
-
-    # Primitive shape to be detected
-    ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CYLINDER,True)
-    ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_CONE,False)
-    ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_PLANE,False)
-    ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_SPHERE,False)
-    ransac_params.setPrimEnabled(cc.RANSAC_SD.RANSAC_PRIMITIVE_TYPES.RPT_TORUS,False)
-
-    # RANSAC min N primitive points (Default: 500)
-    ransac_params.supportPoints = prim
-
-    # RANSAC max deviation of shape (Default: 25 degrees)
-    ransac_params.maxNormalDev_deg = dev_deg
-
-    # RANSAC cylinder parameters (Default: inf, inf) 
-    # Oil Palm trunk dia 45-65 cm (https://bioresources.cnr.ncsu.edu/resources/the-potential-of-oil-palm-trunk-biomass-as-an-alternative-source-for-compressed-wood/)
-    ransac_params.minCylinderRadius = r_min
-    ransac_params.maxCylinderRadius = r_max
-
-    # RANSAC calculate
-    ransac_params.optimizeForCloud(cloud)
-    meshes, clouds = cc.RANSAC_SD.computeRANSAC_SD(cloud,ransac_params)
-
-    if len(clouds) == 0:
-        print("No trunk found")
-        return None, None, ransac_results, None, None, None, None
-    
-    # Filter the cloud based on the center coordinate and height
-    """
-    Algo:
-    - Iterate clouds
-        1. find cloud within the center coordinate
-        2. find cloud above ground
-        3. find cloud with height within the range of predicted height
-        4. save cloud and height 
-    """
-    # RANSAC data filter parameters
-    center_tol = 0.7
-    z_tol = 0.1
-    h_tol = 3
-    # Init variables
-    filtered_center = {}
-    filtered_h = {}
-    z_min_pcd = points[:,2].min()
-    x_min_pcd, x_max_pcd = points[:,0].min(), points[:,0].max()
-    y_min_pcd, y_max_pcd = abs(points[:,1].max()), abs(points[:,1].min())
-    gens_ctr = {}
-    gens_ground = []
-    gens_h = []
-    pred_x_center_m = x_max_pcd - center_coord[0]
-    pred_y_center_m = y_max_pcd - center_coord[1]
-    center_coord_m = (pred_x_center_m, pred_y_center_m)
-
-    # Filter for center clouds except the last one (the last is the leftover)
-    for index, cloud in enumerate(clouds[:-1]):
-        cloud_pts = cloud.toNpArray()
-        # Use mean to find the center cluster of the cloud
-        x_center = cloud_pts[:,0].mean()
-        y_center = abs(cloud_pts[:,1].mean())
-
-        x_tol = center_coord[0]-center_tol < x_center < center_coord[0]+center_tol
-        y_tol = center_coord[1]-center_tol < y_center < center_coord[1]+center_tol
-        if x_tol and y_tol:
-            filtered_center[index] = cloud
-            x_center_m = x_max_pcd - x_center
-            y_center_m = y_max_pcd - y_center
-            gens_ctr[index] = (x_center_m, y_center_m)
-
-    # Filter for height clouds 
-    for index, cloud in filtered_center.items():
-        cloud_pts = cloud.toNpArray()
-        z_min, z_max = cloud_pts[:,2].min(), cloud_pts[:,2].max()
-        z_tols = z_min_pcd-z_tol < z_min < z_min_pcd+z_tol
-        if z_tols:
-            gens_ground.append(index)
-            filtered_h[index] = cloud 
-
-            height = z_max - z_min
-            h_tols = h_list[0] - h_tol < height < h_list[0]
-            if h_tols:
-                gens_h.append([index, height])
-    filtered_h["leftover"] = clouds[-1]
-
-    # Get trunk diameter and volume
-    if len(gens_h) > 0:
-        max_h_height = max(gens_h, key=lambda x: x[1])[1]
-        max_h_index = max(gens_h, key=lambda x: x[1])[0]
-
-        # Convert ccpcd to o3d pcd  
-        trunk_ccpcd_np = filtered_h[max_h_index].toNpArray()
-        trunk_pcd = o3d.geometry.PointCloud()
-        trunk_pcd.points = o3d.utility.Vector3dVector(trunk_ccpcd_np)
-
-        # Get trunk diameter and volume
-        trunk_d = diameter_at_breastheight(trunk_pcd, ground_level=z_min_pcd)
-        trunk_mesh, trunk_v = crown_to_mesh(trunk_pcd, 'alphashape')
-        # show_mesh_cloud(trunk_mesh, trunk_pcd)
-
-        if trunk_d is None:
-            return None, None, ransac_results, None, None, None, None
-        
-        ransac_results[f"trunk_h"] = max_h_height
-        ransac_results[f"trunk_d"] = trunk_d
-        ransac_results[f"trunk_v"] = np.pi * trunk_d * max_h_height
-        ransac_results[f'trunk_v_c'] = trunk_v
-
-        ransac_results[f"n_supp"] = prim
-        ransac_results[f"n_gens"] = len(clouds)
-        ransac_results[f"h_gens"] = gens_h
-        
-    # Save to img
-    combined_img_x, combined_img_z = None, None
-    trunk_img_x, trunk_img_z = None, None
-    if len(gens_h) > 0:
-        #  Assign colors to the trunk and tree clouds
-        trunk_color = (0, 0, 255)  # Blue for the trunk
-        tree_color = (255, 255, 255)  # White for the tree
-        pred_color = (255, 0, 0)  # Red for the predicted center
-        gens_color = (0, 0, 255)  # Blue for the generated center
-        stepsize=0.02
-
-        trunk_cloud_colored = ccColor2pcd(clouds[max_h_index], trunk_color)
-        tree_cloud_colored = ccColor2pcd(clouds[-1], tree_color)
-
-        # Combine the trunk and tree clouds
-        combined_cloud = np.vstack((trunk_cloud_colored, tree_cloud_colored))
-
-        # Convert the combined cloud to an image
-        combined_img_z = ccpcd2img(combined_cloud, axis='z', stepsize=stepsize)
-        combined_img_z = ann_ctr_img(combined_img_z, stepsize, "c_pred:", center_coord_m, pred_color)
-        combined_img_z = ann_ctr_img(combined_img_z, stepsize, "c_gens:", gens_ctr[max_h_index], gens_color)
-
-        combined_img_x = ccpcd2img(combined_cloud, axis='x', stepsize=stepsize)
-        combined_img_x = ann_h_img(combined_img_x, stepsize, "h_pred height:", h_list[0], pred_color)
-        combined_img_x = ann_h_img(combined_img_x, stepsize, "h_gens height:", max_h_height, gens_color)
-
-        trunk_img_x = ccpcd2img(trunk_cloud_colored, axis='x', stepsize=stepsize)
-        trunk_img_z = ccpcd2img(trunk_cloud_colored, axis='z', stepsize=stepsize)
-
-    return meshes, filtered_h, ransac_results, combined_img_x, combined_img_z, trunk_img_x, trunk_img_z
-
-
 def find_crown2(pcd, trunk_pcd, offset:float = 0.3):
     """
     Find the crown of the tree using the trunk point cloud
@@ -568,54 +393,6 @@ def find_crown2(pcd, trunk_pcd, offset:float = 0.3):
 
     return crown_pcd, crown_d, crown_v
 
-def find_crown(pcd, clouds, ransac_results):
-    trunk_h = max(ransac_results['h_gens'], key=lambda x: x[1])[1]
-    trunk_h_index = max(ransac_results['h_gens'], key=lambda x: x[1])[0]
-
-    trunk_ccpcd = clouds[trunk_h_index]
-    trunk_pcd_np = trunk_ccpcd.toNpArray()
-    trunk_pcd = o3d.geometry.PointCloud()
-    trunk_pcd.points = o3d.utility.Vector3dVector(trunk_pcd_np)
-
-    # Compute the trunk's bounding box
-    trunk_bbox = trunk_pcd.get_axis_aligned_bounding_box()
-
-    # Convert to numpy for easier processing
-    tree_points = np.asarray(pcd.points)
-
-    # Get min/max coordinates of the trunk's bounding box
-    min_bound = trunk_bbox.min_bound
-    max_bound = trunk_bbox.max_bound
-
-    # Create a mask to keep only points **outside** the trunk bounding box
-    mask = np.logical_or.reduce((
-        tree_points[:, 0] < min_bound[0], tree_points[:, 0] > max_bound[0],  # X-axis
-        tree_points[:, 1] < min_bound[1], tree_points[:, 1] > max_bound[1],  # Y-axis
-        tree_points[:, 2] < min_bound[2], tree_points[:, 2] > max_bound[2]   # Z-axis
-    ))
-
-    # Apply mask to get only the crown points
-    crown_points = tree_points[mask]
-
-    # Get crown diameter and height and volume
-    crown_pcd = o3d.geometry.PointCloud()
-    crown_pcd.points = o3d.utility.Vector3dVector(crown_points)
-    crown_d = crown_diameter(crown_pcd)
-    crown_mesh, crown_v = crown_to_mesh(crown_pcd, 'alphashape')
-    # show_mesh_cloud(crown_mesh, crown_pcd)
-
-    ransac_results['crown_d'] = crown_d
-    ransac_results['crown_v'] = crown_v
-
-    # Convert to ccPointCloud
-    crown_ccpcd = cc.ccPointCloud('cloud')
-    crown_ccpcd.coordsFromNPArray_copy(crown_points)
-
-    # Save to img
-    crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
-
-    return crown_ccpcd, crown_img
-
 def save_img(tree_pcd, trunk_pcd, crown_pcd, h_ref, trunk_h, index, save_dir):
     # Save the images
     trunk_color = (0, 0, 255)  # Blue for the trunk
@@ -650,18 +427,23 @@ def save_img(tree_pcd, trunk_pcd, crown_pcd, h_ref, trunk_h, index, save_dir):
     # Convert the trunk cloud to an image
     trunk_ccpcd = cc.ccPointCloud('cloud')
     trunk_ccpcd.coordsFromNPArray_copy(np.asarray(trunk_pcd.points))
-    trunk_img = ccpcd2img(ccColor2pcd(trunk_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
-    cv2.imwrite(f"{save_dir}/trunk_x_{index}.jpg", trunk_img)
+    trunk_img_x = ccpcd2img(ccColor2pcd(trunk_ccpcd, tree_color), axis='x', stepsize=0.02)
+    cv2.imwrite(f"{save_dir}/trunk_x_{index}.jpg", trunk_img_x)
+
+    trunk_img_z = ccpcd2img(ccColor2pcd(trunk_ccpcd, tree_color), axis='z', stepsize=0.02)
+    trunk_img_z = ann_ctr_img(trunk_img_z, 0.25, stepsize, pred_color)
+    cv2.imwrite(f"{save_dir}/trunk_z_{index}.jpg", trunk_img_z)
 
     # Convert the crown cloud to an image
     crown_ccpcd = cc.ccPointCloud('cloud')
     crown_ccpcd.coordsFromNPArray_copy(np.asarray(crown_pcd.points))
-    crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, (255, 255, 255)), axis='x', stepsize=0.02)
+    crown_img = ccpcd2img(ccColor2pcd(crown_ccpcd, tree_color), axis='x', stepsize=0.02)
     cv2.imwrite(f"{save_dir}/crown_x_{index}.jpg", crown_img)
 
     cv2.imwrite(f"{save_dir}/out_tree_x.jpg", combined_img_x)
     cv2.imwrite(f"{save_dir}/out_tree_z.jpg", combined_img_z)
-    cv2.imwrite(f"{save_dir}/out_trunk.jpg", trunk_img)
+    cv2.imwrite(f"{save_dir}/out_trunk_x.jpg", trunk_img_x)
+    cv2.imwrite(f"{save_dir}/out_trunk_z.jpg", trunk_img_z)
     cv2.imwrite(f"{save_dir}/out_crown.jpg", crown_img)
 
 class TreeGen():
@@ -785,6 +567,7 @@ class TreeGen():
                     save_pointcloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.ply")
                     save_pointcloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.ply")
 
+                    # TODO: Save the images
                     save_img(singular_tree, trunk_pcd, crown_pcd, h_list[0], trunk_h, index, ransac_daq_path)
 
                 results_df = pd.DataFrame([ransac_results])
