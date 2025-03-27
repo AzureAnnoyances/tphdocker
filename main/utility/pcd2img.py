@@ -211,9 +211,14 @@ def ann_ctr_img(img, radius, step_size, color):
     Returns:
         The annotated image.
     """
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.5
+    thickness = 1
+
     w_center = img.shape[0] // 2
     h_center = img.shape[1] // 2
     center_position = (int(h_center), int(w_center))  # Scale center to image coordinates
     cv2.circle(img, center_position, int(radius//step_size), color, 2)  # Draw a dot
+    cv2.putText(img, f"radius {radius}", (center_position[0] + 10, center_position[1]), font, font_scale, color, thickness, cv2.LINE_AA)
     
     return img

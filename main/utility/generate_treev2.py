@@ -273,7 +273,7 @@ def filter_cyl_height(filtered_centers, h_ref:float, z_min:float, z_tol:float = 
     
     return filtered_h_ccpd, gens_h
 
-def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_tol:float = 0.1, h_tol:int = 3):
+def find_trunk(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_tol:float = 0.1, h_tol:int = 3):
     """
     Find the trunk using the center of the tree via RANSAC
     Algo:
@@ -348,7 +348,7 @@ def find_trunk2(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_
         return trunk_pcd, max_h_height, trunk_d, trunk_v, trunk_v_c
     return None, None, None, None, None
 
-def find_crown2(pcd, trunk_pcd, offset:float = 0.3):
+def find_crown(pcd, trunk_pcd, offset:float = 0.3):
     """
     Find the crown of the tree using the trunk point cloud
     Args:
@@ -552,9 +552,9 @@ class TreeGen():
                 }
 
                 trunk_pcd, crown_pcd = None, None
-                trunk_pcd, trunk_h, trunk_d, trunk_v, trunk_v_c = find_trunk2(singular_tree, coord, h_list[0])
+                trunk_pcd, trunk_h, trunk_d, trunk_v, trunk_v_c = find_trunk(singular_tree, coord, h_list[0])
                 if trunk_pcd is not None:
-                    crown_pcd, crown_d, crown_v = find_crown2(singular_tree, trunk_pcd)
+                    crown_pcd, crown_d, crown_v = find_crown(singular_tree, trunk_pcd)
 
                 if crown_pcd is not None:
                     ransac_results['trunk_h'] = trunk_h
@@ -564,12 +564,13 @@ class TreeGen():
                     ransac_results['crown_d'] = crown_d
                     ransac_results['crown_v'] = crown_v
 
+                    results_df = pd.DataFrame([ransac_results])
+                    results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
+                    
                     save_pointcloud(trunk_pcd, f"{ransac_daq_path}/trunk_{index}.ply")
                     save_pointcloud(crown_pcd, f"{ransac_daq_path}/crown_{index}.ply")
 
                     # TODO: Save the images
                     save_img(singular_tree, trunk_pcd, crown_pcd, h_list[0], trunk_h, index, ransac_daq_path)
 
-                results_df = pd.DataFrame([ransac_results])
-                results_df.to_csv(csv_file_path, index=False, mode='a', header=False)
         print("\n\n\n",total_detected,total_detected)
