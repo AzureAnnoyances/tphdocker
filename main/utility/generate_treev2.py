@@ -261,7 +261,7 @@ class TreeGen():
                 print("h_detected",h>0)
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
-                _, new_center = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
+                tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w+1,self.ex_w+1], expand_z=[z_min, z_max])
                 
         print("\n\n\n",total_detected,total_detected)
