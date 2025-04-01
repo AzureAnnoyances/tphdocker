@@ -120,7 +120,6 @@ def calculate_height(uv_coords_pred, scale):
     else:
         label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
         label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
-        print("0z",label0_z, label1_z)
         height = (label1_z-label0_z)[0]
         return height if height > 0 else 0
     
@@ -201,6 +200,7 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
         
         if height >0:
             z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z)
+            print("grd, ffb",z_coord_grd, z_coord_ffb)
             bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
             bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_ffb), max_bound=(xc+3,ymax,z_coord_ffb+100))
             trunko3d = tree.crop(bbox_trunk)

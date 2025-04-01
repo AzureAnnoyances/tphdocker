@@ -236,7 +236,6 @@ class TreeGen():
                         section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
-                        print("min_max",almost_tree.get_max_bound(), almost_tree.get_min_bound())
                         h, im , confi = get_h_from_each_tree_slice(
                             tree = almost_tree,
                             model_short = self.obj_det_short,
