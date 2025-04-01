@@ -201,8 +201,8 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
         if height >0:
             z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z)
             print("grd, ffb, min_z",z_coord_grd, z_coord_ffb, min_z)
-            bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
-            bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_ffb), max_bound=(xc+3,ymax,z_coord_ffb+100))
+            bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,min_z), max_bound=(xc+3,ymax,z_coord_grd))
+            bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
             trunko3d = tree.crop(bbox_trunk)
             crowno3d = tree.crop(bbox_crown)
             open3d.visualization.draw_geometries([tree])
