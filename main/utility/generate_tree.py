@@ -205,6 +205,7 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
             bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_ffb), max_bound=(xc+3,ymax,z_coord_ffb+100))
             trunko3d = tree.crop(bbox_trunk)
             crowno3d = tree.crop(bbox_crown)
+            open3d.visualization.draw_geometries([tree])
             open3d.visualization.draw_geometries([trunko3d])
             open3d.visualization.draw_geometries([crowno3d])
            
