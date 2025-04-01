@@ -135,8 +135,8 @@ def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img_shape):
     else:
         label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
         label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
-        z_coord_grd = ((img_shape[0]-label0_z[0])*stepsize) + min_z
-        z_coord_ffb = ((img_shape[0]-label1_z[0])*stepsize) + min_z
+        z_coord_ffb = ((img_shape[0]-label0_z[0])*stepsize) + min_z
+        z_coord_grd = ((img_shape[0]-label1_z[0])*stepsize) + min_z
         
         return (z_coord_grd,z_coord_ffb) if (label1_z-label0_z)[0] > 0 else failure_rtn
  
