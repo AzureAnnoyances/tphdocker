@@ -120,6 +120,7 @@ def calculate_height(coords_with_pred, scale):
     else:
         label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
         label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
+        print("0z",label0_z, label1_z)
         height = (label1_z-label0_z)[0]
         return height if height > 0 else 0
  
