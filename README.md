@@ -23,7 +23,7 @@ cd && docker run -it \
 --env SSH_AUTH_SOCK=/ssh-agent \
 --env DISPLAY=$DISPLAY \
 --env TERM=xterm-256color \
--v /home/wawj-u/Documents/datasets/pcd:/root/pcds \
+-v /home/ds1804/pcds:/root/pcds \
 dschng/tph /bin/bash
 
 ```

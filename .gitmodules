@@ -4,3 +4,6 @@
 [submodule "submodules/PCTM"]
 	path = submodules/PCTM
 	url = https://github.com/chngdickson/PointCloud_Tree_Modelling.git
+[submodule "submodules/proj_3d_and_2d"]
+	path = submodules/proj_3d_and_2d
+	url = https://github.com/chngdickson/3Dand2DProjection.git

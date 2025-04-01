@@ -154,7 +154,7 @@ RUN . /root/anaconda3/etc/profile.d/conda.sh && \
 RUN . /root/anaconda3/etc/profile.d/conda.sh && \
     conda activate CloudComPy310 && \
     cd /root/sdp_tph && \
-    python3 -m pip install --no-cache-dir laspy[lazrs,laszip] seaborn scipy==1.10.0 numpy==1.23.5 pandas==1.5.2 scikit-learn==1.4.0 tqdm
+    python3 -m pip install --no-cache-dir laspy[lazrs,laszip] seaborn scipy==1.10.0 numpy==1.23.5 pandas==1.5.2 scikit-learn==1.4.0 tqdm numba==0.56.4
 
 
 WORKDIR /root/CloudComPy
