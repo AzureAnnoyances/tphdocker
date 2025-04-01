@@ -50,14 +50,14 @@ def draw_coord_on_img(img, coords, circle_size=2):
     return img
 
 
-def draw_coord_on_img_with_pred(img, coords_with_pred, height, circle_size = 2): #(xc,yc,confidence,label)
-    coords_with_pred = coords_with_pred.astype(int)
-    if not coords_with_pred.size:
+def draw_coord_on_img_with_pred(img, uv_coords_pred, height, circle_size = 2): #(xc,yc,confidence,label)
+    uv_coords_pred = uv_coords_pred.astype(int)
+    if not uv_coords_pred.size:
         return img
     red = (255,0,0)
     blue = (0,0,255)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    for coord in coords_with_pred:
+    for coord in uv_coords_pred:
         if coord[3]:
             color = red
         else:

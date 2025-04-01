@@ -101,14 +101,14 @@ def crop_pcd_to_many(pcd, grd_pcd, coords, w_lin_pcd, h_lin_pcd, expand_x_y:list
             result_arr.append(t_temp)
     return np.vstack(result_arr)
 
-def calculate_height(coords_with_pred, scale):
+def calculate_height(uv_coords_pred, scale):
     # Scale the points at Z 
-    coords_with_pred[:,1] = coords_with_pred[:,1]*scale
+    uv_coords_pred[:,1] = uv_coords_pred[:,1]*scale
     
-    x_or_y = coords_with_pred[:,0]
-    z = coords_with_pred[:,1]
-    conf = coords_with_pred[:,2]
-    labels = coords_with_pred[:,3]
+    x_or_y = uv_coords_pred[:,0]
+    z = uv_coords_pred[:,1]
+    conf = uv_coords_pred[:,2]
+    labels = uv_coords_pred[:,3]
     
     unique = np.unique(labels, return_counts=True)
     
@@ -123,6 +123,23 @@ def calculate_height(coords_with_pred, scale):
         print("0z",label0_z, label1_z)
         height = (label1_z-label0_z)[0]
         return height if height > 0 else 0
+    
+def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z):
+    z = uv_coords_pred[:,1]
+    conf = uv_coords_pred[:,2]
+    labels = uv_coords_pred[:,3]
+    unique = np.unique(labels, return_counts=True)
+    
+    failure_rtn = (np.nan, np.nan)
+    if len(unique[1]) < 2:
+        return failure_rtn
+    else:
+        label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
+        label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
+        z_coord_grd = label0_z[0]*stepsize + min_z
+        z_coord_ffb = label1_z[0]*stepsize + min_z
+        
+        return (z_coord_grd,z_coord_ffb) if (label1_z-label0_z)[0] > 0 else failure_rtn
  
         
 def img_arr_to_b64(img_arr):
@@ -158,6 +175,7 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
     if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
         return (0,0,0)
     img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
+    slice_x_min_z, slice_y_min_z = slice_x.get_min_bound()[2], slice_y.get_min_bound()[2]
     height_lst = []
     img_lst = []
     confi_lst = []
@@ -165,7 +183,7 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
     tall_img_size = model_tall.img_size
     
     # For each slice, generate an image
-    for i, img in enumerate([img_x, img_y]):
+    for i, (img, min_z) in enumerate([(img_x, slice_x_min_z), (img_y,slice_y_min_z)]):
         # Crop Image
         # Only if the tree is taller than our desired shape
         if img.shape[0]>short_img_size[1]:
@@ -175,23 +193,26 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
         
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-        coords_with_pred = process_predictions(img, model_short)
+        uv_coords_pred = process_predictions(img, model_short)
         
         # Calculate the Height and Scale it
-        height = calculate_height(coords_with_pred, scale=1.0)
+        height = calculate_height(uv_coords_pred, scale=1.0)
         height *= stepsize # Scaling it
+        
+        if height >0:
+            z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z)
         
            
         if img_with_h is True:
             if height > 0:
                 height_lst.append(height)
-                img_lst.append(draw_coord_on_img_with_pred(img, coords_with_pred = coords_with_pred,height = height,circle_size = circle_size))
-                confi_lst.append(np.mean(coords_with_pred[:,2]))
+                img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
+                confi_lst.append(np.mean(uv_coords_pred[:,2]))
         else:
             if height > 0:
                 height_lst.append(height)
                 img_lst.append(img)
-                confi_lst.append(np.mean(coords_with_pred[:,2]))
+                confi_lst.append(np.mean(uv_coords_pred[:,2]))
             else:
                 if gen_undetected_img and img.shape[0]<=short_img_size[1]:
                     cv2.imwrite(f"{img_dir}_{i}_[short].jpg", img)
@@ -212,22 +233,22 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
             #print(img.shape)
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-            coords_with_pred = process_predictions(img, model_tall)
+            uv_coords_pred = process_predictions(img, model_tall)
             
             # Calculate the Height and Scale it
-            height = calculate_height(coords_with_pred, scale=1.0)
+            height = calculate_height(uv_coords_pred, scale=1.0)
             height *= stepsize
             
             if img_with_h is True:
                 if height > 0:
                     height_lst.append(height)
-                    img_lst.append(draw_coord_on_img_with_pred(img, coords_with_pred = coords_with_pred,height = height,circle_size = circle_size))
-                    confi_lst.append(np.mean(coords_with_pred[:,2]))
+                    img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
+                    confi_lst.append(np.mean(uv_coords_pred[:,2]))
             else:
                 if height > 0:
                     height_lst.append(height)
                     img_lst.append(img)
-                    confi_lst.append(np.mean(coords_with_pred[:,2]))
+                    confi_lst.append(np.mean(uv_coords_pred[:,2]))
                 else:
                     if gen_undetected_img:
                         cv2.imwrite(f"{img_dir}_{i}_[tall].jpg", img)
@@ -242,7 +263,7 @@ def process_predictions(img, model, confi_thres=0.135):
         
     if len(ffb_cols) == 0 or len(grd_cols) == 0:
         xc , yc ,conf, pred = (preds[:,0]+preds[:,2])/2 ,(preds[:,1]+preds[:,3])/2, preds[:,4]*100,preds[:,-1]
-        coords_with_pred =  np.stack([np.asarray(xc),np.asarray(yc), conf, pred], axis=1)
+        uv_coords_pred =  np.stack([np.asarray(xc),np.asarray(yc), conf, pred], axis=1)
     else:
         # Remove the Lower Confidence Ratio ones before processing
         ffb_cols = ffb_cols[ffb_cols[:,4] == max(ffb_cols[:,4])]
@@ -251,6 +272,6 @@ def process_predictions(img, model, confi_thres=0.135):
         grd_x, grd_y, grd_conf, grd_pred = (grd_cols[:,0]+grd_cols[:,2])/2 ,grd_cols[:,3], grd_cols[:,4]*100, grd_cols[:,-1]
 
         xc,yc,conf,pred = np.append(ffb_x,grd_x), np.append(ffb_y,grd_y), np.append(ffb_conf,grd_conf), np.append(ffb_pred,grd_pred)
-        coords_with_pred = np.stack([xc, yc, conf, pred],axis=1)
+        uv_coords_pred = np.stack([xc, yc, conf, pred],axis=1)
     
-    return coords_with_pred
+    return uv_coords_pred
