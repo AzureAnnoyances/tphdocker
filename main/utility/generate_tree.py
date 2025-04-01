@@ -119,11 +119,11 @@ def calculate_height(uv_coords_pred, scale):
         return 0
     else:
         label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
-        label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
+        label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]return_coord_ffb_ground_z
         height = (label1_z-label0_z)[0]
         return height if height > 0 else 0
     
-def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z):
+def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img_shape):
     z = uv_coords_pred[:,1]
     conf = uv_coords_pred[:,2]
     labels = uv_coords_pred[:,3]
@@ -135,8 +135,8 @@ def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z):
     else:
         label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
         label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
-        z_coord_grd = label0_z[0]*stepsize + min_z
-        z_coord_ffb = label1_z[0]*stepsize + min_z
+        z_coord_grd = ((img_shape[0]-label0_z[0])*stepsize) + min_z
+        z_coord_ffb = ((img_shape[0]-label1_z[0])*stepsize) + min_z
         
         return (z_coord_grd,z_coord_ffb) if (label1_z-label0_z)[0] > 0 else failure_rtn
  
@@ -199,11 +199,11 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
         height *= stepsize # Scaling it
         
         if height >0:
-            z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z)
+            z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
             print("grd, ffb, min_z",z_coord_grd, z_coord_ffb, min_z)
             print("img_shape", img.shape, stepsize, height)
-            bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,min_z), max_bound=(xc+3,ymax,z_coord_grd))
-            bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
+            bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
+            bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_ffb), max_bound=(xc+3,ymax,z_coord_ffb+100))
             trunko3d = tree.crop(bbox_trunk)
             crowno3d = tree.crop(bbox_crown)
             open3d.visualization.draw_geometries([tree])
