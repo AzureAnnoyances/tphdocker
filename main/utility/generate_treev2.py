@@ -120,12 +120,12 @@ def regenerate_Tree(pcd, center_coord:tuple, radius_expand:int=5, zminmax:list=[
     for i, h in enumerate(np.linspace(z.min(),z.max(), n_splits, endpoint=False)):
         r_ex = (i/n_splits)*radius_expand*1.5 if i/n_splits >= tol else tol*radius_expand*1.5
         if temp_tree is None:
-            temp_tree, _ = crop_treeWithBBox(tree, center_coord, r_ex, [h-h_diff, h+h_diff])
+            temp_tree = crop_treeWithBBox(tree, center_coord, r_ex, [h-h_diff, h+h_diff])
         else:
-            a, _ = crop_treeWithBBox(tree, center_coord, r_ex, [h-h_diff, h+h_diff])
+            a = crop_treeWithBBox(tree, center_coord, r_ex, [h-h_diff, h+h_diff])
             if a is not None:
                 temp_tree+=a
-    return temp_tree, temp_tree.get_center()
+    return temp_tree
 
 # this stays
 def ransac_gen_cylinders(pcd, prim:int = 500, dev_deg:int = 25, r_min:float = 0.4, r_max:float = 0.7):
