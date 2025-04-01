@@ -28,7 +28,7 @@ def get_tree_from_coord(pcd, grd_pcd, coord:list, expand_x_y:list=[10.0,10.0], e
     zmin_tolerance = ground.get_max_bound()[2] - 2.0
     zmin = zmin_tolerance if zmin > zmin_tolerance else zmin
     bbox = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-l/2,yc-w/2,zmin),max_bound=(xc+l/2,yc+w/2,zmax))
-    tree = pcd.crop(bbox)
+    tree = pcd.crop(bbox) + ground
     return tree
 
 def generate_boundingbox(tree):
