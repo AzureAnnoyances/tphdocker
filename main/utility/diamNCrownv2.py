@@ -18,6 +18,7 @@ def display_inlier_outlier(cloud):
     outlier_cloud.paint_uniform_color([1, 0, 0])
     inlier_cloud.paint_uniform_color([0.8, 0.8, 0.8])
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
+    return inlier_cloud
     
 def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):  
     """
@@ -34,7 +35,8 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     trunk = pcd.crop(bbox_trunk)
     crown = pcd.crop(bbox_crown)
 
-
+    trunk = display_inlier_outlier(trunk)
+    crown = display_inlier_outlier(crown)
     
     # o3d.visualization.draw_geometries([trunk])
     # o3d.visualization.draw_geometries([crown])
