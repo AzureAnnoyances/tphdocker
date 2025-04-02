@@ -51,13 +51,13 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=False,
         depth_weighting=True  
     )
-    print(filtered_trunk_pcd.shape)
-    cv2.imshow('trunk raster',raster_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # print(filtered_trunk_pcd.shape)
+    # cv2.imshow('trunk raster',raster_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     
     # Crown
-    filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
+    filtered_trunk_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
         pointcloud = np.array(crown.points), 
         img_shape  = (640,640),
         min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
@@ -66,12 +66,12 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=False,
         depth_weighting=True  
     )
-    print(filtered_trunk_pcd.shape)
-    cv2.imshow('crown raster',raster_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    return trunk, crown
+    # print(filtered_trunk_pcd.shape)
+    # cv2.imshow('crown raster',raster_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    # cv2.imwrite("")
+    return raster_trunk_img, raster_crown_img
 
 
 
