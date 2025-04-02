@@ -3,6 +3,7 @@ from .get_coords import *
 from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord
 # from .diamNCrown import AdTree_cls
 from .diamNCrownv2 import split_pcd_by2_with_height
+
 from .yolo_detect import Detect
 import cv2
 import numpy as np
@@ -266,7 +267,7 @@ class TreeGen():
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[20.0,20.0], expand_z=[z_min, z_max])
+                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
                 trunk, crown = split_pcd_by2_with_height(multi_tree, np.mean(z_ffb_list), np.mean(z_grd_list))
                 
                 # Visualize

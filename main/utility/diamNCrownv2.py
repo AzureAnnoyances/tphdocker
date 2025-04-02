@@ -2,7 +2,9 @@ import numpy as np
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
-
+import sys
+sys.path.insert(1, '/root/sdp_tph/submodules/proj_3d_and_2d')
+from raster_pcd2img import rasterize_3dto2D
 
 def split_pcd_by2_with_height(pcd, z_ffb, z_grd):   
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
