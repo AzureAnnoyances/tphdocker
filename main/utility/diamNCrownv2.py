@@ -7,6 +7,21 @@ import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/proj_3d_and_2d')
 from raster_pcd2img import rasterize_3dto2D
 
+def display_inlier_outlier(cloud):
+    uni_down_pcd = cloud.uniform_down_sample(every_k_points=5)
+    cl, ind = uni_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
+    inlier_cloud = cloud.select_by_index(ind)
+    outlier_cloud = cloud.select_by_index(ind, invert=True)
+
+    print("Showing outliers (red) and inliers (gray): ")
+    outlier_cloud.paint_uniform_color([1, 0, 0])
+    inlier_cloud.paint_uniform_color([0.8, 0.8, 0.8])
+    o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud],
+                                      zoom=0.3412,
+                                      front=[0.4257, -0.2125, -0.8795],
+                                      lookat=[2.6172, 2.0475, 1.532],
+                                      up=[-0.0694, -0.9768, 0.2024])
+    
 def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):  
     """
     pcd: (N, 3) array of 3D points.
@@ -21,6 +36,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol), max_bound=max_bound)
     trunk = pcd.crop(bbox_trunk).voxel_down_sample(voxel_size=0.05)
     crown = pcd.crop(bbox_crown).voxel_down_sample(voxel_size=0.05)
+    display_inlier_outlier(trunk)
 
 
     
