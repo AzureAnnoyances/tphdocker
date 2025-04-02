@@ -63,7 +63,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
         max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]],
         axis='z', 
-        highest_first=True,
+        highest_first=False,
         depth_weighting=True  
     )
     print(filtered_trunk_pcd.shape)
