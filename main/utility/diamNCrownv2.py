@@ -37,6 +37,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=True,
         depth_weighting=True  
     )
+    print(filtered_trunk_pcd.shape)
     cv2.imshow('trunk raster',raster_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -53,6 +54,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=True,
         depth_weighting=True  
     )
+    print(filtered_trunk_pcd.shape)
     cv2.imshow('crown raster',raster_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
