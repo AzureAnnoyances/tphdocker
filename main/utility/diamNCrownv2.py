@@ -25,8 +25,8 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     o3d.visualization.draw_geometries([trunk])
     o3d.visualization.draw_geometries([crown])
     
-    min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, center_coord[2]]
-    max_xyz = [center_coord[0]+expansion[0]/2, center_coord[1]+expansion[1]/2, center_coord[2]]
+    min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, min_bound[2]]
+    max_xyz = [center_coord[0]+expansion[0]/2, center_coord[1]+expansion[1]/2, max_bound[2]]
     filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
         pointcloud = np.array(trunk.points), 
         img_shape  = (640,640),
