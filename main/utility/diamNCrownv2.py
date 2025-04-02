@@ -32,8 +32,10 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
     bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb-tol*2))
     bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol*3), max_bound=(max_bound[0],max_bound[1], z_ffb+tol))
+    bbox_crown_top = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb+tol), max_bound=(max_bound[0],max_bound[1], z_ffb+tol*2))
     trunk = pcd.crop(bbox_trunk)
     crown = pcd.crop(bbox_crown)
+    crown_upper = pcd.crop(bbox_crown_top)
 
     # trunk = display_inlier_outlier(trunk)
     # crown = display_inlier_outlier(crown)
@@ -71,7 +73,17 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
     # cv2.imwrite("")
-    return raster_trunk_img, raster_crown_img
+    
+    filtered_trunk_pcd, raster_image, raster_crown_upper_img = rasterize_3dto2D(
+        pointcloud = np.array(crown_upper.points), 
+        img_shape  = (640,640),
+        min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_upper.get_min_bound()[2]],
+        max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_upper.get_max_bound()[2]],
+        axis='z', 
+        highest_first=False,
+        depth_weighting=True  
+    )
+    return raster_trunk_img, raster_crown_img, raster_crown_upper_img
 
 
 
