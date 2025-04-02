@@ -10,7 +10,7 @@ from raster_pcd2img import rasterize_3dto2D
 def display_inlier_outlier(cloud):
     size = 0.1
     cloud = cloud.voxel_down_sample(voxel_size=size)
-    cl, ind = cloud.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    cl, ind = cloud.remove_statistical_outlier(nb_neighbors=30, std_ratio=2.0)
     inlier_cloud = cloud.select_by_index(ind)
     outlier_cloud = cloud.select_by_index(ind, invert=True)
 
