@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
@@ -6,14 +7,39 @@ import sys
 sys.path.insert(1, '/root/sdp_tph/submodules/proj_3d_and_2d')
 from raster_pcd2img import rasterize_3dto2D
 
-def split_pcd_by2_with_height(pcd, z_ffb, z_grd):   
+def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):  
+    """
+    pcd: (N, 3) array of 3D points.
+    z_ffb: 
+    z_grd: (H, W) if mask_2d is not None
+    center_coord: Tuple of (c_x, c_y, c_z) bounds.
+    expansion: Tuple of (x, y) expansion.
+    """ 
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-    bbox_ffb = o3d.geometry.AxisAlignedBoundingBox(min_bound=[min_bound[0], min_bound[1], z_grd], max_bound=[max_bound[0],max_bound[1], z_ffb])
+    bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=[min_bound[0], min_bound[1], z_grd], max_bound=[max_bound[0],max_bound[1], z_ffb])
     bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=[min_bound[0], min_bound[1], z_ffb],max_bound=max_bound)
-    ffb = pcd.crop(bbox_ffb)
+    trunk = pcd.crop(bbox_trunk)
     crown = pcd.crop(bbox_crown)
 
-    return ffb, crown
+    
+    o3d.visualization.draw_geometries([trunk])
+    o3d.visualization.draw_geometries([crown])
+    
+    min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, center_coord[2]]
+    max_xyz = [center_coord[0]+expansion[0]/2, center_coord[1]+expansion[1]/2, center_coord[2]]
+    filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
+        pointcloud = np.array(trunk.points), 
+        img_shape  = (640,640),
+        min_xyz = min_xyz,
+        max_xyz = max_xyz,
+        axis='z', 
+        highest_first=True,
+        depth_weighting=True  
+    )
+    cv2.imshow(raster_image)
+    cv2.show()
+    
+    return trunk, crown
 
 
 

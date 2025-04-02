@@ -267,11 +267,15 @@ class TreeGen():
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                trunk, crown = split_pcd_by2_with_height(multi_tree, np.mean(z_ffb_list), np.mean(z_grd_list))
+                center_coord = tree_centerized.get_center()
+                multi_tree = get_tree_from_coord(pcd, grd_pcd, center_coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+                trunk, crown = split_pcd_by2_with_height(
+                    multi_tree, 
+                    z_ffb=np.mean(z_ffb_list), 
+                    z_grd=np.mean(z_grd_list),
+                    center_coord = center_coord,
+                    expansion = [15.0, 15.0]
+                    )
                 
-                # Visualize
-                o3d.visualization.draw_geometries([trunk])
-                o3d.visualization.draw_geometries([crown])
                 
         print("\n\n\n",total_detected,total_detected)
