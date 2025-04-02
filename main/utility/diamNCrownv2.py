@@ -19,8 +19,9 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
     bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb-tol))
     bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol), max_bound=max_bound)
-    trunk = pcd.crop(bbox_trunk)
-    crown = pcd.crop(bbox_crown)
+    trunk = pcd.crop(bbox_trunk).voxel_down_sample(voxel_size=0.05)
+    crown = pcd.crop(bbox_crown).voxel_down_sample(voxel_size=0.05)
+
 
     
     # o3d.visualization.draw_geometries([trunk])
