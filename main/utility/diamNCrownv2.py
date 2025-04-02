@@ -38,7 +38,8 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         depth_weighting=True  
     )
     cv2.imshow('trunk raster',raster_image)
-    cv2.show()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     
     # Crown
     min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]]
@@ -53,7 +54,8 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         depth_weighting=True  
     )
     cv2.imshow('crown raster',raster_image)
-    cv2.show()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     
     return trunk, crown
 
