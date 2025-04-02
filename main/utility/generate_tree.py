@@ -170,7 +170,6 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
     slice_y = tree.crop(box_y) if box_y.get_max_bound()[1] != box_y.get_min_bound()[1] and box_y.get_max_bound()[0] != box_y.get_min_bound()[0] and box_y.get_max_bound()[2] != box_y.get_min_bound()[2] else open3d.geometry.PointCloud()
     """Short term fix End"""
 
-    #open3d.visualization.draw_geometries([slice_x,slice_y])
     if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
         return (0,0,0,0,0)
     img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
