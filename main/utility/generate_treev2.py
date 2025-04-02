@@ -2,6 +2,7 @@ from .pcd2img import *
 from .get_coords import *
 from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord
 # from .diamNCrown import AdTree_cls
+from .diamNCrownv2 import split_pcd_by2_with_height
 from .yolo_detect import Detect
 import cv2
 import numpy as np
@@ -213,6 +214,8 @@ class TreeGen():
             n_detected = 0
             confi_list = []
             coord_list = []
+            z_grd_list = []
+            z_ffb_list = []
             h_im_list = []
             
             # Split each coord to multi-sections and find the one with highest confidence
@@ -236,7 +239,7 @@ class TreeGen():
                         section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
-                        h, im , confi = get_h_from_each_tree_slice(
+                        h, im , confi, z_grd, z_ffb = get_h_from_each_tree_slice(
                             tree = almost_tree,
                             model_short = self.obj_det_short,
                             model_tall = self.obj_det_tall,
@@ -250,6 +253,8 @@ class TreeGen():
                         if h > 0:
                             confi_list.append(confi)
                             coord_list.append(coord)
+                            z_grd_list.append(z_grd)
+                            z_ffb_list.append(z_ffb)
                             h_im_list.append(im)
                             n_detected += 1
                         
@@ -261,6 +266,11 @@ class TreeGen():
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w+1,self.ex_w+1], expand_z=[z_min, z_max])
+                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w+2,self.ex_w+2], expand_z=[z_min, z_max])
+                trunk, crown = split_pcd_by2_with_height(multi_tree, np.mean(z_ffb_list), np.mean(z_grd_list))
+                
+                # Visualize
+                o3d.visualization.draw_geometries([trunk])
+                o3d.visualization.draw_geometries([crown])
                 
         print("\n\n\n",total_detected,total_detected)

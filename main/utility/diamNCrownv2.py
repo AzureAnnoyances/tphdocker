@@ -4,7 +4,14 @@ from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
 
 
-def split_pcd_by2_with_height(pcd, )
+def split_pcd_by2_with_height(pcd, z_ffb, z_grd):   
+    min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+    bbox_ffb = o3d.geometry.AxisAlignedBoundingBox(min_bound=[min_bound[0], min_bound[1], z_grd], max_bound=[max_bound[0],max_bound[1], z_ffb])
+    bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=[min_bound[0], min_bound[1], z_ffb],max_bound=max_bound)
+    ffb = pcd.crop(bbox_ffb)
+    crown = pcd.crop(bbox_crown)
+
+    return ffb, crown
 
 
 

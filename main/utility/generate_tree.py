@@ -181,6 +181,8 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
     short_img_size = model_short.img_size
     tall_img_size = model_tall.img_size
     
+    z_coord_grd_lst = []
+    z_coord_ffb_lst = []
     # For each slice, generate an image
     for i, (img, min_z) in enumerate([(img_x, slice_x_min_z), (img_y,slice_y_min_z)]):
         # Crop Image
@@ -200,15 +202,9 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
         
         if height >0:
             z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
-            print("grd, ffb, min_z",z_coord_grd, z_coord_ffb, min_z)
-            print("img_shape", img.shape, stepsize, height)
-            bbox_trunk = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_grd), max_bound=(xc+3,ymax,z_coord_ffb))
-            bbox_crown = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-3,ymin,z_coord_ffb), max_bound=(xc+3,ymax,z_coord_ffb+100))
-            trunko3d = tree.crop(bbox_trunk)
-            crowno3d = tree.crop(bbox_crown)
-            open3d.visualization.draw_geometries([tree])
-            open3d.visualization.draw_geometries([trunko3d])
-            open3d.visualization.draw_geometries([crowno3d])
+            z_coord_grd_lst.append(z_coord_grd)
+            z_coord_ffb_lst.append(z_coord_ffb)
+            
            
         if img_with_h is True:
             if height > 0:
@@ -246,6 +242,11 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
             height = calculate_height(uv_coords_pred, scale=1.0)
             height *= stepsize
             
+            if height >0:
+                z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
+                z_coord_grd_lst.append(z_coord_grd)
+                z_coord_ffb_lst.append(z_coord_ffb)
+                
             if img_with_h is True:
                 if height > 0:
                     height_lst.append(height)
@@ -259,7 +260,19 @@ def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, st
                 else:
                     if gen_undetected_img:
                         cv2.imwrite(f"{img_dir}_{i}_[tall].jpg", img)
-    return (sum(height_lst)/len(height_lst), img_arr_to_b64(img_lst[np.argmax(confi_lst)]), max(confi_lst)) if height_lst else (0, 0,0)
+    if height_lst:
+        rtn = (
+            sum(height_lst)/len(height_lst), 
+            img_arr_to_b64(img_lst[np.argmax(confi_lst)]), 
+            max(confi_lst),
+            np.mean(z_coord_grd_lst),
+            np.mean(z_coord_ffb_lst)
+            )
+        return rtn
+    else:
+        rtn = (0, 0, 0, 0, 0)
+        return rtn
+    # return (sum(height_lst)/len(height_lst), img_arr_to_b64(img_lst[np.argmax(confi_lst)]), max(confi_lst)) if height_lst else (0, 0,0)
     
 def process_predictions(img, model, confi_thres=0.135):
     preds = model.predict(img, convert_to_gray=False, confi_thres=confi_thres)
