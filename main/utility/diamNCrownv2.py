@@ -18,7 +18,6 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
     bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd), max_bound=(max_bound[0],max_bound[1], z_ffb))
     bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb), max_bound=max_bound)
-    print(f"z_grd : [{z_grd}] , z_ffb : [{z_ffb}]")
     trunk = pcd.crop(bbox_trunk)
     crown = pcd.crop(bbox_crown)
 
@@ -26,19 +25,19 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     o3d.visualization.draw_geometries([trunk])
     o3d.visualization.draw_geometries([crown])
     
-    # min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, center_coord[2]]
-    # max_xyz = [center_coord[0]+expansion[0]/2, center_coord[1]+expansion[1]/2, center_coord[2]]
-    # filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
-    #     pointcloud = np.array(trunk.points), 
-    #     img_shape  = (640,640),
-    #     min_xyz = min_xyz,
-    #     max_xyz = max_xyz,
-    #     axis='z', 
-    #     highest_first=True,
-    #     depth_weighting=True  
-    # )
-    # cv2.imshow(raster_image)
-    # cv2.show()
+    min_xyz = [center_coord[0]-expansion[0]/2, center_coord[1]-expansion[1]/2, center_coord[2]]
+    max_xyz = [center_coord[0]+expansion[0]/2, center_coord[1]+expansion[1]/2, center_coord[2]]
+    filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
+        pointcloud = np.array(trunk.points), 
+        img_shape  = (640,640),
+        min_xyz = min_xyz,
+        max_xyz = max_xyz,
+        axis='z', 
+        highest_first=True,
+        depth_weighting=True  
+    )
+    cv2.imshow(raster_image)
+    cv2.show()
     
     return trunk, crown
 
