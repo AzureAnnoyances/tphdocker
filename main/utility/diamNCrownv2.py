@@ -31,7 +31,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     tol = 1.0 # To Remove additional points, so the picture will have less ground or less leaves
     min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
     bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb-tol))
-    bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol), max_bound=(max_bound[0],max_bound[1], z_ffb+0.2))
+    bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol), max_bound=(max_bound[0],max_bound[1], z_ffb+tol))
     trunk = pcd.crop(bbox_trunk)
     crown = pcd.crop(bbox_crown)
 
