@@ -276,8 +276,8 @@ class TreeGen():
                     center_coord = coord,
                     expansion = [15.0, 15.0]
                     )
-                cv2.imwrite(f"{self.sideViewOut}/trunk_{i}.png", trunk_img)
-                cv2.imwrite(f"{self.sideViewOut}/crown_{i}.png", crown_img)
+                cv2.imwrite(f"{self.sideViewOut}/trunk_{index}.png", trunk_img)
+                cv2.imwrite(f"{self.sideViewOut}/crown_{index}.png", crown_img)
                 
                 
                 
