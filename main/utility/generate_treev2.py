@@ -3,7 +3,7 @@ from .get_coords import *
 from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord
 # from .diamNCrown import AdTree_cls
 from .diamNCrownv2 import split_pcd_by2_with_height
-
+from .encode_decode import img_b64_to_arr
 from .yolo_detect import Detect
 import cv2
 import numpy as np
@@ -276,7 +276,7 @@ class TreeGen():
                     center_coord = coord,
                     expansion = [15.0, 15.0]
                     )
-                cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", h_im_list[0])
+                cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
                 cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
                 
