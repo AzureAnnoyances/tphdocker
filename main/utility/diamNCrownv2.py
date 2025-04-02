@@ -10,8 +10,8 @@ from raster_pcd2img import rasterize_3dto2D
 def display_inlier_outlier(cloud):
     uni_down_pcd = cloud.uniform_down_sample(every_k_points=5)
     cl, ind = uni_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
-    inlier_cloud = cloud.select_by_index(ind)
-    outlier_cloud = cloud.select_by_index(ind, invert=True)
+    inlier_cloud = uni_down_pcd.select_by_index(ind)
+    outlier_cloud = uni_down_pcd.select_by_index(ind, invert=True)
 
     print("Showing outliers (red) and inliers (gray): ")
     outlier_cloud.paint_uniform_color([1, 0, 0])
