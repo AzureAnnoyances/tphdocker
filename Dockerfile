@@ -47,7 +47,7 @@ RUN python3 -m pip install --no-cache-dir laspy[lazrs,laszip]
 RUN python3 -m pip install --no-cache-dir --ignore-installed open3d
 # Clone github and it's requirements
 WORKDIR /root
-RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git
+RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b testings_a
 
 # Install python Requirements
 WORKDIR /root/sdp_tph
@@ -154,7 +154,7 @@ RUN . /root/anaconda3/etc/profile.d/conda.sh && \
 RUN . /root/anaconda3/etc/profile.d/conda.sh && \
     conda activate CloudComPy310 && \
     cd /root/sdp_tph && \
-    python3 -m pip install --no-cache-dir laspy[lazrs,laszip] seaborn scipy==1.10.0 numpy==1.23.5 pandas==1.5.2 scikit-learn==1.4.0 tqdm numba==0.56.4
+    python3 -m pip install --no-cache-dir laspy[lazrs,laszip] seaborn scipy==1.10.0 numpy==1.23.5 pandas==1.5.2 scikit-learn==1.4.0 tqdm numba==0.56.4 protobuf scikit-image filterpy Pillow==9.5.0
 
 
 WORKDIR /root/CloudComPy

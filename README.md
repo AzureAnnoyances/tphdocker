@@ -2,7 +2,7 @@ Build Docker image
 
 ```bash
 docker build \
---ssh github_ssh_key=/home/wawj-u/.ssh/id_ed25519 \
+--ssh github_ssh_key=/home/ds1804/.ssh/id_ed25519 \
 -t dschng/tph -f Dockerfile .
 
 ```
