@@ -1,4 +1,3 @@
-from matplotlib import use
 import open3d
 import cv2
 from .pcd2img import *

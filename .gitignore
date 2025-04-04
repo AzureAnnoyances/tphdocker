@@ -3,3 +3,4 @@ main/tests/
 *.pdf
 *.pt
 main/model_weights/
+main/runs/

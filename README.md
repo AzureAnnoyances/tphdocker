@@ -7,6 +7,12 @@ docker build \
 
 ```
 
+```
+cd /root/sdp_tph/main
+RUN pip install gdown
+RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
+```
+
 Run Docker container and open the Docker container terminal 
 ```bash
 xhost local:docker
@@ -35,6 +41,11 @@ cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-su
 cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ p01e_B .las
 
 ```
+```
+. /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
+python3 
+```
+
 
 Rerun code and clear data file
 ```bash
