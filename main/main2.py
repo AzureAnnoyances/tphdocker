@@ -68,6 +68,7 @@ def main(path_directory, pcd_name, input_file_type):
         xyz = np.vstack((las.x, las.y, las.z)).T
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(xyz)
+        print(len(pcd.points))
     elif input_file_type == ".txt":
         format = 'xyz'
         pcd = o3d.io.read_point_cloud(folder_loc+pcd_filename, format=format)
@@ -207,8 +208,8 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
-    tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
+    # tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
+    # tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
 
 if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
