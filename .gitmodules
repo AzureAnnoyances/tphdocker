@@ -7,3 +7,6 @@
 [submodule "submodules/proj_3d_and_2d"]
 	path = submodules/proj_3d_and_2d
 	url = https://github.com/chngdickson/3Dand2DProjection.git
+[submodule "main/yolov7"]
+	path = main/yolov7
+	url = https://github.com/chngdickson/instance_seg7.git
