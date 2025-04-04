@@ -3,9 +3,13 @@ import numpy as np
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
-import sys
-sys.path.insert(1, '/root/sdp_tph/submodules/proj_3d_and_2d')
+import sys, pathlib
+yolov7_main_pth = pathlib.Path(__file__).resolve().parent.parent.joinpath("yolov7")
+sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
+sys.path.insert(0, str(yolov7_main_pth))
 from raster_pcd2img import rasterize_3dto2D
+from segment.predict2 import Infer_seg
+
 
 def display_inlier_outlier(cloud):
     size = 0.1
@@ -37,11 +41,6 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     crown = pcd.crop(bbox_crown)
     crown_upper = pcd.crop(bbox_crown_top)
 
-    # trunk = display_inlier_outlier(trunk)
-    # crown = display_inlier_outlier(crown)
-    
-    # o3d.visualization.draw_geometries([trunk])
-    # o3d.visualization.draw_geometries([crown])
     
     # Trunk
     filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
@@ -53,10 +52,7 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=False,
         depth_weighting=True  
     )
-    # print(filtered_trunk_pcd.shape)
-    # cv2.imshow('trunk raster',raster_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+
     
     # Crown
     filtered_trunk_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
@@ -68,11 +64,6 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
         highest_first=False,
         depth_weighting=True  
     )
-    # print(filtered_trunk_pcd.shape)
-    # cv2.imshow('crown raster',raster_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    # cv2.imwrite("")
     
     filtered_trunk_pcd, raster_image, raster_crown_upper_img = rasterize_3dto2D(
         pointcloud = np.array(crown_upper.points), 
@@ -86,7 +77,169 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
     return raster_trunk_img, raster_crown_img, raster_crown_upper_img
 
 
+class SingleTreeSegmentation():
+    def __init__(self):
+        weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
+        self.model = Infer_seg(weights=weight_src)
+        self.curr_params = []
+    def segment_tree(self, pcd):
+        """
+        1. Split to rasters
+        2. Object Det Each raster to find mask of Crown and Trunk
+        """
+        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters()
+        detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
 
+        if detected is True:
+            trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
+            
+        else:
+            # Dont do anything
+            return 0
+    def one_ch_to_3ch(self, single_channel):
+        three_channel = np.stack([single_channel] * 3, axis=-1)
+        return three_channel
+    
+    def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img, raster_crown_upper_img):
+        trunk_mask_list = []
+        crown_mask_list = []
+        # Indexes
+        # Trunk = 1
+        # Crown = 0
+        
+        # Trunk Processing
+        det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_trunk_img*255))
+        if n_det > 0:
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0)
+            
+            if det_trunk>0:
+                trunk_mask_list.append(im_mask_trunk)
+            if det_crown>0:
+                crown_mask_list.append(im_mask_crown)
+        # Crown Processing
+        det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_crown_img*255))
+        if n_det > 0:
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0)
+            
+            if det_trunk>0:
+                trunk_mask_list.append(im_mask_trunk)
+            if det_crown>0:
+                crown_mask_list.append(im_mask_crown)
+        
+        if len(trunk_mask_list>0):
+            im_mask_trunk = trunk_mask_list[0]
+        else: # Trunk not detected
+            return False, im_mask_trunk, im_mask_crown
+        
+        if len(crown_mask_list>1):
+            im_mask_crown = crown_mask_list[1]
+        elif len(crown_mask_list==1):
+            im_mask_crown = crown_mask_list[0]
+        else: # Crown not detected
+            return False, im_mask_trunk, im_mask_crown
+        return True, im_mask_trunk, im_mask_crown
+                
+        
+    def split_tree_to_rasters(self, pcd, z_ffb, z_grd, center_coord, expansion):  
+        """
+        pcd: (N, 3) array of 3D points.
+        z_ffb: 
+        z_grd: (
+        center_coord: Tuple of (c_x, c_y, c_z) bounds.
+        expansion: Tuple of (x, y) expansion.
+        """ 
+        self.curr_params = [z_ffb, z_grd, center_coord, expansion]
+        tol = 1.0 # To Remove additional points, so the picture will have less ground or less leaves
+        min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb-tol*2))
+        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol*3), max_bound=(max_bound[0],max_bound[1], z_ffb+tol))
+        bbox_crown_top = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb+tol), max_bound=(max_bound[0],max_bound[1], z_ffb+tol*2))
+        trunk = pcd.crop(bbox_trunk)
+        crown = pcd.crop(bbox_crown)
+        crown_upper = pcd.crop(bbox_crown_top)
+
+        
+        # Trunk
+        filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
+            pointcloud = np.array(trunk.points), 
+            img_shape  = (640,640),
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
+            axis='z', 
+            highest_first=False,
+            depth_weighting=True  
+        )
+
+        
+        # Crown
+        filtered_crown_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
+            pointcloud = np.array(crown.points), 
+            img_shape  = (640,640),
+            min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
+            max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]],
+            axis='z', 
+            highest_first=False,
+            depth_weighting=True  
+        )
+        
+        filtered_crown_pcd, raster_image, raster_crown_upper_img = rasterize_3dto2D(
+            pointcloud = np.array(crown_upper.points), 
+            img_shape  = (640,640),
+            min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_upper.get_min_bound()[2]],
+            max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_upper.get_max_bound()[2]],
+            axis='z', 
+            highest_first=False,
+            depth_weighting=True  
+        )
+        return raster_trunk_img, raster_crown_img, raster_crown_upper_img
+    
+    def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
+        # find trunk n crown,
+        # use trunk pcd bbox and remove from crown
+        
+        z_ffb, z_grd, center_coord, expansion = self.curr_params
+        z_tol = (z_ffb-z_grd)/3
+        min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd), max_bound=(max_bound[0],max_bound[1], z_ffb))
+        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), max_bound=max_bound)
+        trunk = pcd.crop(bbox_trunk)
+        crown = pcd.crop(bbox_crown)
+        
+        filtered_trunk_pcd, raster_image, raster_filtered_trunk_img = rasterize_3dto2D(
+            pointcloud = np.array(trunk.points), 
+            mask_2d  = mask_trunk,
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
+            axis='z', 
+            highest_first=False,
+            depth_weighting=True  
+        )
+        
+        filtered_crown_pcd, raster_image, raster_filtered_crown_img = rasterize_3dto2D(
+            pointcloud = np.array(crown.points), 
+            mask_2d  = mask_crown,
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
+            axis='z', 
+            highest_first=False,
+            depth_weighting=True  
+        )
+        del trunk, crown
+        trunk_pcd = o3d.geometry.PointCloud()
+        trunk_pcd.points = o3d.utility.Vector3dVector(filtered_trunk_pcd)
+        trunk_pcd.paint_uniform_color([0.5, 0.5, 0.5])
+        trunk_bbox = trunk_pcd.get_oriented_bounding_box()
+        
+        crown_pcd = o3d.geometry.PointCloud()
+        crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
+        inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
+        crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
+        
+        return trunk_pcd, crown_pcd
+        
+        
 # Algorithm of akasha
 
 # def find_trunk(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_tol:float = 0.1, h_tol:int = 3):

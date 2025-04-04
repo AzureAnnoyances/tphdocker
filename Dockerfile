@@ -101,8 +101,15 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make
 # Make sure LFS has all the files
 WORKDIR /root
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && apt-get install -y git-lfs
+WORKDIR /root/sdp_tph
+RUN git fetch && git checkout testings_a && git pull
+
 WORKDIR /root/sdp_tph/main
-RUN git fetch && git checkout testings && git lfs pull && git pull
+RUN pip install gdown
+RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
+
+
+WORKDIR /root
 RUN mkdir -p /usr/local/app/bin && \
     cp /root/AdTree/Release/bin/AdTree /usr/local/app/bin/AdTree
 

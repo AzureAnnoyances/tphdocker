@@ -1,3 +1,5 @@
 main/tests/
 *.pyc
 *.pdf
+*.pt
+main/model_weights/
