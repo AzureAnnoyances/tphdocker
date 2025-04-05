@@ -210,6 +210,7 @@ class TreeGen():
         w_arr_pcd, w_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         total_detected = 0
+        total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
             n_detected = 0
@@ -262,7 +263,7 @@ class TreeGen():
             if n_detected <= 0:
                 continue
             else:
-                total_detected+=1
+                total_h_detected+=1
                 print("h_detected",h>0)
                 # Perform Operations
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
@@ -277,6 +278,7 @@ class TreeGen():
                     expansion = [15.0, 15.0]
                 )
                 if detected_crown is True:
+                    total_detected +=1
                     cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
                     cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
                 # trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
