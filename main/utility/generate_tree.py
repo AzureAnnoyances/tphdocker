@@ -148,7 +148,7 @@ def return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_x_or_y, img_shape):
         return np.nan
     else:
         label0_z = x_or_y[np.where(conf==np.amax(conf[(labels == 0)]))]
-        x_or_y_coord_ffb = ((img_shape[0]-label0_z[0])*stepsize) - min_x_or_y
+        x_or_y_coord_ffb = (label0_z[0]*stepsize) + min_x_or_y
         
         return x_or_y_coord_ffb
  
