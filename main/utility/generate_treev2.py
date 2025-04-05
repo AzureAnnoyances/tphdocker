@@ -290,11 +290,9 @@ class TreeGen():
                     expansion = [15.0, 15.0]
                     )
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
-                print("VISUALIZING")
-                plt.imshow(trunk_img)
-                plt.show()
-                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img)
-                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img)
+
+                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB) )
+                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
                 
                 
