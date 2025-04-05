@@ -119,12 +119,13 @@ class SingleTreeSegmentation():
         # Indexes
         # Trunk = 1
         # Crown = 0
-        
+        # Find the ffb
+        center_tol = 200
         # Trunk Processing
         det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_trunk_img*255))
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=100)
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=100)
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
             
             if det_trunk>0:
                 trunk_mask_list.append(im_mask_trunk)
@@ -133,8 +134,8 @@ class SingleTreeSegmentation():
         # Crown Processing
         det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_crown_img*255))
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=100)
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=100)
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
             
             if det_trunk>0:
                 trunk_mask_list.append(im_mask_trunk)

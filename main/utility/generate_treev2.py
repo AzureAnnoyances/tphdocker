@@ -241,7 +241,7 @@ class TreeGen():
                         section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
-                        h, im , confi, z_grd, z_ffb = get_h_from_each_tree_slice(
+                        h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice(
                             tree = almost_tree,
                             model_short = self.obj_det_short,
                             model_tall = self.obj_det_tall,
@@ -269,18 +269,19 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # center_coord = tree_centerized.get_center()
-                multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
-                    multi_tree, 
-                    z_ffb=np.mean(z_ffb_list), 
-                    z_grd=np.mean(z_grd_list),
-                    center_coord = coord,
-                    expansion = [15.0, 15.0]
-                )
-                if detected_crown is True:
-                    total_detected +=1
-                    cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
-                    cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
+                multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+                o3d.visualization.draw_geometries([multi_tree])
+                # detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
+                #     multi_tree, 
+                #     z_ffb=np.mean(z_ffb_list), 
+                #     z_grd=np.mean(z_grd_list),
+                #     center_coord = coord,
+                #     expansion = [15.0, 15.0]
+                # )
+                # if detected_crown is True:
+                #     total_detected +=1
+                #     cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
+                #     cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
                 # trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
                 #     multi_tree, 
                 #     z_ffb=np.mean(z_ffb_list), 
