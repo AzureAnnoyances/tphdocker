@@ -122,6 +122,7 @@ def calculate_height(uv_coords_pred, scale):
         height = (label1_z-label0_z)[0]
         return height if height > 0 else 0
     
+    
 def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img_shape):
     z = uv_coords_pred[:,1]
     conf = uv_coords_pred[:,2]
@@ -129,24 +130,9 @@ def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img_shape):
     unique = np.unique(labels, return_counts=True)
     
     failure_rtn = (np.nan, np.nan)
-    if len(unique[1]) <  # calculate height from current image 
+    # calculate height from current image 
     # If there are less than 2 labels, return 0
     # If there are more or equal to 1 per label, Get the data with higher confidence.
-    if len(unique[1]) < 2:
-        return 0
-    else:
-        label0_z = z[np.where(conf==np.amax(conf[(labels == 0)]))]
-        label1_z = z[np.where(conf==np.amax(conf[(labels == 1)]))]
-        height = (label1_z-label0_z)[0]
-        return height if height > 0 else 0
-    
-def return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img_shape):
-    z = uv_coords_pred[:,1]
-    conf = uv_coords_pred[:,2]
-    labels = uv_coords_pred[:,3]
-    unique = np.unique(labels, return_counts=True)
-    
-    failure_rtn = (np.nan, np.nan)
     if len(unique[1]) < 2:
         return failure_rtn
     else:
