@@ -144,14 +144,14 @@ class SingleTreeSegmentation():
         if len(trunk_mask_list) > 0:
             im_mask_trunk = trunk_mask_list[0]
         else: # Trunk not detected
-            return False, im_mask_trunk, im_mask_crown
+            return False, None, None
         
         if len(crown_mask_list) > 1:
             im_mask_crown = crown_mask_list[1]
         elif len(crown_mask_list) == 1:
             im_mask_crown = crown_mask_list[0]
         else: # Crown not detected
-            return False, im_mask_trunk, im_mask_crown
+            return False, None, None
         return True, im_mask_trunk, im_mask_crown
                 
         
@@ -253,7 +253,8 @@ class SingleTreeSegmentation():
         
         return trunk_pcd, crown_pcd
         
-        
+    def calculate_diam_n_crown(self, pcd_trunk, pcd_crown):
+        pass
 # Algorithm of akasha
 
 # def find_trunk(pcd, center_coord:tuple, h_ref:float, center_tol:float = 0.7, z_tol:float = 0.1, h_tol:int = 3):
