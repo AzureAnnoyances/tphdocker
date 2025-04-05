@@ -166,7 +166,7 @@ class SingleTreeSegmentation():
         self.curr_params = [z_ffb, z_grd, center_coord, expansion]
         tol = 1.0 # To Remove additional points, so the picture will have less ground or less leaves
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb-tol*2))
+        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb))
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol*3), max_bound=(max_bound[0],max_bound[1], z_ffb+tol))
         bbox_crown_top = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb+tol), max_bound=(max_bound[0],max_bound[1], z_ffb+tol*2))
         trunk = pcd.crop(bbox_trunk)
@@ -213,7 +213,7 @@ class SingleTreeSegmentation():
         # use trunk pcd bbox and remove from crown
         
         z_ffb, z_grd, center_coord, expansion = self.curr_params
-        z_tol = (z_ffb-z_grd)/3
+        z_tol = (z_ffb-z_grd)/2
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd), max_bound=(max_bound[0],max_bound[1], z_ffb))
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), max_bound=max_bound)
