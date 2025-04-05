@@ -309,7 +309,7 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
     """Short term fix End"""
 
     if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
-        return (0,0,0,0,0)
+        return (0,0,0,0,0, (0,0))
     img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
     slice_x_min_z, slice_y_min_z = slice_x.get_min_bound()[2], slice_y.get_min_bound()[2]
     slice_x_min_xyz, slice_y_min_xyz = slice_x.get_min_bound(), slice_y.get_min_bound()
