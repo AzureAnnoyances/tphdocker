@@ -152,16 +152,15 @@ RUN . /root/anaconda3/etc/profile.d/conda.sh && \
 RUN . /root/anaconda3/etc/profile.d/conda.sh && \
     conda activate CloudComPy310 && \
     conda install -y "boost=1.74" "cgal=5.4" cmake draco ffmpeg "gdal=3.5" jupyterlab "mysql=8.0" "openmp=8.0" "pcl=1.12" \
-        "pdal=2.4" "psutil=5.9" pybind11 "qhull=2020.2" "qt=5.15.4" sphinx_rtd_theme spyder tbb tbb-devel "xerces-c=3.2" laszip && \
-    conda install -y "numpy=1.23.5" "opencv=4.5" scipy quaternion matplotlib \
-        scikit-learn scikit-image tqdm "numba=0.56.4" "protobuf=3.20.3" filterpy \
-        Pillow pandas seaborn
+        "pdal=2.4" "psutil=5.9" pybind11 "qhull=2020.2" "qt=5.15.4" sphinx_rtd_theme spyder tbb tbb-devel "xerces-c=3.2" "opencv=4.5" laszip 
 
 RUN . /root/anaconda3/etc/profile.d/conda.sh && \
     conda activate CloudComPy310 && \
     cd /root/sdp_tph && \
-    python3 -m pip install --ignore-installed --no-cache-dir laspy[lazrs,laszip] && \
     python3 -m pip install --ignore-installed --no-cache-dir torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 && \
+    python3 -m pip install --no-cache-dir --force-reinstall "numpy>=1.17,<1.26.3" quaternion matplotlib==3.6.3 \
+        scipy==1.10.1 scikit-image scikit-learn==1.6.1 \
+        tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 laspy[lazrs,laszip] && \
     cd && \
     cd /root/Open3D/build && make pip-package && python3 -m pip install lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install  

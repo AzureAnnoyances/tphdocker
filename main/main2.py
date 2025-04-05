@@ -172,7 +172,7 @@ def main(path_directory, pcd_name, input_file_type):
         else:
             pts_in_cluster = [coordinates[ind] for ind in each_cluster]
             pts_in_cluster = np.vstack(pts_in_cluster)
-            center = pts_in_cluster[np.where(pts_in_cluster[:,2].max())][0][0:2]
+            center = pts_in_cluster[np.argwhere(pts_in_cluster[:,2].max())][0][0:2]
             #center = np.mean(pts_in_cluster, axis=0)
             true_coordinates.append(center)
     coordinates = np.vstack(true_coordinates)
@@ -208,8 +208,8 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    # tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
-    # tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
+    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
+    tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
 
 if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
