@@ -269,6 +269,8 @@ class TreeGen():
                 # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
                 # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # center_coord = tree_centerized.get_center()
+                print("ORI VS NEW",coord)
+                print("new", xy_ffb)
                 multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
                 o3d.visualization.draw_geometries([multi_tree])
                 # detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
