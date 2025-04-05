@@ -1,6 +1,6 @@
 from .pcd2img import *
 from .get_coords import *
-from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord
+from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord, get_h_from_each_tree_slice2
 # from .diamNCrown import AdTree_cls
 from .diamNCrownv2 import split_pcd_by2_with_height, SingleTreeSegmentation
 from .encode_decode import img_b64_to_arr
@@ -241,7 +241,7 @@ class TreeGen():
                         section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                         almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
-                        h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice(
+                        h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                             tree = almost_tree,
                             model_short = self.obj_det_short,
                             model_tall = self.obj_det_tall,
