@@ -82,12 +82,12 @@ class SingleTreeSegmentation():
         weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src)
         self.curr_params = []
-    def segment_tree(self, pcd):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
         """
-        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters()
+        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters(z_ffb, z_grd, center_coord, expansion)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
 
         if detected is True:

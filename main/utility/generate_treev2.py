@@ -2,7 +2,7 @@ from .pcd2img import *
 from .get_coords import *
 from .generate_tree import get_h_from_each_tree_slice, get_tree_from_coord
 # from .diamNCrown import AdTree_cls
-from .diamNCrownv2 import split_pcd_by2_with_height
+from .diamNCrownv2 import split_pcd_by2_with_height, SingleTreeSegmentation
 from .encode_decode import img_b64_to_arr
 from .yolo_detect import Detect
 import cv2
@@ -204,7 +204,7 @@ class TreeGen():
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
-    
+        self.single_tree_seg = SingleTreeSegmentation()
     def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
@@ -269,17 +269,24 @@ class TreeGen():
                 # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # center_coord = tree_centerized.get_center()
                 multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
+                self.single_tree_seg.segment_tree(
                     multi_tree, 
                     z_ffb=np.mean(z_ffb_list), 
                     z_grd=np.mean(z_grd_list),
                     center_coord = coord,
                     expansion = [15.0, 15.0]
-                    )
+                )
+                # trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
+                #     multi_tree, 
+                #     z_ffb=np.mean(z_ffb_list), 
+                #     z_grd=np.mean(z_grd_list),
+                #     center_coord = coord,
+                #     expansion = [15.0, 15.0]
+                #     )
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
-                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
-                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
-                cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
+                # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
+                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
+                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
                 
                 
                 
