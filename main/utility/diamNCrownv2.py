@@ -93,6 +93,7 @@ class SingleTreeSegmentation():
 
         if detected is True:
             trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
+            o3d.visualization.draw_geometries([trunk_pcd, crown_pcd])
             _, _, raster_trunk_img = rasterize_3dto2D(
                 pointcloud = np.array(trunk_pcd.points), 
                 img_shape  = (640,640),
@@ -122,8 +123,8 @@ class SingleTreeSegmentation():
         # Trunk Processing
         det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_trunk_img*255))
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1)
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0)
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=100)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=100)
             
             if det_trunk>0:
                 trunk_mask_list.append(im_mask_trunk)
@@ -132,8 +133,8 @@ class SingleTreeSegmentation():
         # Crown Processing
         det_bbox, proto, n_det = self.model.forward(self.one_ch_to_3ch(raster_crown_img*255))
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1)
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0)
+            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=100)
+            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=100)
             
             if det_trunk>0:
                 trunk_mask_list.append(im_mask_trunk)
@@ -241,13 +242,14 @@ class SingleTreeSegmentation():
         del trunk, crown
         trunk_pcd = o3d.geometry.PointCloud()
         trunk_pcd.points = o3d.utility.Vector3dVector(filtered_trunk_pcd)
-        trunk_pcd.paint_uniform_color([0.5, 0.5, 0.5])
+        trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
         trunk_bbox = trunk_pcd.get_oriented_bounding_box()
         
         crown_pcd = o3d.geometry.PointCloud()
         crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
         inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
         crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
+        crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
         
         return trunk_pcd, crown_pcd
         
