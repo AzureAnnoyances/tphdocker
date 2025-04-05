@@ -88,7 +88,7 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters(z_ffb, z_grd, center_coord, expansion)
+        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters(pcd, z_ffb, z_grd, center_coord, expansion)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
 
         if detected is True:
