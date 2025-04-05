@@ -5,6 +5,7 @@ from .generate_tree import get_tree_from_coord, get_h_from_each_tree_slice2
 from .diamNCrownv2 import split_pcd_by2_with_height, SingleTreeSegmentation
 from .encode_decode import img_b64_to_arr
 from .yolo_detect import Detect
+import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import open3d as o3d
@@ -289,10 +290,13 @@ class TreeGen():
                     expansion = [15.0, 15.0]
                     )
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
+                print("VISUALIZING")
+                plt.imshow(trunk_img)
+                plt.show()
                 cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img)
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
                 
                 
                 
-        print("\n\n\n",total_detected,total_detected)
+        print("\n\n\n",total_detected,total_h_detected)
