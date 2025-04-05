@@ -172,7 +172,7 @@ def main(path_directory, pcd_name, input_file_type):
         else:
             pts_in_cluster = [coordinates[ind] for ind in each_cluster]
             pts_in_cluster = np.vstack(pts_in_cluster)
-            center = pts_in_cluster[np.argwhere(pts_in_cluster[:,2].max())][0][0:2]
+            center = pts_in_cluster[np.where(pts_in_cluster[:,2].max())][0][0:2]
             #center = np.mean(pts_in_cluster, axis=0)
             true_coordinates.append(center)
     coordinates = np.vstack(true_coordinates)
