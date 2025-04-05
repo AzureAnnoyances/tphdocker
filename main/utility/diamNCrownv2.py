@@ -140,14 +140,14 @@ class SingleTreeSegmentation():
             if det_crown>0:
                 crown_mask_list.append(im_mask_crown)
         
-        if len(trunk_mask_list>0):
+        if len(trunk_mask_list) > 0:
             im_mask_trunk = trunk_mask_list[0]
         else: # Trunk not detected
             return False, im_mask_trunk, im_mask_crown
         
-        if len(crown_mask_list>1):
+        if len(crown_mask_list) > 1:
             im_mask_crown = crown_mask_list[1]
-        elif len(crown_mask_list==1):
+        elif len(crown_mask_list) == 1:
             im_mask_crown = crown_mask_list[0]
         else: # Crown not detected
             return False, im_mask_trunk, im_mask_crown
