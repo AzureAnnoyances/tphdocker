@@ -353,8 +353,8 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
             img_lst.append(img)
             confi_lst.append(np.mean(uv_coords_pred[:,2]))
             if x_or_y == "x":
-                y_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, -min_xyz[1], img.shape)
-                y_coord_ffb_lst.append(y_ffb)
+                y_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[1], img.shape)
+                y_coord_ffb_lst.append(-y_ffb)
             else:
                 x_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[0], img.shape)
                 x_coord_ffb_lst.append(x_ffb)
