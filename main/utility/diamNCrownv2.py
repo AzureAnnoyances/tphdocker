@@ -173,7 +173,7 @@ class SingleTreeSegmentation():
         
         # --- Remove Ground from Trunk and Crown ---
         z_tol = (z_ffb-z_grd)/5 
-        trunk_tol = 0.5
+        trunk_tol = 1.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+z_tol), max_bound=(max_bound))
         trunk = pcd.crop(bbox_trunk)
@@ -194,7 +194,7 @@ class SingleTreeSegmentation():
         
         # Crown
         filtered_crown_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
+            pointcloud = torch.tensor(np.array(crown.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
             max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]],
