@@ -272,7 +272,7 @@ class TreeGen():
                 print("ORI VS NEW",coord)
                 print("new", xy_ffb)
                 multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                o3d.visualization.draw_geometries([multi_tree])
+                # o3d.visualization.draw_geometries([multi_tree])
                 # detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
                 #     multi_tree, 
                 #     z_ffb=np.mean(z_ffb_list), 
@@ -280,20 +280,17 @@ class TreeGen():
                 #     center_coord = coord,
                 #     expansion = [15.0, 15.0]
                 # )
-                # if detected_crown is True:
-                #     total_detected +=1
-                #     cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
-                #     cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
-                # trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
-                #     multi_tree, 
-                #     z_ffb=np.mean(z_ffb_list), 
-                #     z_grd=np.mean(z_grd_list),
-                #     center_coord = coord,
-                #     expansion = [15.0, 15.0]
-                #     )
+                
+                trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
+                    multi_tree, 
+                    z_ffb=np.mean(z_ffb_list), 
+                    z_grd=np.mean(z_grd_list),
+                    center_coord = xy_ffb,
+                    expansion = [15.0, 15.0]
+                    )
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
+                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img)
+                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img)
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
                 
                 

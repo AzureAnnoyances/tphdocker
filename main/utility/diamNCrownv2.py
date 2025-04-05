@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import torch
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
@@ -10,7 +11,8 @@ sys.path.insert(0, str(yolov7_main_pth))
 from raster_pcd2img import rasterize_3dto2D
 from segment.predict2 import Infer_seg
 
-
+# Fix split tree to rasters
+# Fix split tree to crown
 def display_inlier_outlier(cloud):
     size = 0.1
     cloud = cloud.voxel_down_sample(voxel_size=size)
@@ -88,7 +90,7 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters(pcd, z_ffb, z_grd, center_coord, expansion)
+        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
 
         if detected is True:
@@ -156,7 +158,7 @@ class SingleTreeSegmentation():
         return True, im_mask_trunk, im_mask_crown
                 
         
-    def split_tree_to_rasters(self, pcd, z_ffb, z_grd, center_coord, expansion):  
+    def rasterize_to_trunk_crown(self, pcd, z_ffb, z_grd, center_coord, expansion):  
         """
         pcd: (N, 3) array of 3D points.
         z_ffb: 
@@ -164,50 +166,44 @@ class SingleTreeSegmentation():
         center_coord: Tuple of (c_x, c_y, c_z) bounds.
         expansion: Tuple of (x, y) expansion.
         """ 
+        # Get bbox of Trunk by bbox trunk tolerance
+        # Get bbox of Crown with the whole damn thing
         self.curr_params = [z_ffb, z_grd, center_coord, expansion]
-        tol = 1.0 # To Remove additional points, so the picture will have less ground or less leaves
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+tol), max_bound=(max_bound[0],max_bound[1], z_ffb))
-        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-tol*3), max_bound=(max_bound[0],max_bound[1], z_ffb+tol))
-        bbox_crown_top = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb+tol), max_bound=(max_bound[0],max_bound[1], z_ffb+tol*2))
+        
+        # --- Remove Ground from Trunk and Crown ---
+        z_tol = (z_ffb-z_grd)/5 
+        trunk_tol = 0.5
+        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
+        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+z_tol), max_bound=(max_bound))
         trunk = pcd.crop(bbox_trunk)
         crown = pcd.crop(bbox_crown)
-        crown_upper = pcd.crop(bbox_crown_top)
 
-        
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # Trunk
         filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
-            pointcloud = np.array(trunk.points), 
+            pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
             axis='z', 
-            highest_first=False,
+            highest_first=True,
             depth_weighting=True  
         )
 
         
         # Crown
         filtered_crown_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
-            pointcloud = np.array(crown.points), 
+            pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
             max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]],
             axis='z', 
-            highest_first=False,
+            highest_first=True,
             depth_weighting=True  
         )
         
-        filtered_crown_pcd, raster_image, raster_crown_upper_img = rasterize_3dto2D(
-            pointcloud = np.array(crown_upper.points), 
-            img_shape  = (640,640),
-            min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_upper.get_min_bound()[2]],
-            max_xyz = [center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_upper.get_max_bound()[2]],
-            axis='z', 
-            highest_first=False,
-            depth_weighting=True  
-        )
-        return raster_trunk_img, raster_crown_img, raster_crown_upper_img
+        return raster_trunk_img, raster_crown_img
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,
