@@ -86,16 +86,28 @@ class SingleTreeSegmentation():
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
+        3. Generate image from trunk and crown
         """
         raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.split_tree_to_rasters(z_ffb, z_grd, center_coord, expansion)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
 
         if detected is True:
             trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
-            
+            _, _, raster_trunk_img = rasterize_3dto2D(
+                pointcloud = np.array(trunk_pcd.points), 
+                img_shape  = (640,640),
+                axis='x'
+            )
+            _, _, raster_crown_img = rasterize_3dto2D(
+                pointcloud = np.array(crown_pcd.points), 
+                img_shape  = (640,640),
+                axis='x'
+            )
+            return True, raster_crown_img, raster_trunk_img
         else:
             # Dont do anything
-            return 0
+            return False, 0, 0
+        
     def one_ch_to_3ch(self, single_channel):
         three_channel = np.stack([single_channel] * 3, axis=-1)
         return three_channel

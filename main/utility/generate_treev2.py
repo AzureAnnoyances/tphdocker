@@ -269,13 +269,16 @@ class TreeGen():
                 # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
                 # center_coord = tree_centerized.get_center()
                 multi_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                self.single_tree_seg.segment_tree(
+                detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
                     multi_tree, 
                     z_ffb=np.mean(z_ffb_list), 
                     z_grd=np.mean(z_grd_list),
                     center_coord = coord,
                     expansion = [15.0, 15.0]
                 )
+                if detected_crown is True:
+                    cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img*255)
+                    cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", crown_img*255)
                 # trunk_img, crown_img, crown_upper_img = split_pcd_by2_with_height(
                 #     multi_tree, 
                 #     z_ffb=np.mean(z_ffb_list), 
