@@ -206,7 +206,7 @@ class TreeGen():
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
         self.single_tree_seg = SingleTreeSegmentation()
-    def process_each_coord(self, pcd, grd_pcd, non_grd, coords, w_lin_pcd, h_lin_pcd):
+    def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
@@ -214,87 +214,161 @@ class TreeGen():
         total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
-            n_detected = 0
-            confi_list = []
-            coord_list = []
-            z_grd_list = []
-            z_ffb_list = []
-            h_im_list = []
+            self.per_tree_from_coord(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
+            # n_detected = 0
+            # confi_list = []
+            # coord_list = []
+            # z_grd_list = []
+            # z_ffb_list = []
+            # h_im_list = []
             
-            # Split each coord to multi-sections and find the one with highest confidence
-            h_loop = h_arr_pcd[:-1] 
-            w_loop = w_arr_pcd[:-1]
-            coord = find_centroid_from_Trees(non_grd,coord,2, [z_min, z_max], height_incre=4)
-            if coord is None:
-                continue
-            for i, h in enumerate(h_loop):
-                for j,w in enumerate(w_loop):
-                    min_x, max_x = w, w+w_increment+w_increment/4
-                    min_y, max_y = h, h+h_increment+h_increment/4 
-                    minbound = (min_x, min_y, z_min)
-                    maxbound = (max_x, max_y, z_max)
-                    coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
-                    coords_y_bool = (-coord[1] >= min_y) & (-coord[1] <= max_y)
+            # # Split each coord to multi-sections and find the one with highest confidence
+            # h_loop = h_arr_pcd[:-1] 
+            # w_loop = w_arr_pcd[:-1]
+            # coord = find_centroid_from_Trees(non_grd,coord,2, [z_min, z_max], height_incre=4)
+            # if coord is None:
+            #     continue
+            # for i, h in enumerate(h_loop):
+            #     for j,w in enumerate(w_loop):
+            #         min_x, max_x = w, w+w_increment+w_increment/4
+            #         min_y, max_y = h, h+h_increment+h_increment/4 
+            #         minbound = (min_x, min_y, z_min)
+            #         maxbound = (max_x, max_y, z_max)
+            #         coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
+            #         coords_y_bool = (-coord[1] >= min_y) & (-coord[1] <= max_y)
                     
-                    new_x, new_y = statistics.mean([min_x, max_x]), statistics.mean([min_y, max_y])
-                    new_coord = (new_x, new_y)
-                    if coords_x_bool & coords_y_bool:
-                        section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
-                        section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
-                        almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
-                        h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
-                            tree = almost_tree,
-                            model_short = self.obj_det_short,
-                            model_tall = self.obj_det_tall,
-                            img_size = self.side_view_img_size, 
-                            stepsize = self.side_view_step_size,
-                            img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_",
-                            gen_undetected_img = False,
-                            img_with_h = True,
-                            min_no_points = self.min_points_per_tree
-                            )
-                        if h > 0:
-                            confi_list.append(confi)
-                            coord_list.append(coord)
-                            z_grd_list.append(z_grd)
-                            z_ffb_list.append(z_ffb)
-                            h_im_list.append(im)
-                            n_detected += 1
+            #         new_x, new_y = statistics.mean([min_x, max_x]), statistics.mean([min_y, max_y])
+            #         new_coord = (new_x, new_y)
+            #         if coords_x_bool & coords_y_bool:
+            #             section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
+            #             section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
+            #             almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
+            #             h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
+            #                 tree = almost_tree,
+            #                 model_short = self.obj_det_short,
+            #                 model_tall = self.obj_det_tall,
+            #                 img_size = self.side_view_img_size, 
+            #                 stepsize = self.side_view_step_size,
+            #                 img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_",
+            #                 gen_undetected_img = False,
+            #                 img_with_h = True,
+            #                 min_no_points = self.min_points_per_tree
+            #                 )
+            #             if h > 0:
+            #                 confi_list.append(confi)
+            #                 coord_list.append(coord)
+            #                 z_grd_list.append(z_grd)
+            #                 z_ffb_list.append(z_ffb)
+            #                 h_im_list.append(im)
+            #                 n_detected += 1
                         
-            if n_detected <= 0:
-                continue
-            else:
-                total_h_detected+=1
-                print("h_detected",h>0)
-                # Perform Operations
-                # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
-                # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
-                # center_coord = tree_centerized.get_center()
-                print("ORI VS NEW",coord)
-                print("new", xy_ffb)
-                multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-                # o3d.visualization.draw_geometries([multi_tree])
-                # detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
-                #     multi_tree, 
-                #     z_ffb=np.mean(z_ffb_list), 
-                #     z_grd=np.mean(z_grd_list),
-                #     center_coord = coord,
-                #     expansion = [15.0, 15.0]
-                # )
+            # if n_detected <= 0:
+            #     continue
+            # else:
+            #     total_h_detected+=1
+            #     print("h_detected",h>0)
+            #     # Perform Operations
+            #     # new_coord = find_centroid_from_Trees(pcd,coord_list[0],3, [z_min, z_max])
+            #     # tree_centerized = regenerate_Tree(pcd, coord, 5, [z_min, z_max], h_incre=4)
+            #     # center_coord = tree_centerized.get_center()
+            #     print("ORI VS NEW",coord)
+            #     print("new", xy_ffb)
+            #     multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+            #     # o3d.visualization.draw_geometries([multi_tree])
+            #     # detected_crown, crown_img, trunk_img = self.single_tree_seg.segment_tree(
+            #     #     multi_tree, 
+            #     #     z_ffb=np.mean(z_ffb_list), 
+            #     #     z_grd=np.mean(z_grd_list),
+            #     #     center_coord = coord,
+            #     #     expansion = [15.0, 15.0]
+            #     # )
                 
-                trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
-                    multi_tree, 
-                    z_ffb=np.mean(z_ffb_list), 
-                    z_grd=np.mean(z_grd_list),
-                    center_coord = xy_ffb,
-                    expansion = [15.0, 15.0]
-                    )
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
+            #     trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
+            #         multi_tree, 
+            #         z_ffb=np.mean(z_ffb_list), 
+            #         z_grd=np.mean(z_grd_list),
+            #         center_coord = xy_ffb,
+            #         expansion = [15.0, 15.0]
+            #         )
+            #     # cv2.imwrite(f"{self.sideViewOut}/{index}_yolo_.png", img_b64_to_arr(h_im_list[0]))
 
-                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB) )
-                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
+            #     cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB) )
+            #     cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
+            #     # cv2.imwrite(f"{self.sideViewOut}/{index}_crown_upper.png", crown_upper_img*255)
                 
                 
                 
         print("\n\n\n",total_detected,total_h_detected)
+        
+    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index):
+        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
+        rtn_dict = {}
+        # I will probably remove this in the future
+        # coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
+        # if coord is None:
+        #     return
+        h_arr_pcd, h_increment = h_lin_pcd
+        w_arr_pcd, w_increment = w_lin_pcd
+        h_loop = h_arr_pcd[:-1] 
+        w_loop = w_arr_pcd[:-1]
+        
+        # ---- Detect XYZ or Crown Center and Ground ----
+        # Init
+        rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
+        for i, h in enumerate(h_loop):
+            for j,w in enumerate(w_loop):
+                min_x, max_x = w, w+w_increment+w_increment/4
+                min_y, max_y = h, h+h_increment+h_increment/4 
+                minbound = (min_x, min_y, z_min)
+                maxbound = (max_x, max_y, z_max)
+                coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
+                coords_y_bool = (-coord[1] >= min_y) & (-coord[1] <= max_y)
+                
+                new_x, new_y = statistics.mean([min_x, max_x]), statistics.mean([min_y, max_y])
+                new_coord = (new_x, new_y)
+                if coords_x_bool & coords_y_bool:
+                    section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
+                    section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
+                    almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
+                    h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
+                        tree = almost_tree,
+                        model_short = self.obj_det_short,
+                        model_tall = self.obj_det_tall,
+                        img_size = self.side_view_img_size, 
+                        stepsize = self.side_view_step_size,
+                        img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_",
+                        gen_undetected_img = False,
+                        img_with_h = True,
+                        min_no_points = self.min_points_per_tree
+                        )
+                    # If detected
+                    if h > 0:
+                        rtn_dict["confi"].append(confi)
+                        rtn_dict["h"].append(h)
+                        rtn_dict["z_grd"].append(z_grd)
+                        rtn_dict["z_ffb"].append(z_ffb)
+                        rtn_dict["xy_ffb"].append(xy_ffb)
+                        rtn_dict["imgz"].append(im)
+        if len(rtn_dict["h"]) <= 0:
+            return
+        else:
+            # Choose the highest confident index
+            conf_idx = np.argmax(rtn_dict["confi"])
+            h, z_grd, z_ffb, xy_ffb, imgz = rtn_dict["h"][conf_idx], \
+                                            rtn_dict["z_grd"][conf_idx], \
+                                            rtn_dict["z_ffb"][conf_idx], \
+                                            rtn_dict["xy_ffb"][conf_idx], \
+                                            rtn_dict["imgz"][conf_idx]
+            multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+            trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
+                    multi_tree, 
+                    z_ffb=z_ffb, 
+                    z_grd=z_grd,
+                    center_coord = xy_ffb,
+                    expansion = [15.0, 15.0]
+                    )
+            cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB) )
+            cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
+            
+        
+        

@@ -84,6 +84,7 @@ class SingleTreeSegmentation():
         weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src)
         self.curr_params = []
+    
     def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion):
         """
         1. Split to rasters
