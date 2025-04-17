@@ -214,7 +214,9 @@ class TreeGen():
         total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
-            self.per_tree_from_coord(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
+            detected = self.per_tree_from_coord(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
+            if detected == True:
+                total_h_detected += 1
             # n_detected = 0
             # confi_list = []
             # coord_list = []
@@ -304,9 +306,9 @@ class TreeGen():
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         rtn_dict = {}
         # I will probably remove this in the future
-        # coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
-        # if coord is None:
-        #     return
+        coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
+        if coord is None:
+            return False
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
         h_loop = h_arr_pcd[:-1] 
@@ -349,8 +351,9 @@ class TreeGen():
                         rtn_dict["z_ffb"].append(z_ffb)
                         rtn_dict["xy_ffb"].append(xy_ffb)
                         rtn_dict["imgz"].append(im)
+                        
         if len(rtn_dict["h"]) <= 0:
-            return
+            return False
         else:
             # Choose the highest confident index
             conf_idx = np.argmax(rtn_dict["confi"])
@@ -367,8 +370,9 @@ class TreeGen():
                     center_coord = xy_ffb,
                     expansion = [15.0, 15.0]
                     )
+            
             cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB) )
             cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-            
+            return True
         
         
