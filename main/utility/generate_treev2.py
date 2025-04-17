@@ -214,7 +214,15 @@ class TreeGen():
         total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
-            detected = self.per_tree_from_coord(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
+            detected = self.per_tree_from_coord(
+                            pcd, 
+                            grd_pcd, 
+                            non_grd_pcd, 
+                            coord, 
+                            w_lin_pcd, 
+                            h_lin_pcd, 
+                            index=index
+                            )
             if detected == True:
                 total_h_detected += 1
             # n_detected = 0
@@ -306,9 +314,9 @@ class TreeGen():
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         rtn_dict = {}
         # I will probably remove this in the future
-        coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
-        if coord is None:
-            return False
+        # coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
+        # if coord is None:
+        #     return False
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
         h_loop = h_arr_pcd[:-1] 
