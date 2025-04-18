@@ -96,7 +96,7 @@ class SingleTreeSegmentation():
 
         if detected is True:
             trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
-            o3d.visualization.draw_geometries([trunk_pcd, crown_pcd])
+            # o3d.visualization.draw_geometries([trunk_pcd, crown_pcd])
             _, _, raster_trunk_img = rasterize_3dto2D(
                 pointcloud = np.array(trunk_pcd.points), 
                 img_shape  = (640,640),
