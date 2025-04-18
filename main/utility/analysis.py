@@ -167,7 +167,7 @@ def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
             return diameter_at_everything(stem_cloud,.2)
 
         # fit cylinder
-        print(len(stem_slice), stem_slice.shape)
+        print("HOW DID U GET PAST",len(stem_slice), stem_slice.shape)
         radius = fit_vertical_cylinder_3D(stem_slice, .04)[2]
 
         return 2*radius
