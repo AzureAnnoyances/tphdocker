@@ -133,10 +133,6 @@ def stem_analysis(stem_cloud, stats:dict):
         dbh = diameter_at_everything(stem_cloud,.2)
     stats['DBH'] = dbh
     stats['circumference_BH'] = dbh * np.pi
-
-    # stem analysis
-    cyl_array = fit_cylinders_to_stem(stem_cloud, .25)
-    stats['stem_CCI'] = (np.min(cyl_array[:,4]), np.max(cyl_array[:,4]))
     stats['stem_mesh'], stats['stem_volume'] = crown_to_mesh(stem_cloud)
     return stats
 
