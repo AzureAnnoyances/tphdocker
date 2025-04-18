@@ -203,9 +203,10 @@ class TreeGen():
         self.ex_w, self.ex_h = (dim*self.side_view_step_size for dim in self.side_view_img_size)
         min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
+        v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
-        self.single_tree_seg = SingleTreeSegmentation()
+        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
