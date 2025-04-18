@@ -167,7 +167,7 @@ def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
         z = ground_level + breastheight
 
         # clip slice
-        mask = axis_clip(stem_points, 2, z-.15, z+.15)
+        mask = axis_clip(stem_points, 2, z-.3, z+.3)
         stem_slice = stem_points[mask]
         if len(stem_slice) < 20:
             return None
