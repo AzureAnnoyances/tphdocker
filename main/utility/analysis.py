@@ -115,7 +115,7 @@ def stem_crown_analysis(stem_cloud, crown_cloud):
     crown_mesh, crown_volume = crown_to_mesh(crown_cloud)
     stats["crown_mesh"] = crown_mesh
     stats["crown_volume"] = crown_volume
-    stats["crown_img"] = save_ax_nosave(plot_cloud(stats["crown_mesh"], stem_cloud+crown_cloud))
+    stats["crown_img"] = save_ax_nosave(plot_cloud(stem_cloud+crown_cloud))
     # stats["trunk_img"] = save_ax_nosave(plot_cloud(stats["stem_mesh"], stem_cloud+crown_cloud))
     return stats
 
