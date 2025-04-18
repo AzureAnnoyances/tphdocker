@@ -51,8 +51,11 @@ class SingleTreeSegmentation():
             # o3d.visualization.draw_geometries([trunk_pcd, crown_pcd])
             single_tree_pcd = trunk_pcd+crown_pcd
             tree_img = self.o3dpcd2img(single_tree_pcd, 640, 480)
-            # stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
-            return True, tree_img
+            stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
+            stats["tree_img"] = tree_img
+            print(stats["crown_img"].shape, np.max(stats["crown_img"]), stats["crown_img"].dtype)
+
+            return True, stats["crown_img"]
         else:
             # Dont do anything
             return False, 0

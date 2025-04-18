@@ -9,7 +9,7 @@ import trimesh
 import pymeshfix
 from alphashape import alphashape
 from misc.fitcyclinders import fit_vertical_cylinder_3D, fit_cylinders_to_stem
-      
+from adTreeutils.o3d_utils import plot_mesh_cloud, save_ax_nosave
 
 def make_circle(points):
 	# Convert to float and randomize order
@@ -115,6 +115,8 @@ def stem_crown_analysis(stem_cloud, crown_cloud):
     crown_mesh, crown_volume = crown_to_mesh(crown_cloud)
     stats["crown_mesh"] = crown_mesh
     stats["crown_volume"] = crown_volume
+    stats["crown_img"] = save_ax_nosave(plot_mesh_cloud(stats["crown_mesh"], stem_cloud+crown_cloud))
+    stats["trunk_img"] = save_ax_nosave(plot_mesh_cloud(stats["stem_mesh"], stem_cloud+crown_cloud))
     return stats
 
 ### --- STEM ANALYSIS --- ###
@@ -163,7 +165,6 @@ def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
             return diameter_at_everything(stem_cloud,.2)
 
         # fit cylinder
-        print("HOW DID U GET PAST",len(stem_slice), stem_slice.shape)
         radius = fit_vertical_cylinder_3D(stem_slice, .04)[2]
 
         return 2*radius
