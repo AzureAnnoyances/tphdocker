@@ -82,7 +82,7 @@ class SingleTreeSegmentation():
         
         
         if len(trunk_mask_list)>0 and len(crown_mask_list)>0:
-            return True, im_mask_trunk, im_mask_crown
+            return True, im_mask_trunk.detach().cpu().numpy(), im_mask_crown.detach().cpu().numpy()
         else:
             return False, None, None
                 
