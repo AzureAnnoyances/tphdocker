@@ -68,7 +68,7 @@ class SingleTreeSegmentation():
         # Trunk = 1
         # Crown = 0
         # Find the ffb
-        center_tol = 200
+        center_tol = 100
         # Trunk Processing
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img)
         if n_det > 0:
@@ -204,9 +204,10 @@ class SingleTreeSegmentation():
         vis.add_geometry(pcd)
         view_ctl = vis.get_view_control()
         view_ctl.set_zoom(0.5)
+        # Make it Orthographic
         view_ctl.set_lookat(pcd.get_center())
-        view_ctl.set_up((1, 0, 0))  # set the positive direction of the x-axis as the up direction
-        view_ctl.set_front((0, 0, 1))  # set the positive direction of the x-axis toward you
+        view_ctl.set_front((1, 0, 0))
+        view_ctl.set_up([0,0,1]) 
         vis.update_renderer()
         img = np.array(vis.capture_screen_float_buffer(True))
         # depth = np.array(vis.capture_depth_float_buffer(True))
