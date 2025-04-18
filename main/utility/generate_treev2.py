@@ -379,7 +379,7 @@ class TreeGen():
             #         center_coord = xy_ffb,
             #         expansion = [15.0, 15.0]
             #         )
-            detected, crown_img, trunk_img = self.single_tree_seg.segment_tree(
+            detected, trunk_img = self.single_tree_seg.segment_tree(
                     pcd = multi_tree, 
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
@@ -390,7 +390,7 @@ class TreeGen():
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
             if detected is True:
                 cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
-                cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
+                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
                 return True
             else:
                 return False
