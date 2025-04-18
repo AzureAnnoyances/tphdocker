@@ -41,6 +41,14 @@ cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-su
 cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ p01e_B .las
 
 ```
+
+Single Tree
+```bash
+. /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
+cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-submodules && 
+cd /root/sdp_tph/main/ && python3 main_single_tree.py /root/pcds/single_tree/ model_dense4k10fps1Tree .ply
+```
+
 ```
 . /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
 python3 

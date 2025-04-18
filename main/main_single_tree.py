@@ -111,8 +111,9 @@ def main(path_directory, pcd_name, input_file_type):
     coordinates = []
 
     # 1. Calculate spacing for image splitting
-    h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
-    
+    # h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
+    strides_ratio = (non_ground_img.shape,[0]/ideal_img_size[0], non_ground_img.shape,[1]/ideal_img_size[1])
+    h_s, w_s  = (int(round(strides_ratio[0])), int(round(strides_ratio[1])))
     # 1.b Calculate spacing for PCD splitting.
     x_min_pcd, y_min_pcd, z_min = non_grd.get_min_bound()
     x_max_pcd, y_max_pcd, z_max = non_grd.get_max_bound()
