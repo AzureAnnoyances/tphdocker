@@ -3,12 +3,12 @@ import math, random
 import numba
 import numpy as np
 from numba import jit
-sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src/adTreeutils/misc')
+sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
 
 import trimesh
 import pymeshfix
 from alphashape import alphashape
-from fitcyclinders import fit_vertical_cylinder_3D, fit_cylinders_to_stem
+from misc.fitcyclinders import fit_vertical_cylinder_3D, fit_cylinders_to_stem
       
 
 def make_circle(points):
