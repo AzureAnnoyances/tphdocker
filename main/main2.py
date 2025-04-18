@@ -100,7 +100,6 @@ def main(path_directory, pcd_name, input_file_type):
 
     # 1. Generate Top View Yolov5 Model
     topViewModel = Detect(yolov5_folder_pth, top_view_model_pth, img_size=ideal_img_size)
-    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
     grd, non_grd = csf_py(
         pcd, 
         return_non_ground = "both", 

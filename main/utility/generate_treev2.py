@@ -372,16 +372,25 @@ class TreeGen():
                                             rtn_dict["xy_ffb"][conf_idx], \
                                             rtn_dict["imgz"][conf_idx]
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
-                    multi_tree, 
+            # trunk_img, crown_img = self.single_tree_seg.rasterize_to_trunk_crown(
+            #         multi_tree, 
+            #         z_ffb=z_ffb, 
+            #         z_grd=z_grd,
+            #         center_coord = xy_ffb,
+            #         expansion = [15.0, 15.0]
+            #         )
+            detected, crown_img, trunk_img = self.single_tree_seg.segment_tree(
+                    pcd = multi_tree, 
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
                     center_coord = xy_ffb,
-                    expansion = [15.0, 15.0]
-                    )
-            
+                    expansion = [15.0, 15.0])
             cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-            return True
+            if detected is True:
+                
+                return True
+            else:
+                return False
         
         
