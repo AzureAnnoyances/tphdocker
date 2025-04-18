@@ -106,10 +106,10 @@ def main(path_directory, pcd_name, input_file_type):
     )
     # 2. Create img from CSF
     non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
+    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor.png", non_ground_img)
     logger.info("Step 3: Create Visualization from NN")
     
     coordinates = []
-
     # 1. Calculate spacing for image splitting
     # h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
     strides_ratio = (non_ground_img.shape[0]/ideal_img_size[0], non_ground_img.shape[1]/ideal_img_size[1])
