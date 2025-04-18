@@ -26,3 +26,6 @@ yolov5:
     minNoPoints : 1500
     imgSizeTall : [320, 1280]
     width_tree : 0.1
+
+yolov7:
+  model_pth : "model_weights/crown_TrunkColor.pt"

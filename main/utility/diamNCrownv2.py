@@ -80,8 +80,8 @@ def split_pcd_by2_with_height(pcd, z_ffb, z_grd, center_coord, expansion):
 
 
 class SingleTreeSegmentation():
-    def __init__(self):
-        weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
+    def __init__(self, weight_src):
+        # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src)
         self.curr_params = []
     
@@ -91,8 +91,8 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        raster_trunk_img, raster_crown_img, raster_crown_upper_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, raster_crown_upper_img )
+        raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
+        detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img)
 
         if detected is True:
             trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
@@ -116,7 +116,7 @@ class SingleTreeSegmentation():
         three_channel = np.stack([single_channel] * 3, axis=-1)
         return three_channel
     
-    def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img, raster_crown_upper_img):
+    def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img):
         trunk_mask_list = []
         crown_mask_list = []
         # Indexes
