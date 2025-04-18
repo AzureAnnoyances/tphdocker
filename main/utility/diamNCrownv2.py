@@ -112,6 +112,7 @@ class SingleTreeSegmentation():
                 highest_first=True,
                 depth_weighting=True 
             )
+            print(raster_crown_img.dtype, raster_trunk_img.dtype, raster_crown_img.shape, raster_trunk_img.shape)
             return True, raster_crown_img, raster_trunk_img
         else:
             # Dont do anything
