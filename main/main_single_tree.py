@@ -94,12 +94,8 @@ def main(path_directory, pcd_name, input_file_type):
     
     # Yaml Params
     topViewStepsize = yml_data["yolov5"]["topView"]["stepsize"]
-    top_view_model_pth = yml_data["yolov5"]["topView"]["model_pth"]
-    yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
     ideal_img_size = yml_data["yolov5"]["topView"]["imgSize"]
 
-    # 1. Generate Top View Yolov5 Model
-    topViewModel = Detect(yolov5_folder_pth, top_view_model_pth, img_size=ideal_img_size)
     grd, non_grd = csf_py(
         pcd, 
         return_non_ground = "both", 
@@ -116,8 +112,6 @@ def main(path_directory, pcd_name, input_file_type):
 
     # 1. Calculate spacing for image splitting
     h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
-    h_arr, h_incre = np.linspace(0, non_ground_img.shape[0], h_s+1, retstep=True)
-    w_arr, w_incre = np.linspace(0, non_ground_img.shape[1], w_s+1, retstep=True)
     
     # 1.b Calculate spacing for PCD splitting.
     x_min_pcd, y_min_pcd, z_min = non_grd.get_min_bound()
