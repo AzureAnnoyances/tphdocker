@@ -73,35 +73,18 @@ class SingleTreeSegmentation():
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img)
         if n_det > 0:
             im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
-            
-            if det_trunk>0:
-                trunk_mask_list.append(im_mask_trunk)
-            if det_crown>0:
-                crown_mask_list.append(im_mask_crown)
+            trunk_mask_list.append(im_mask_trunk)
         # Crown Processing
         det_bbox, proto, n_det = self.model.forward(raster_crown_img)
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
             im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
-            
-            if det_trunk>0:
-                trunk_mask_list.append(im_mask_trunk)
-            if det_crown>0:
-                crown_mask_list.append(im_mask_crown)
+            crown_mask_list.append(crown_mask_list)
         
-        if len(trunk_mask_list) > 0:
-            im_mask_trunk = trunk_mask_list[0]
-        else: # Trunk not detected
-            return False, None, None
         
-        if len(crown_mask_list) > 1:
-            im_mask_crown = crown_mask_list[1]
-        elif len(crown_mask_list) == 1:
-            im_mask_crown = crown_mask_list[0]
-        else: # Crown not detected
+        if len(trunk_mask_list)>0 and len(crown_mask_list)>0:
+            return True, im_mask_trunk, im_mask_crown
+        else:
             return False, None, None
-        return True, im_mask_trunk, im_mask_crown
                 
         
     def rasterize_to_trunk_crown(self, pcd, z_ffb, z_grd, center_coord, expansion):  
