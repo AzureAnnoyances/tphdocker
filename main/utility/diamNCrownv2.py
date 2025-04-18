@@ -203,7 +203,7 @@ class SingleTreeSegmentation():
         vis.get_render_option().point_size = 2
         vis.add_geometry(pcd)
         view_ctl = vis.get_view_control()
-        view_ctl.set_zoom(0.6)
+        view_ctl.set_zoom(0.5)
         view_ctl.set_lookat(pcd.get_center())
         view_ctl.set_up((1, 0, 0))  # set the positive direction of the x-axis as the up direction
         view_ctl.set_front((0, 0, 1))  # set the positive direction of the x-axis toward you
@@ -215,4 +215,14 @@ class SingleTreeSegmentation():
         #     cam = view_ctl.convert_to_pinhole_camera_parameters()
         #     return img, depth, mask, cam.intrinsic.intrinsic_matrix, cam.extrinsic
         # vis.destroy_window()
-        return img
+        return cv2.cvtColor(img.astype(np.uint8),cv2.COLOR_BGR2RGB)*255
+# def o3dpcd2img(pcd, width, height, return_camera=False):
+#         vis = o3d.visualization.Visualizer()
+#         vis.create_window(width=width, height=height, visible=False)
+#         vis.get_render_option().point_size = 2
+#         vis.add_geometry(pcd)
+#         view_ctl = vis.get_view_control()
+#         view_ctl.set_zoom(0.5)
+#         view_ctl.set_lookat(pcd.get_center())
+#         view_ctl.set_front((1, 0, 0))
+#         view_ctl.set_up([0,0,1])
