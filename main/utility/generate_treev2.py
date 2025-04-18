@@ -384,9 +384,10 @@ class TreeGen():
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
                     center_coord = xy_ffb,
-                    expansion = [15.0, 15.0])
-            cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
-            cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
+                    expansion = [15.0, 15.0]
+                    )
+            # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
+            # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
             if detected is True:
                 
                 return True
