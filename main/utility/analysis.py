@@ -138,7 +138,6 @@ def stem_analysis(stem_cloud, stats:dict):
     stats['stem_mesh'], stats['stem_volume'] = crown_to_mesh(stem_cloud)
     return stats
 
-@jit(nopython=True, cache=True)
 def axis_clip(points, axis, lower=-np.inf, upper=np.inf):
     """
     Clip all points within bounds of a certain axis.
