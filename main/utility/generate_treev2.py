@@ -362,8 +362,10 @@ class TreeGen():
                         rtn_dict["imgz"].append(im)
                         
         if len(rtn_dict["h"]) <= 0:
+            print("Detected")
             return False
         else:
+            print("Not Detected")
             # Choose the highest confident index
             conf_idx = np.argmax(rtn_dict["confi"])
             h, z_grd, z_ffb, xy_ffb, imgz = rtn_dict["h"][conf_idx], \
