@@ -4,7 +4,7 @@ import numba
 import numpy as np
 from numba import jit
 sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
-
+import open3d as o3d
 import trimesh
 import pymeshfix
 from alphashape import alphashape
@@ -129,6 +129,8 @@ def stem_analysis(stem_cloud, stats:dict):
 
     # diameter at breastheight
     dbh = diameter_at_breastheight(stem_cloud, ground_z, breastheight)
+    if dbh is None:
+        dbh = diameter_at_everything(stem_cloud,.2)
     stats['DBH'] = dbh
     stats['circumference_BH'] = dbh * np.pi
 
@@ -138,6 +140,40 @@ def stem_analysis(stem_cloud, stats:dict):
     stats['stem_mesh'], stats['stem_volume'] = crown_to_mesh(stem_cloud)
     return stats
 
+def diameter_at_everything(stem_cloud, voxel_size=None):
+    # 1. Proj Points
+	pts = np.array(stem_cloud.points)
+	pts[:,2] = 0
+	pcd_ = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(pts))
+	if voxel_size:
+		pcd_ = pcd_.voxel_down_sample(voxel_size)
+		pts = np.asarray(pcd_.points)[:,:2]
+	proj_pts = np.asarray(pcd_.points)[:,:2]
+	
+	# Test
+	radius = make_circle(proj_pts)[2]
+	return radius*2
+
+def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
+    """Function to estimate diameter at breastheight."""
+    try:
+        stem_points = np.asarray(stem_cloud.points)
+        z = ground_level + breastheight
+
+        # clip slice
+        mask = axis_clip(stem_points, 2, z-.3, z+.3)
+        stem_slice = stem_points[mask]
+        if len(stem_slice) < 20:
+            return None
+
+        # fit cylinder
+        radius = fit_vertical_cylinder_3D(stem_slice, .04)[2]
+
+        return 2*radius
+    except Exception as e:
+        print(f'Error at diameter_at_breastheight error : {e}')
+        return None
+    
 def axis_clip(points, axis, lower=-np.inf, upper=np.inf):
     """
     Clip all points within bounds of a certain axis.
@@ -159,26 +195,6 @@ def axis_clip(points, axis, lower=-np.inf, upper=np.inf):
     """
     clip_mask = ((points[:, axis] <= upper) & (points[:, axis] >= lower))
     return clip_mask
-
-def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
-    """Function to estimate diameter at breastheight."""
-    try:
-        stem_points = np.asarray(stem_cloud.points)
-        z = ground_level + breastheight
-
-        # clip slice
-        mask = axis_clip(stem_points, 2, z-.3, z+.3)
-        stem_slice = stem_points[mask]
-        if len(stem_slice) < 20:
-            return None
-
-        # fit cylinder
-        radius = fit_vertical_cylinder_3D(stem_slice, .04)[2]
-
-        return 2*radius
-    except Exception as e:
-        print(f'Error at diameter_at_breastheight error : {e}')
-        return None
 
 def crown_to_mesh(crown_cloud, method='alphashape', alpha=.8):
 	if method == 'alphashape':
