@@ -62,8 +62,8 @@ class SingleTreeSegmentation():
         return three_channel
     
     def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img):
-        trunk_mask_list = []
-        crown_mask_list = []
+        
+        
         # Indexes
         # Trunk = 1
         # Crown = 0
@@ -73,16 +73,16 @@ class SingleTreeSegmentation():
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img)
         if n_det > 0:
             im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
-            trunk_mask_list.append(im_mask_trunk)
+
         # Crown Processing
         det_bbox, proto, n_det = self.model.forward(raster_crown_img)
         if n_det > 0:
             im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
-            crown_mask_list.append(crown_mask_list)
+
         
         
-        if len(trunk_mask_list)>0 and len(crown_mask_list)>0:
-            return True, im_mask_trunk.detach().cpu().numpy(), im_mask_crown.detach().cpu().numpy()
+        if det_crown>0 and det_trunk>0:
+            return True, im_mask_trunk, im_mask_crown
         else:
             return False, None, None
                 
