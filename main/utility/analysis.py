@@ -178,7 +178,7 @@ def diameter_at_breastheight(stem_cloud, ground_level, breastheight):
 
         return 2*radius
     except Exception as e:
-        print('Error at %s', 'tree_utils error', exc_info=e)
+        print(f'Error at diameter_at_breastheight error : {e}')
         return None
 
 def crown_to_mesh(crown_cloud, method='alphashape', alpha=.8):
