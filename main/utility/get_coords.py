@@ -69,5 +69,5 @@ def draw_coord_on_img_with_pred(img, uv_coords_pred, height, circle_size = 2): #
     return img
 
 def draw_volume_on_each_pred(img, stats:dict):
-    
+    pass
 
