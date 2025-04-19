@@ -238,8 +238,8 @@ class TreeGen():
         # ---- Detect XYZ or Crown Center and Ground ----
         expand_meters = 2
         new_min, new_max = center_coord-expand_meters/2 , center_coord+expand_meters/2
-        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
-        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
+        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 8, retstep=True)
+        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 8, retstep=True)
         
         o3d.visualization.draw_geometries([non_grd_pcd, grd_pcd])
         o3d.visualization.draw_geometries([non_grd_pcd])
@@ -250,7 +250,6 @@ class TreeGen():
                 almost_tree = get_tree_from_coord(non_grd_pcd, grd_pcd, new_center, expand_x_y=[self.ex_w,self.ex_w], 
                                                     expand_z=[z_min, z_max]
                                                     )
-                o3d.visualization.draw_geometries([almost_tree])
                 h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                     tree = almost_tree,
                     model_short = self.obj_det_short,
