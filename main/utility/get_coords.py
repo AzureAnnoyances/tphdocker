@@ -77,12 +77,12 @@ def draw_vol_n_diam_from_stats(stats:dict):
     green = (0, 255, 0)
     blue = (0,0,255)
     
-    img_vol = cv2.putText(img_vol, f"Crown Vol = {stats["crown_volume"]}m^3", (0,0), font, 1, red,2,cv2.LINE_AA)
-    img_vol = cv2.putText(img_vol, f"Trunk DBH = {stats["DBH"]} m", (0,10), font, 1, green,2,cv2.LINE_AA)
-    img_vol = cv2.putText(img_vol, f"Trunk Vol = {stats["trunk_vol"]} m^3", (0,20), font, 1, blue,2,cv2.LINE_AA)
-    img_vol = cv2.putText(img_vol, f"Trunk H   = {stats["h"]} m", (0,30), font, 1, blue,2,cv2.LINE_AA)
-    img_diam = cv2.putText(img_diam, f"Trunk DBH    ={stats["DBH"]} m", (0,0), font, 1, green, 2, cv2.LINE_AA)
-    img_diam = cv2.putText(img_diam, f"Trunk Circum ={stats["circumference_BH"]} m", (0,10), font, 1, green, 2, cv2.LINE_AA)
+    img_vol = cv2.putText(img_vol, f"Crown Vol = {stats['crown_volume']}m^3", (0,0), font, 1, red,2,cv2.LINE_AA)
+    img_vol = cv2.putText(img_vol, f"Trunk DBH = {stats['DBH']} m", (0,10), font, 1, green,2,cv2.LINE_AA)
+    img_vol = cv2.putText(img_vol, f"Trunk Vol = {stats['trunk_vol']} m^3", (0,20), font, 1, blue,2,cv2.LINE_AA)
+    img_vol = cv2.putText(img_vol, f"Trunk H   = {stats['h']} m", (0,30), font, 1, blue,2,cv2.LINE_AA)
+    img_diam = cv2.putText(img_diam, f"Trunk DBH    ={stats['DBH']} m", (0,0), font, 1, green, 2, cv2.LINE_AA)
+    img_diam = cv2.putText(img_diam, f"Trunk Circum ={stats['circumference_BH']} m", (0,10), font, 1, green, 2, cv2.LINE_AA)
 
     return img_vol, img_diam
 
