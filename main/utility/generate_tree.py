@@ -242,7 +242,7 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
             sum(height_lst)/len(height_lst), 
-            img_arr_to_b64(img_lst[np.argmax(confi_lst)]), 
+            img_lst[np.argmax(confi_lst)], 
             max(confi_lst),
             np.mean(z_coord_grd_lst),
             np.mean(z_coord_ffb_lst),
