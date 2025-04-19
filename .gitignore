@@ -2,5 +2,6 @@ main/tests/
 *.pyc
 *.pdf
 *.pt
+*.ply
 main/model_weights/
 main/runs/

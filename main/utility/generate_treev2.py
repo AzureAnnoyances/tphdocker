@@ -231,35 +231,23 @@ class TreeGen():
                 
         print("\n\n\n",total_detected,total_h_detected)
         
-    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, coord, x_lin_pcd, y_lin_pcd, index):
+    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         rtn_dict = {}
-        # I will probably remove this in the future
-        # coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
-        # if coord is None:
-        #     return False
-        y_arr_pcd, y_increment = y_lin_pcd
-        x_arr_pcd, x_increment = x_lin_pcd
-        print(y_arr_pcd, x_arr_pcd)
-        h_loop = y_arr_pcd[:-1] 
-        w_loop = x_arr_pcd[:-1]
-        
+
         # ---- Detect XYZ or Crown Center and Ground ----
-        # Init
-        almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], 
+        expand_meters = 2
+        new_min, new_max = center_coord-expand_meters/2 , center_coord+expand_meters/2
+        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
+        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
+        
+        rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
+        for i, new_y in enumerate(new_y_list):
+            for j, new_x in enumerate(new_x_list):
+                new_center = (new_x, new_y)
+                almost_tree = get_tree_from_coord(pcd, grd_pcd, new_center, expand_x_y=[self.ex_w,self.ex_w], 
                                                     expand_z=[z_min, z_max]
                                                     )
-        o3d.visualization.draw_geometries([almost_tree])
-        rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
-        for i, h in enumerate(h_loop):
-            for j, w in enumerate(w_loop):
-                min_x, max_x = w, w+x_increment+x_increment/4
-                min_y, max_y = h, h+y_increment+y_increment/4 
-                # coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
-                # coords_y_bool = (coord[1] >= min_y) & (coord[1] <= max_y)
-                # print(min_y, max_y, coord[1])
-                # if coords_x_bool & coords_y_bool:
-                
                 h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                     tree = almost_tree,
                     model_short = self.obj_det_short,
