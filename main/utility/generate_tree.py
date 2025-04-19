@@ -227,7 +227,7 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
         if height > 0:
             height_lst.append(height)
             if img_with_h is True:
-                img = draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size)
+                img = draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height, circle_size = circle_size)
             img_lst.append(img)
             confi_lst.append(np.mean(uv_coords_pred[:,2]))
             if x_or_y == "x":
