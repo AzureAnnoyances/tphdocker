@@ -208,8 +208,8 @@ class TreeGen():
         self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
-        h_arr_pcd, h_increment = h_lin_pcd
-        w_arr_pcd, w_increment = w_lin_pcd
+        y_arr_pcd, y_increment = h_lin_pcd
+        x_arr_pcd, x_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         total_detected = len(coords)
         total_h_detected = 0
@@ -234,15 +234,15 @@ class TreeGen():
             # h_im_list = []
             
             # # Split each coord to multi-sections and find the one with highest confidence
-            # h_loop = h_arr_pcd[:-1] 
-            # w_loop = w_arr_pcd[:-1]
+            # h_loop = y_arr_pcd[:-1] 
+            # w_loop = x_arr_pcd[:-1]
             # coord = find_centroid_from_Trees(non_grd,coord,2, [z_min, z_max], height_incre=4)
             # if coord is None:
             #     continue
             # for i, h in enumerate(h_loop):
             #     for j,w in enumerate(w_loop):
-            #         min_x, max_x = w, w+w_increment+w_increment/4
-            #         min_y, max_y = h, h+h_increment+h_increment/4 
+            #         min_x, max_x = w, w+x_increment+x_increment/4
+            #         min_y, max_y = h, h+y_increment+y_increment/4 
             #         minbound = (min_x, min_y, z_min)
             #         maxbound = (max_x, max_y, z_max)
             #         coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
@@ -311,26 +311,26 @@ class TreeGen():
                 
         print("\n\n\n",total_detected,total_h_detected)
         
-    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index):
+    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         rtn_dict = {}
         # I will probably remove this in the future
         # coord = find_centroid_from_Trees(non_grd_pcd, coord,2, [z_min, z_max], height_incre=4)
         # if coord is None:
         #     return False
-        h_arr_pcd, h_increment = h_lin_pcd
-        w_arr_pcd, w_increment = w_lin_pcd
-        print(h_arr_pcd, w_arr_pcd)
-        h_loop = h_arr_pcd[:-1] 
-        w_loop = w_arr_pcd[:-1]
+        y_arr_pcd, y_increment = y_lin_pcd
+        x_arr_pcd, x_increment = x_lin_pcd
+        print(y_arr_pcd, x_arr_pcd)
+        h_loop = y_arr_pcd[:-1] 
+        w_loop = x_arr_pcd[:-1]
         
         # ---- Detect XYZ or Crown Center and Ground ----
         # Init
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, h in enumerate(h_loop):
             for j, w in enumerate(w_loop):
-                min_x, max_x = w, w+w_increment+w_increment/4
-                min_y, max_y = h, h+h_increment+h_increment/4 
+                min_x, max_x = w, w+x_increment+x_increment/4
+                min_y, max_y = h, h+y_increment+y_increment/4 
                 coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
                 coords_y_bool = (-coord[1] >= min_y) & (-coord[1] <= max_y)
                 

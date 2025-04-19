@@ -130,7 +130,11 @@ def main(path_directory, pcd_name, input_file_type):
     center = non_grd.get_center()[0:2]
     center[1] *= -1
     coordinates = [center]
-    tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
+    tree_gen.process_each_coord(pcd, grd, non_grd, 
+                                coordinates, 
+                                (w_arr_pcd,w_incre_pcd), 
+                                (h_arr_pcd,h_incre_pcd)
+                                )
 
 if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
