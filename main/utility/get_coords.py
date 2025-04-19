@@ -73,9 +73,9 @@ def draw_vol_n_diam_from_stats(stats:dict):
     img_diam = stats["trunk_img"].astype(np.uint8)
     
     font = cv2.FONT_HERSHEY_SIMPLEX
-    red = (255,0,0)
+    blue = (255,0,0)
     green = (0, 255, 0)
-    blue = (0,0,255)
+    red = (0,0,255)
     font_scale = 0.5
     img_vol = cv2.putText(img_vol, f"Crown Vol = {stats['crown_volume']}m^3", (0,20), font, font_scale, red,2,cv2.LINE_AA)
     img_vol = cv2.putText(img_vol, f"Trunk DBH = {stats['DBH']} m", (0,40), font, font_scale, green,2,cv2.LINE_AA)
