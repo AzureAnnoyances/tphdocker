@@ -117,8 +117,8 @@ def main(path_directory, pcd_name, input_file_type):
     # 1.b Calculate spacing for PCD splitting.
     x_min_pcd, y_min_pcd, z_min = non_grd.get_min_bound()
     x_max_pcd, y_max_pcd, z_max = non_grd.get_max_bound()
-    h_arr_pcd , h_incre_pcd = np.linspace(y_min_pcd, y_max_pcd, 80, retstep=True)
-    w_arr_pcd , w_incre_pcd = np.linspace(x_min_pcd, x_max_pcd, 80, retstep=True)
+    h_arr_pcd , h_incre_pcd = np.linspace(y_min_pcd, y_max_pcd, 16, retstep=True)
+    w_arr_pcd , w_incre_pcd = np.linspace(x_min_pcd, x_max_pcd, 16, retstep=True)
     # logger.info(f"\ny_min: [{y_min}]\ny_max: [{y_max}]\nh_arr_pcd: {h_arr_pcd}")
     # logger.info(f"\nx_min: [{x_min}]\nx_max: [{x_max}]\nw_arr_pcd: {w_arr_pcd}\n\n")
     
