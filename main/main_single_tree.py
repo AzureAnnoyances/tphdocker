@@ -100,7 +100,7 @@ def main(path_directory, pcd_name, input_file_type):
         pcd, 
         return_non_ground = "both", 
         bsloopSmooth = True, 
-        cloth_res = 5.0, 
+        cloth_res = 0.5, 
         threshold= 2.0, 
         rigidness=1
     )
