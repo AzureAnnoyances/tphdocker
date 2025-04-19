@@ -281,7 +281,7 @@ class TreeGen():
                                             rtn_dict["z_ffb"][conf_idx], \
                                             rtn_dict["xy_ffb"][conf_idx], \
                                             rtn_dict["imgz"][conf_idx]
-            cv2.imwrite(f"{self.sideViewOut}_{i}_[short].jpg", imgz)
+            cv2.imwrite(f"{self.sideViewOut}_{i}_[short].jpg", imgz.astype(np.uint8))
             print(imgz.shape, imgz.dtype)
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
             detected, trunk_img = self.single_tree_seg.segment_tree(
