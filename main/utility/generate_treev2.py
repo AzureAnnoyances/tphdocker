@@ -238,8 +238,8 @@ class TreeGen():
         # ---- Detect XYZ or Crown Center and Ground ----
         expand_meters = 1
         new_min, new_max = center_coord-expand_meters/2 , center_coord+expand_meters/2
-        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 2, retstep=True)
-        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 2, retstep=True)
+        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
+        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
         
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, new_y in enumerate(new_y_list):
