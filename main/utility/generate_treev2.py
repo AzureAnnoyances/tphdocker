@@ -245,7 +245,7 @@ class TreeGen():
         for i, new_y in enumerate(new_y_list):
             for j, new_x in enumerate(new_x_list):
                 new_center = (new_x, new_y)
-                almost_tree = get_tree_from_coord(pcd, grd_pcd, new_center, expand_x_y=[self.ex_w,self.ex_w], 
+                almost_tree = get_tree_from_coord(non_grd_pcd, grd_pcd, new_center, expand_x_y=[self.ex_w,self.ex_w], 
                                                     expand_z=[z_min, z_max]
                                                     )
                 h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
