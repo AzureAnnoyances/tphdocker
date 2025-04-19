@@ -289,7 +289,7 @@ class TreeGen():
                     expansion = [15.0, 15.0]
                     )
             stats["h"] = h
-            stats["trunk_vol"] = np.pi*((stats["dbh"]/2)**2)*stats["h"]
+            stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
             # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
             if detected is True:
