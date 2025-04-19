@@ -236,10 +236,10 @@ class TreeGen():
         rtn_dict = {}
 
         # ---- Detect XYZ or Crown Center and Ground ----
-        expand_meters = 2
+        expand_meters = 1
         new_min, new_max = center_coord-expand_meters/2 , center_coord+expand_meters/2
-        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
-        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
+        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 2, retstep=True)
+        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 2, retstep=True)
         
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, new_y in enumerate(new_y_list):
@@ -281,17 +281,22 @@ class TreeGen():
                                             rtn_dict["imgz"][conf_idx]
 
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            detected, trunk_img = self.single_tree_seg.segment_tree(
+            detected, stats = self.single_tree_seg.segment_tree(
                     pcd = multi_tree, 
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
                     center_coord = xy_ffb,
                     expansion = [15.0, 15.0]
                     )
+            stats["h"] = h
+            stats["trunk_vol"] = np.pi*((stats["dbh"]/2)**2)*stats["h"]
             # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
             if detected is True:
+                img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
+                cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
+                cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
                 return True
             else:

@@ -53,8 +53,8 @@ class SingleTreeSegmentation():
             tree_img = self.o3dpcd2img(single_tree_pcd, 640, 480)
             stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
             stats["tree_img"] = tree_img
-
-            return True, stats["crown_img"]
+            stats["trunk_img"] = raster_trunk_img
+            return True, stats
         else:
             # Dont do anything
             return False, 0
