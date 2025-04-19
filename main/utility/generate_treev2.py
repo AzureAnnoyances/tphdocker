@@ -241,6 +241,7 @@ class TreeGen():
         new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
         new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
         
+        o3d.visualization.draw_geometries([non_grd_pcd, grd_pcd])
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, new_y in enumerate(new_y_list):
             for j, new_x in enumerate(new_x_list):
