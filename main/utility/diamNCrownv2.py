@@ -46,14 +46,14 @@ class SingleTreeSegmentation():
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img)
 
         if detected is True:
-            trunk_pcd, crown_pcd = self.split_Tree_to_trunkNCrown(
+            trunk_pcd, crown_pcd, raster_filtered_trunk_img = self.split_Tree_to_trunkNCrown(
                 pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
             # o3d.visualization.draw_geometries([trunk_pcd, crown_pcd])
             single_tree_pcd = trunk_pcd+crown_pcd
             tree_img = self.o3dpcd2img(single_tree_pcd, 640, 480)
             stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
             stats["tree_img"] = tree_img
-            stats["trunk_img"] = raster_trunk_img
+            stats["trunk_img"] = raster_filtered_trunk_img
             return True, stats
         else:
             # Dont do anything
@@ -179,7 +179,7 @@ class SingleTreeSegmentation():
         crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
         crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
         
-        return trunk_pcd, crown_pcd
+        return trunk_pcd, crown_pcd, raster_filtered_trunk_img
             
     
     def o3dpcd2img(self, pcd, width, height, return_camera=False):
