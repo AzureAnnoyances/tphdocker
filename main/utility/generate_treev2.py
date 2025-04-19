@@ -238,8 +238,8 @@ class TreeGen():
         # ---- Detect XYZ or Crown Center and Ground ----
         expand_meters = 2
         new_min, new_max = center_coord-expand_meters/2 , center_coord+expand_meters/2
-        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 8, retstep=True)
-        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 8, retstep=True)
+        new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
+        new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
         
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, new_y in enumerate(new_y_list):
@@ -281,8 +281,7 @@ class TreeGen():
                                             rtn_dict["z_ffb"][conf_idx], \
                                             rtn_dict["xy_ffb"][conf_idx], \
                                             rtn_dict["imgz"][conf_idx]
-            cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
-            print(imgz.shape, imgz.dtype)
+
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
             detected, trunk_img = self.single_tree_seg.segment_tree(
                     pcd = multi_tree, 
@@ -294,7 +293,7 @@ class TreeGen():
             # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
             if detected is True:
-                cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", trunk_img)
+                cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
                 # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
                 return True
             else:

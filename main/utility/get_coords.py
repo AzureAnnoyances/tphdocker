@@ -68,3 +68,6 @@ def draw_coord_on_img_with_pred(img, uv_coords_pred, height, circle_size = 2): #
     img = cv2.putText(img, f"H={height}", (50,50),font, 1,red,2,cv2.LINE_AA)
     return img
 
+def draw_volume_on_each_pred(img, stats:dict):
+    
+
