@@ -250,6 +250,7 @@ class TreeGen():
                 almost_tree = get_tree_from_coord(non_grd_pcd, grd_pcd, new_center, expand_x_y=[self.ex_w,self.ex_w], 
                                                     expand_z=[z_min, z_max]
                                                     )
+                o3d.visualization.draw_geometries([almost_tree])
                 h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                     tree = almost_tree,
                     model_short = self.obj_det_short,
