@@ -281,7 +281,7 @@ class TreeGen():
                                             rtn_dict["imgz"][conf_idx]
 
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            detected, stats = self.single_tree_seg.segment_tree(
+            detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
                     pcd = multi_tree, 
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
@@ -297,7 +297,7 @@ class TreeGen():
                 cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
                 cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
+                o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}_pcd.ply",segmented_tree, format="ply")
                 return True
             else:
                 return False
