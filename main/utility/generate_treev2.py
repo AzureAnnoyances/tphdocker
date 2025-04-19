@@ -320,6 +320,7 @@ class TreeGen():
         #     return False
         h_arr_pcd, h_increment = h_lin_pcd
         w_arr_pcd, w_increment = w_lin_pcd
+        print(h_arr_pcd, w_arr_pcd)
         h_loop = h_arr_pcd[:-1] 
         w_loop = w_arr_pcd[:-1]
         
@@ -327,7 +328,7 @@ class TreeGen():
         # Init
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, h in enumerate(h_loop):
-            for j,w in enumerate(w_loop):
+            for j, w in enumerate(w_loop):
                 min_x, max_x = w, w+w_increment+w_increment/4
                 min_y, max_y = h, h+h_increment+h_increment/4 
                 coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
