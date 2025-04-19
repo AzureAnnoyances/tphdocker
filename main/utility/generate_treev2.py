@@ -326,6 +326,7 @@ class TreeGen():
         # ---- Detect XYZ or Crown Center and Ground ----
         # Init
         rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
+        print(h_loop, w_loop)
         for i, h in enumerate(h_loop):
             for j,w in enumerate(w_loop):
                 min_x, max_x = w, w+w_increment+w_increment/4
