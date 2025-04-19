@@ -342,7 +342,7 @@ class TreeGen():
                         model_tall = self.obj_det_tall,
                         img_size = self.side_view_img_size, 
                         stepsize = self.side_view_step_size,
-                        img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_",
+                        img_dir = f"{self.sideViewOut}/{self.pcd_name}_{i}_{j}",
                         gen_undetected_img = True,
                         img_with_h = True,
                         min_no_points = self.min_points_per_tree
