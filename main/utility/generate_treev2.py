@@ -330,16 +330,10 @@ class TreeGen():
             for j,w in enumerate(w_loop):
                 min_x, max_x = w, w+w_increment+w_increment/4
                 min_y, max_y = h, h+h_increment+h_increment/4 
-                minbound = (min_x, min_y, z_min)
-                maxbound = (max_x, max_y, z_max)
                 coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
                 coords_y_bool = (-coord[1] >= min_y) & (-coord[1] <= max_y)
                 
-                new_x, new_y = statistics.mean([min_x, max_x]), statistics.mean([min_y, max_y])
-                new_coord = (new_x, new_y)
                 if coords_x_bool & coords_y_bool:
-                    section_tree_pcd = pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
-                    section_grd_pcd = grd_pcd.crop(open3d.geometry.AxisAlignedBoundingBox(min_bound=minbound,max_bound=maxbound))
                     almost_tree = get_tree_from_coord(pcd, grd_pcd, coord, expand_x_y=[self.ex_w,self.ex_w], expand_z=[z_min, z_max])
                     h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                         tree = almost_tree,
@@ -352,6 +346,7 @@ class TreeGen():
                         img_with_h = True,
                         min_no_points = self.min_points_per_tree
                         )
+                    
                     # If detected
                     if h > 0:
                         rtn_dict["confi"].append(confi)
@@ -362,7 +357,7 @@ class TreeGen():
                         rtn_dict["imgz"].append(im)
                         
         if len(rtn_dict["h"]) <= 0:
-            print("Detected")
+            print("\nDetected")
             return False
         else:
             print("Not Detected")
