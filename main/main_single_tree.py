@@ -128,7 +128,7 @@ def main(path_directory, pcd_name, input_file_type):
     # Yaml Params
     tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
     center = non_grd.get_center()[0:2]
-    center[1] *= 1
+    center[1] *= -1
     coordinates = [center]
     tree_gen.process_each_coord(pcd, grd, non_grd, 
                                 coordinates, 
