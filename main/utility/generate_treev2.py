@@ -298,7 +298,8 @@ class TreeGen():
                 cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
                 o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}_pcd.ply",segmented_tree, format="ply")
-                o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_crown.obj",stats["crown_mesh"])
+                o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_crown_mesh.obj",stats["crown_mesh"])
+                o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_trunk_mesh.obj",stats["trunk_mesh"])
                 return True
             else:
                 return False
