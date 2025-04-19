@@ -333,7 +333,7 @@ class TreeGen():
                 min_y, max_y = h, h+y_increment+y_increment/4 
                 coords_x_bool = (coord[0] >= min_x) & (coord[0] <= max_x)
                 coords_y_bool = (coord[1] >= min_y) & (coord[1] <= max_y)
-                
+                print(min_y, max_y, coord[1])
                 if coords_x_bool & coords_y_bool:
                     almost_tree = get_tree_from_coord(pcd, 
                                                       grd_pcd, 
