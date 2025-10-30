@@ -216,24 +216,27 @@ class TreeGen():
         total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
-            detected = self.per_tree_from_coord(
-                            pcd, 
-                            grd_pcd, 
-                            non_grd_pcd, 
-                            coord, 
-                            w_lin_pcd, 
-                            h_lin_pcd, 
+            detectedSideView, SideViewDict = self.process_sideView(
+                pcd, grd_pcd, non_grd_pcd, 
+                coord, w_lin_pcd, h_lin_pcd, 
                             index=index
                             )
-            if detected == True:
-                total_h_detected += 1
+            if detectedSideView:
+                detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
+                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
+                )
+            if detectedSideView and detectedCrownNTrunk:
+                total_h_detected +=1
+                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
+                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"].astype(np.uint8))
+                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 
         print("\n\n\n",total_detected,total_h_detected)
         
-    def per_tree_from_coord(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
+    def process_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
-        rtn_dict = {}
+        loop_dict = {}
 
         # ---- Detect XYZ or Crown Center and Ground ----
         expand_meters = 1
@@ -241,7 +244,7 @@ class TreeGen():
         new_x_list, x_increment= np.linspace(new_min[0], new_max[0], 4, retstep=True)
         new_y_list, y_increment = np.linspace(new_min[1], new_max[1], 4, retstep=True)
         
-        rtn_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
+        loop_dict = {"h":[],"z_grd":[],"z_ffb":[], "xy_ffb":[], "imgz":[], "confi":[]}
         for i, new_y in enumerate(new_y_list):
             for j, new_x in enumerate(new_x_list):
                 new_center = (new_x, new_y)
@@ -262,47 +265,60 @@ class TreeGen():
                 
                 # If detected
                 if h > 0:
-                    rtn_dict["confi"].append(confi)
-                    rtn_dict["h"].append(h)
-                    rtn_dict["z_grd"].append(z_grd)
-                    rtn_dict["z_ffb"].append(z_ffb)
-                    rtn_dict["xy_ffb"].append(xy_ffb)
-                    rtn_dict["imgz"].append(im)
+                    loop_dict["confi"].append(confi)
+                    loop_dict["h"].append(h)
+                    loop_dict["z_grd"].append(z_grd)
+                    loop_dict["z_ffb"].append(z_ffb)
+                    loop_dict["xy_ffb"].append(xy_ffb)
+                    loop_dict["imgz"].append(im)
                         
-        if len(rtn_dict["h"]) <= 0:
-            return False
+        if len(loop_dict["h"]) <= 0:
+            return False, {}
         else:
             # Choose the highest confident index
-            conf_idx = np.argmax(rtn_dict["confi"])
-            h, z_grd, z_ffb, xy_ffb, imgz = rtn_dict["h"][conf_idx], \
-                                            rtn_dict["z_grd"][conf_idx], \
-                                            rtn_dict["z_ffb"][conf_idx], \
-                                            rtn_dict["xy_ffb"][conf_idx], \
-                                            rtn_dict["imgz"][conf_idx]
-
-            multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            tree_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
-                    pcd = multi_tree, 
-                    z_ffb=z_ffb, 
-                    z_grd=z_grd,
-                    center_coord = xy_ffb,
-                    expansion = [15.0, 15.0]
-                    )
+            conf_idx = np.argmax(loop_dict["confi"])
+            h, z_grd, z_ffb, xy_ffb, imgz = loop_dict["h"][conf_idx], \
+                                            loop_dict["z_grd"][conf_idx], \
+                                            loop_dict["z_ffb"][conf_idx], \
+                                            loop_dict["xy_ffb"][conf_idx], \
+                                            loop_dict["imgz"][conf_idx]
+            rtn_dict = {}
+            rtn_dict["h"] = h
+            rtn_dict["z_grd"] = z_grd
+            rtn_dict["z_ffb"] = z_ffb
+            rtn_dict["xy_ffb"] = xy_ffb
+            rtn_dict["sideViewImg"] = imgz
+            
+            return True, rtn_dict
+    
+    def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd):
+        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
+        multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+        tree_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
+                pcd = multi_tree, 
+                z_ffb=z_ffb, 
+                z_grd=z_grd,
+                center_coord = xy_ffb,
+                expansion = [15.0, 15.0],
+                uv_tol=300
+                )
+        
+        rtn_dict = {}
+        if tree_detected is True:
+            rtn_dict["DBH"] = stats["DBH"]
+            rtn_dict["trunkImg"] = draw_diam_from_stats(stats)
+            rtn_dict["segmented_tree"] = segmented_tree
+            return True, rtn_dict
+        else:
+            return False, rtn_dict
+            # stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
+            # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
+            img_diam = draw_diam_from_stats(stats)
+            cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
+            cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
+            o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}_pcd.ply",segmented_tree, format="ply")
+            # cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
             # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-            if tree_detected is True:
-                stats["h"] = h
-                stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
-                # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
-                img_diam = draw_diam_from_stats(stats)
-                cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
-                # cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
-                cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
-                o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}_pcd.ply",segmented_tree, format="ply")
-                # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_crown_mesh.obj",stats["crown_mesh"])
-                # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_trunk_mesh.obj",stats["stem_mesh"])
-                return True
-            else:
-                return False
-        
-        
+            # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_crown_mesh.obj",stats["crown_mesh"])
+            # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_trunk_mesh.obj",stats["stem_mesh"])

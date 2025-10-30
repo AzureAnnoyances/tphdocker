@@ -36,14 +36,14 @@ class SingleTreeSegmentation():
         self.model = Infer_seg(weights=weight_src)
         self.curr_params = []
     
-    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
         raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img)
+        detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, uv_tol)
 
         if detected is True:
             trunk_pcd, crown_pcd, raster_filtered_trunk_img = self.split_Tree_to_trunkNCrown(
@@ -66,27 +66,34 @@ class SingleTreeSegmentation():
         three_channel = np.stack([single_channel] * 3, axis=-1)
         return three_channel
     
-    def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img):
-        det_trunk, det_crown = 0,0
-        
+    def get_pred_trunk(self, raster_trunk_img, center_tol=100):
         # Indexes
         # Trunk = 1
-        # Crown = 0
-        # Find the ffb
-        center_tol = 100
-        # Trunk Processing
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img)
         if n_det > 0:
-            im_mask_trunk, det_trunk, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
-
-        # Crown Processing
+            im_mask_trunk, n_valid_trunks, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
+        if n_valid_trunks >0:
+            return True, im_mask_trunk
+        else:
+            return False, None
+    
+    def get_pred_crown(self, raster_crown_img, center_tol=100):
+        # Indexes
+        # Crown = 0
         det_bbox, proto, n_det = self.model.forward(raster_crown_img)
         if n_det > 0:
-            im_mask_crown, det_crown, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=0, center_tol=center_tol)
-
+            im_mask_crown, n_valid_crowns, uv_center_crown= self.model.im_mask_from_center_region(det_bbox, proto, cls=1, center_tol=center_tol)
+        if n_valid_crowns >0:
+            return True, im_mask_crown
+        else:
+            return False, None
         
+    def get_pred_mask_trunk_crown(self, raster_trunk_img, raster_crown_img, uv_tol):        
+        # Prediction Processing
+        trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol)
+        crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol)
         
-        if det_crown>0 and det_trunk>0:
+        if trunk_detected and crown_detected:
             return True, im_mask_trunk, im_mask_crown
         else:
             return False, None, None

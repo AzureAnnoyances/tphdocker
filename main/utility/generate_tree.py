@@ -13,7 +13,7 @@ import PIL.ImageOps
 from tqdm import tqdm
 
 
-def get_tree_from_coord(pcd, grd_pcd, coord:list, expand_x_y:list=[10.0,10.0], expand_z:list=[-10.0,10.0]):
+def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:list=[10.0,10.0], expand_z:list=[-10.0,10.0]):
     # CAREFUL THE Y IS ACTUALLY NEGATIVE
     xc, yc = coord[0], -coord[1]
     
