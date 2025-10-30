@@ -50,13 +50,15 @@ class SingleTreeSegmentation():
                 pcd, mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
             single_tree_pcd = trunk_pcd+crown_pcd
             tree_img = self.o3dpcd2img(single_tree_pcd, 640, 480)
-            stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
+            stats = {}
+            stats_additon = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
+            stats = {**stats, **stats_additon}
             stats["tree_img"] = tree_img
             stats["trunk_img"] = raster_filtered_trunk_img
             return True, stats, single_tree_pcd
         else:
             # Dont do anything
-            return False, 0, None
+            return False, {}, None
         
     def one_ch_to_3ch(self, single_channel):
         three_channel = np.stack([single_channel] * 3, axis=-1)

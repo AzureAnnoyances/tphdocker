@@ -104,10 +104,6 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
 WORKDIR /root/sdp_tph
 RUN git fetch && git checkout testings_a && git pull
 
-WORKDIR /root/sdp_tph/main
-RUN pip install gdown
-RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
-
 
 WORKDIR /root
 RUN mkdir -p /usr/local/app/bin && \
@@ -158,14 +154,20 @@ RUN . /root/anaconda3/etc/profile.d/conda.sh && \
     conda activate CloudComPy310 && \
     cd /root/sdp_tph && \
     python3 -m pip install --ignore-installed --no-cache-dir torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 && \
+    python3 -m pip install --ignore-installed --no-cache-dir trimesh pymeshfix alphashape descartes && \
     python3 -m pip install --no-cache-dir --force-reinstall "numpy>=1.17,<1.26.3" quaternion matplotlib==3.6.3 \
         scipy==1.10.1 scikit-image scikit-learn==1.6.1 \
-        tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 laspy[lazrs,laszip] && \
+        tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 laspy[lazrs,laszip] \
+        && \
     cd && \
     cd /root/Open3D/build && make pip-package && python3 -m pip install lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install  
 
-
+WORKDIR /root/sdp_tph/main
+RUN pip install gdown
+RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
+WORKDIR /root/sdp_tph
+RUN git fetch && git checkout testings_a && git pull
 # RUN . /root/anaconda3/etc/profile.d/conda.sh && \
 #     conda activate CloudComPy310 && \
 #     cd /root/sdp_tph && \
