@@ -130,8 +130,7 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 3: Create Visualization from NN")
     
     coordinates = []
-    Width = 7184
-    Height = 10659
+
     # 1. Calculate spacing for image splitting
     h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
     h_arr, h_incre = np.linspace(0, non_ground_img.shape[0], h_s+1, retstep=True)
@@ -225,3 +224,5 @@ if __name__ == '__main__':
     logger.info(f"Current dir: [{os.getcwd()}]")
     main(*sys.argv[1:])
     
+# 2325 2898
+# H,2326 W2899
