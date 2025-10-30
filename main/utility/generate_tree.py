@@ -277,128 +277,128 @@ def process_predictions(img, model, confi_thres=0.135):
 
 
 
-# def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, stepsize, img_dir, gen_undetected_img=False, img_with_h = True ,min_no_points:int=1000, circle_size = 2) -> tuple:
-#     c1 = tree.get_min_bound()
-#     c2 = tree.get_max_bound()
-#     xmin, xmax = c1[0], c2[0]
-#     ymin, ymax = c1[1], c2[1]
-#     zmin, zmax = c1[2], c2[2]
+def get_h_from_each_tree_slice(tree, model_short, model_tall, img_size:tuple, stepsize, img_dir, gen_undetected_img=False, img_with_h = True ,min_no_points:int=1000, circle_size = 2) -> tuple:
+    c1 = tree.get_min_bound()
+    c2 = tree.get_max_bound()
+    xmin, xmax = c1[0], c2[0]
+    ymin, ymax = c1[1], c2[1]
+    zmin, zmax = c1[2], c2[2]
     
-#     xc = (xmin+xmax)/2
-#     yc = (ymin+ymax)/2
-#     per_range = (xmax-xmin)/6 
+    xc = (xmin+xmax)/2
+    yc = (ymin+ymax)/2
+    per_range = (xmax-xmin)/6 
     
-#     box_x = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-per_range/2,ymin,zmin), max_bound=(xc+per_range/2,ymax,zmax))
-#     box_y = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xmin,yc-per_range/2,zmin), max_bound=(xmax,yc+per_range/2,zmax))
+    box_x = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-per_range/2,ymin,zmin), max_bound=(xc+per_range/2,ymax,zmax))
+    box_y = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xmin,yc-per_range/2,zmin), max_bound=(xmax,yc+per_range/2,zmax))
 
-#     """This here is the short term fix"""
-#     slice_x = tree.crop(box_x) if box_x.get_max_bound()[0] != box_x.get_min_bound()[0] and box_x.get_max_bound()[1] != box_x.get_min_bound()[1] and box_x.get_max_bound()[2] != box_x.get_min_bound()[2] else open3d.geometry.PointCloud()
-#     slice_y = tree.crop(box_y) if box_y.get_max_bound()[1] != box_y.get_min_bound()[1] and box_y.get_max_bound()[0] != box_y.get_min_bound()[0] and box_y.get_max_bound()[2] != box_y.get_min_bound()[2] else open3d.geometry.PointCloud()
-#     """Short term fix End"""
+    """This here is the short term fix"""
+    slice_x = tree.crop(box_x) if box_x.get_max_bound()[0] != box_x.get_min_bound()[0] and box_x.get_max_bound()[1] != box_x.get_min_bound()[1] and box_x.get_max_bound()[2] != box_x.get_min_bound()[2] else open3d.geometry.PointCloud()
+    slice_y = tree.crop(box_y) if box_y.get_max_bound()[1] != box_y.get_min_bound()[1] and box_y.get_max_bound()[0] != box_y.get_min_bound()[0] and box_y.get_max_bound()[2] != box_y.get_min_bound()[2] else open3d.geometry.PointCloud()
+    """Short term fix End"""
 
-#     if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
-#         return (0,0,0,0,0)
-#     img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
-#     slice_x_min_z, slice_y_min_z = slice_x.get_min_bound()[2], slice_y.get_min_bound()[2]
-#     height_lst = []
-#     img_lst = []
-#     confi_lst = []
-#     short_img_size = model_short.img_size
-#     tall_img_size = model_tall.img_size
+    if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
+        return (0,0,0,0,0)
+    img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
+    slice_x_min_z, slice_y_min_z = slice_x.get_min_bound()[2], slice_y.get_min_bound()[2]
+    height_lst = []
+    img_lst = []
+    confi_lst = []
+    short_img_size = model_short.img_size
+    tall_img_size = model_tall.img_size
     
-#     z_coord_grd_lst = []
-#     x_coord_ffb_lst = []
-#     y_coord_ffb_lst = []
-#     z_coord_ffb_lst = []
-#     # For each slice, generate an image
-#     for i, (img, min_z, x_or_y) in enumerate([(img_x, slice_x_min_z, "x"), (img_y,slice_y_min_z, "y")]):
-#         # Crop Image
-#         # Only if the tree is taller than our desired shape
-#         if img.shape[0]>short_img_size[1]:
-#             img = img[(img.shape[0]-short_img_size[1]):img.shape[0], 0:img.shape[1]]
-#         else:
-#             img = img
+    z_coord_grd_lst = []
+    x_coord_ffb_lst = []
+    y_coord_ffb_lst = []
+    z_coord_ffb_lst = []
+    # For each slice, generate an image
+    for i, (img, min_z, x_or_y) in enumerate([(img_x, slice_x_min_z, "x"), (img_y,slice_y_min_z, "y")]):
+        # Crop Image
+        # Only if the tree is taller than our desired shape
+        if img.shape[0]>short_img_size[1]:
+            img = img[(img.shape[0]-short_img_size[1]):img.shape[0], 0:img.shape[1]]
+        else:
+            img = img
         
-#         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-#         uv_coords_pred = process_predictions(img, model_short)
+        uv_coords_pred = process_predictions(img, model_short)
         
-#         # Calculate the Height and Scale it
-#         height = calculate_height(uv_coords_pred, scale=1.0)
-#         height *= stepsize # Scaling it
+        # Calculate the Height and Scale it
+        height = calculate_height(uv_coords_pred, scale=1.0)
+        height *= stepsize # Scaling it
         
-#         if height >0:
-#             z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
-#             z_coord_grd_lst.append(z_coord_grd)
-#             z_coord_ffb_lst.append(z_coord_ffb)
+        if height >0:
+            z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
+            z_coord_grd_lst.append(z_coord_grd)
+            z_coord_ffb_lst.append(z_coord_ffb)
             
            
-#         if img_with_h is True:
-#             if height > 0:
-#                 height_lst.append(height)
-#                 img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
-#                 confi_lst.append(np.mean(uv_coords_pred[:,2]))
-#                 if x_or_y == "x":
-#                     return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_z, img.shape)
-#         else:
-#             if height > 0:
-#                 height_lst.append(height)
-#                 img_lst.append(img)
-#                 confi_lst.append(np.mean(uv_coords_pred[:,2]))
-#             else:
-#                 if gen_undetected_img and img.shape[0]<=short_img_size[1]:
-#                     cv2.imwrite(f"{img_dir}_{i}_[short].jpg", img)
+        if img_with_h is True:
+            if height > 0:
+                height_lst.append(height)
+                img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
+                confi_lst.append(np.mean(uv_coords_pred[:,2]))
+                if x_or_y == "x":
+                    return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_z, img.shape)
+        else:
+            if height > 0:
+                height_lst.append(height)
+                img_lst.append(img)
+                confi_lst.append(np.mean(uv_coords_pred[:,2]))
+            else:
+                if gen_undetected_img and img.shape[0]<=short_img_size[1]:
+                    cv2.imwrite(f"{img_dir}_{i}_[short].jpg", img)
                 
     
-#     # Reprocess if the Tree is too tall and height is not detected
-#     if len(height_lst) == 0 and (img_x.shape[0] > short_img_size[1] or img_y.shape[0] > short_img_size[1]):
-#         #print("Reprocessing", len(height_lst), len(img_lst))      
-#         for i, img in enumerate([img_x, img_y]):
-#             #print("tall_img_size", tall_img_size, "img_shape", img.shape)
-#             if img.shape[0]>tall_img_size[1]:
-#                 img = img[(img.shape[0]-tall_img_size[1]):img.shape[0], 0:img.shape[1]]
-#             elif img.shape[0]<short_img_size[1]:
+    # Reprocess if the Tree is too tall and height is not detected
+    if len(height_lst) == 0 and (img_x.shape[0] > short_img_size[1] or img_y.shape[0] > short_img_size[1]):
+        #print("Reprocessing", len(height_lst), len(img_lst))      
+        for i, img in enumerate([img_x, img_y]):
+            #print("tall_img_size", tall_img_size, "img_shape", img.shape)
+            if img.shape[0]>tall_img_size[1]:
+                img = img[(img.shape[0]-tall_img_size[1]):img.shape[0], 0:img.shape[1]]
+            elif img.shape[0]<short_img_size[1]:
                 
-#                 continue
-#             else:
-#                 img = img
-#             #print(img.shape)
-#             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                continue
+            else:
+                img = img
+            #print(img.shape)
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-#             uv_coords_pred = process_predictions(img, model_tall)
+            uv_coords_pred = process_predictions(img, model_tall)
             
-#             # Calculate the Height and Scale it
-#             height = calculate_height(uv_coords_pred, scale=1.0)
-#             height *= stepsize
+            # Calculate the Height and Scale it
+            height = calculate_height(uv_coords_pred, scale=1.0)
+            height *= stepsize
             
-#             if height >0:
-#                 z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
-#                 z_coord_grd_lst.append(z_coord_grd)
-#                 z_coord_ffb_lst.append(z_coord_ffb)
+            if height >0:
+                z_coord_grd, z_coord_ffb = return_coord_ffb_ground_z(uv_coords_pred, stepsize, min_z, img.shape)
+                z_coord_grd_lst.append(z_coord_grd)
+                z_coord_ffb_lst.append(z_coord_ffb)
                 
-#             if img_with_h is True:
-#                 if height > 0:
-#                     height_lst.append(height)
-#                     img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
-#                     confi_lst.append(np.mean(uv_coords_pred[:,2]))
-#             else:
-#                 if height > 0:
-#                     height_lst.append(height)
-#                     img_lst.append(img)
-#                     confi_lst.append(np.mean(uv_coords_pred[:,2]))
-#                 else:
-#                     if gen_undetected_img:
-#                         cv2.imwrite(f"{img_dir}_{i}_[tall].jpg", img)
-#     if height_lst:
-#         rtn = (
-#             sum(height_lst)/len(height_lst), 
-#             img_arr_to_b64(img_lst[np.argmax(confi_lst)]), 
-#             max(confi_lst),
-#             np.mean(z_coord_grd_lst),
-#             np.mean(z_coord_ffb_lst)
-#             )
-#         return rtn
-#     else:
-#         rtn = (0, 0, 0, 0, 0)
-#         return rtn
-#     # return (sum(height_lst)/len(height_lst), img_arr_to_b64(img_lst[np.argmax(confi_lst)]), max(confi_lst)) if height_lst else (0, 0,0)
+            if img_with_h is True:
+                if height > 0:
+                    height_lst.append(height)
+                    img_lst.append(draw_coord_on_img_with_pred(img, uv_coords_pred = uv_coords_pred,height = height,circle_size = circle_size))
+                    confi_lst.append(np.mean(uv_coords_pred[:,2]))
+            else:
+                if height > 0:
+                    height_lst.append(height)
+                    img_lst.append(img)
+                    confi_lst.append(np.mean(uv_coords_pred[:,2]))
+                else:
+                    if gen_undetected_img:
+                        cv2.imwrite(f"{img_dir}_{i}_[tall].jpg", img)
+    if height_lst:
+        rtn = (
+            sum(height_lst)/len(height_lst), 
+            img_arr_to_b64(img_lst[np.argmax(confi_lst)]), 
+            max(confi_lst),
+            np.mean(z_coord_grd_lst),
+            np.mean(z_coord_ffb_lst)
+            )
+        return rtn
+    else:
+        rtn = (0, 0, 0, 0, 0)
+        return rtn
+    # return (sum(height_lst)/len(height_lst), img_arr_to_b64(img_lst[np.argmax(confi_lst)]), max(confi_lst)) if height_lst else (0, 0,0)
