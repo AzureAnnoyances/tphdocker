@@ -112,11 +112,12 @@ def main(path_directory, pcd_name, input_file_type):
     )
     # 2. Create img from CSF
     non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
-    non_ground_img_color = rasterize_3dto2D(
+    _, non_ground_img_color, _  = rasterize_3dto2D(
             pointcloud = np.array(non_grd.points),
             stepsize=topViewStepsize,
             axis="z"
         )
+    print(non_ground_img_color.shape)
     cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img_color)
     ############################################
     ######## END CSF and Rasterize #############
@@ -129,7 +130,8 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 3: Create Visualization from NN")
     
     coordinates = []
-
+    Width = 7184
+    Height = 10659
     # 1. Calculate spacing for image splitting
     h_s, w_s = get_strides(non_ground_img.shape, ideal_img_size)
     h_arr, h_incre = np.linspace(0, non_ground_img.shape[0], h_s+1, retstep=True)
