@@ -111,7 +111,7 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 ### --- All Analysis  --- ###
 def stem_crown_analysis(stem_cloud, crown_cloud):
     stats = {}
-    stats.update(stem_analysis(stem_cloud, stats))
+    stats.update(stem_analysis(stem_cloud))
     crown_mesh, crown_volume = crown_to_mesh(crown_cloud)
     stats["crown_mesh"] = crown_mesh
     stats["crown_volume"] = crown_volume
@@ -120,7 +120,7 @@ def stem_crown_analysis(stem_cloud, crown_cloud):
     return stats
 
 ### --- STEM ANALYSIS --- ###
-def stem_analysis(stem_cloud, stats:dict):
+def stem_analysis(stem_cloud):
     """Function to analyse tree crown o3d point cloud."""
  
     # stem stats
@@ -128,15 +128,14 @@ def stem_analysis(stem_cloud, stats:dict):
     ground_z = start_point[2]
     breastheight = (end_point[2] - ground_z)/4
     
-
+    stem_dict ={}
     # diameter at breastheight
     dbh = diameter_at_breastheight(stem_cloud, ground_z, breastheight)
-    if dbh is None:
-        dbh = diameter_at_everything(stem_cloud,.2)
-    stats['DBH'] = dbh
-    stats['circumference_BH'] = dbh * np.pi
-    stats['stem_mesh'], stats['stem_volume'] = crown_to_mesh(stem_cloud)
-    return stats
+    dbh = dbh if dbh is not None else diameter_at_everything(stem_cloud,.2)
+    stem_dict['DBH'] = dbh
+    stem_dict['circumference_BH'] = dbh * np.pi
+    stem_dict['stem_mesh'], stem_dict['stem_volume'] = crown_to_mesh(stem_cloud)
+    return stem_dict
 
 def diameter_at_everything(stem_cloud, voxel_size=None):
     # 1. Proj Points

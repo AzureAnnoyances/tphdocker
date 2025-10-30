@@ -12,7 +12,7 @@ sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
 sys.path.insert(0, str(yolov7_main_pth))
 from raster_pcd2img import rasterize_3dto2D
 from segment.predict2 import Infer_seg
-from .analysis import stem_crown_analysis
+from .analysis import stem_crown_analysis, stem_analysis
 
 # Fix split tree to rasters
 # Fix split tree to crown
@@ -51,8 +51,10 @@ class SingleTreeSegmentation():
             single_tree_pcd = trunk_pcd+crown_pcd
             tree_img = self.o3dpcd2img(single_tree_pcd, 640, 480)
             stats = {}
-            stats_additon = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
-            stats = {**stats, **stats_additon}
+            
+            # crown_stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
+            stem_stats = stem_analysis(stem_cloud=trunk_pcd)
+            stats.update(stem_stats)
             stats["tree_img"] = tree_img
             stats["trunk_img"] = raster_filtered_trunk_img
             return True, stats, single_tree_pcd
