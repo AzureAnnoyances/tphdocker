@@ -116,11 +116,20 @@ def main(path_directory, pcd_name, input_file_type):
             pointcloud = np.array(non_grd.points),
             stepsize=topViewStepsize,
             axis="z",
-            highest_first=False,
+            highest_first=True,
             depth_weighting=True
         )
     print(non_ground_img_color.shape)
     cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img_color)
+    _, non_ground_img_color, _  = rasterize_3dto2D(
+            pointcloud = np.array(non_grd.points),
+            stepsize=topViewStepsize,
+            axis="z",
+            highest_first=False,
+            depth_weighting=True
+        )
+    print(non_ground_img_color.shape)
+    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img_color)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
