@@ -233,7 +233,7 @@ def main(path_directory, pcd_name, input_file_type):
         for index, value in enumerate(t):
             t.set_description(f"Processing Trees")
             tree, _, x,y = value
-            h, im , confi = get_h_from_each_tree_slice(
+            h, im , confi,_,_ = get_h_from_each_tree_slice(
                 tree = tree,
                 model_short = sideViewModel_short,
                 model_tall = sideViewModel_tall,
