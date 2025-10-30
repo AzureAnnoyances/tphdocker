@@ -106,7 +106,7 @@ def main(path_directory, pcd_name, input_file_type):
         pcd, 
         return_non_ground = "both", 
         bsloopSmooth = True, 
-        cloth_res = 15.0, 
+        cloth_res = 1.0, 
         threshold= 2.0, 
         rigidness=1
     )
@@ -116,7 +116,7 @@ def main(path_directory, pcd_name, input_file_type):
             pointcloud = np.array(non_grd.points),
             stepsize=topViewStepsize,
             axis="z",
-            highest_first=True,
+            highest_first=False,
             depth_weighting=True
         )
     print(non_ground_img_color.shape)
