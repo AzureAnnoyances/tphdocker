@@ -281,18 +281,18 @@ class TreeGen():
                                             rtn_dict["imgz"][conf_idx]
 
             multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
+            tree_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
                     pcd = multi_tree, 
                     z_ffb=z_ffb, 
                     z_grd=z_grd,
                     center_coord = xy_ffb,
                     expansion = [15.0, 15.0]
                     )
-            stats["h"] = h
-            stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
             # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
             # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-            if detected is True:
+            if tree_detected is True:
+                stats["h"] = h
+                stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
                 # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
                 img_diam = draw_diam_from_stats(stats)
                 cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
