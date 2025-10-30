@@ -68,6 +68,17 @@ def draw_coord_on_img_with_pred(img, uv_coords_pred, height, circle_size = 2): #
     img = cv2.putText(img, f"H={height}", (50,50),font, 1,red,2,cv2.LINE_AA)
     return img
 
+def draw_diam_from_stats(stats:dict):
+    img_diam = stats["trunk_img"].astype(np.uint8)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    blue = (255,0,0)
+    green = (0, 255, 0)
+    red = (0,0,255)
+    font_scale = 0.5
+    img_diam = cv2.putText(img_diam, f"Trunk DBH    ={stats['DBH']} m", (0,30), font, font_scale, green, 2, cv2.LINE_AA)
+    img_diam = cv2.putText(img_diam, f"Trunk Circum ={stats['circumference_BH']} m", (0,60), font, font_scale, green, 2, cv2.LINE_AA)
+    return img_diam
+    
 def draw_vol_n_diam_from_stats(stats:dict):
     img_vol = stats["crown_img"].astype(np.uint8)
     img_diam = stats["trunk_img"].astype(np.uint8)
