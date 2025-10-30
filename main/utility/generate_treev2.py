@@ -213,6 +213,7 @@ class TreeGen():
         x_arr_pcd, x_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         total_detected = len(coords)
+        total_side_detected = 0
         total_h_detected = 0
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
@@ -225,6 +226,7 @@ class TreeGen():
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
                 )
+                total_side_detected+=1
             if detectedSideView and detectedCrownNTrunk:
                 total_h_detected +=1
                 cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
@@ -232,7 +234,7 @@ class TreeGen():
                 o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 
-        print("\n\n\n",total_detected,total_h_detected)
+        print("\n\n\n",total_detected, total_side_detected, total_h_detected)
         
     def process_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
