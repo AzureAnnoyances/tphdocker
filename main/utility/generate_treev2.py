@@ -191,7 +191,8 @@ def ransac_gen_cylinders(pcd, prim:int = 500, dev_deg:int = 25, r_min:float = 0.
 
 
 class TreeGen():
-    def __init__(self, yml_data, sideViewOut, pcd_name):
+    def __init__(self, yml_data, sideViewOut, pcd_name, debug):
+        self.debug = debug
         self.pcd_name = pcd_name
         self.min_points_per_tree = 1500
         self.sideViewOut = sideViewOut
@@ -260,7 +261,7 @@ class TreeGen():
                     img_size = self.side_view_img_size, 
                     stepsize = self.side_view_step_size,
                     img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_{i}_{j}",
-                    gen_undetected_img = False,
+                    gen_undetected_img = self.debug,
                     img_with_h = True,
                     min_no_points = self.min_points_per_tree
                     )

@@ -11,6 +11,9 @@ import PIL.ExifTags
 import PIL.Image
 import PIL.ImageOps
 from tqdm import tqdm
+import sys
+sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
+from raster_pcd2img import rasterize_3dto2D
 
 
 def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:list=[10.0,10.0], expand_z:list=[-10.0,10.0]):
@@ -238,7 +241,24 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
                 x_coord_ffb_lst.append(x_ffb)
         else:       
             if gen_undetected_img and img.shape[0]<=short_img_size[1]:
-                cv2.imwrite(f"{img_dir}_{i}_[short].jpg", img)
+                cv2.imwrite(f"{img_dir}_{x_or_y}_[short].jpg", img)
+                if x_or_y == "x":
+                    _, non_ground_img, _  = rasterize_3dto2D(
+                        pointcloud = np.array(slice_x.points),
+                        stepsize=stepsize,
+                        axis="x",
+                        highest_first=True,
+                        depth_weighting=True
+                    )
+                else:
+                    _, non_ground_img, _  = rasterize_3dto2D(
+                        pointcloud = np.array(slice_y.points),
+                        stepsize=stepsize,
+                        axis="y",
+                        highest_first=True,
+                        depth_weighting=True
+                    )
+                cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
             sum(height_lst)/len(height_lst), 
