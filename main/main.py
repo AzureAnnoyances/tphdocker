@@ -109,6 +109,7 @@ def main(path_directory, pcd_name, input_file_type):
     )
     # 2. Create img from CSF
     non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
+    colored_ground_img = 
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  

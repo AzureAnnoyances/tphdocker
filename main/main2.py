@@ -13,6 +13,8 @@ from utility.get_coords import scale_pred_to_xy_point_cloud, draw_coord_on_img, 
 from utility.generate_treev2 import TreeGen
 from utility.csf_py import csf_py
 from utility.encode_decode import img_b64_to_arr
+sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
+from raster_pcd2img import rasterize_3dto2D
 
 # Standard Libraries
 import yaml
@@ -110,6 +112,12 @@ def main(path_directory, pcd_name, input_file_type):
     )
     # 2. Create img from CSF
     non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
+    non_ground_img_color = rasterize_3dto2D(
+            pointcloud = np.array(non_grd.points),
+            stepsize=topViewStepsize,
+            axis="z"
+        )
+    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img_color)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
