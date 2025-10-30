@@ -117,7 +117,7 @@ def main(path_directory, pcd_name, input_file_type):
             stepsize=topViewStepsize,
             axis="z",
             highest_first=True,
-            depth_weighting=True
+            depth_weighting=False
         )
     print(non_ground_img_color.shape)
     cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img_color)
@@ -126,7 +126,7 @@ def main(path_directory, pcd_name, input_file_type):
             stepsize=topViewStepsize,
             axis="z",
             highest_first=False,
-            depth_weighting=True
+            depth_weighting=False
         )
     print(non_ground_img_color.shape)
     cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img_color)
