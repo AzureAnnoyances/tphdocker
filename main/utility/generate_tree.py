@@ -198,7 +198,7 @@ def img_arr_to_b64(img_arr):
     encData = encData.replace('\n', '')
     return encData
 
-def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, stepsize, img_dir, gen_undetected_img=False, img_with_h = True ,min_no_points:int=1000, circle_size = 2) -> tuple:
+def get_h_from_each_tree_slice2(tree, model_short, img_size:tuple, stepsize, img_dir, gen_undetected_img=False, img_with_h = True ,min_no_points:int=1000, circle_size = 2) -> tuple:
     c1 = tree.get_min_bound()
     c2 = tree.get_max_bound()
     xmin, xmax = c1[0], c2[0]

@@ -200,13 +200,12 @@ class TreeGen():
         side_view_model_pth = yml_data["yolov5"]["sideView"]["model_pth"]
         self.side_view_step_size = yml_data["yolov5"]["sideView"]["stepsize"]
         self.side_view_img_size = tuple(yml_data["yolov5"]["sideView"]["imgSize"])
-        self.side_view_img_size_tall = tuple(yml_data["yolov5"]["sideView"]["imgSizeTall"])
         self.ex_w, self.ex_h = (dim*self.side_view_step_size for dim in self.side_view_img_size)
+        self.ex_w=self.ex_w-1
         min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
-        self.obj_det_tall = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size_tall)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
@@ -257,7 +256,6 @@ class TreeGen():
                 h, im , confi, z_grd, z_ffb, xy_ffb = get_h_from_each_tree_slice2(
                     tree = almost_tree,
                     model_short = self.obj_det_short,
-                    model_tall = self.obj_det_tall,
                     img_size = self.side_view_img_size, 
                     stepsize = self.side_view_step_size,
                     img_dir = f"{self.sideViewOut}/{self.pcd_name}_{index}_{i}_{j}",

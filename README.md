@@ -38,7 +38,7 @@ Run the code
 ```bash
 . /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
 cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-submodules && 
-cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ p01e_B .las
+cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ Tangkak_1 .laz
 
 ```
 
