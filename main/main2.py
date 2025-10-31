@@ -239,7 +239,7 @@ def main(path_directory, pcd_name, input_file_type):
     xmax, ymax, zmax = non_grd.get_max_bound()
     range_x, range_y, range_z = xmax-xmin, ymax-ymin, zmax-zmin
 
-    height, width = non_ground_img.shape
+    height, width,_ = non_ground_img.shape
     coordinates = scale_coord(
         coordinates, 
         scale=(range_x/width, range_y/height), 
