@@ -231,7 +231,7 @@ def main(path_directory, pcd_name, input_file_type):
     del true_coordinates
 
     # 2c Visualization Purpose
-    img_with_coord = draw_coord_on_img(non_ground_img, np.asarray(coordinates), circle_size=10)
+    img_with_coord = draw_coord_on_img(non_ground_img_color, np.asarray(coordinates), circle_size=10)
     cv2.imwrite(f"{topViewOut}/{pcd_name}_coor.png", img_with_coord)
 
     # 3. Scale 2D to 3D
