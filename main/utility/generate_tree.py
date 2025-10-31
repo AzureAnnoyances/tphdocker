@@ -270,7 +270,6 @@ def get_h_from_each_tree_slice2(tree, model_short, img_size:tuple, stepsize, img
         else:
             # TODO : Import this
             if gen_undetected_img and img.shape[0]<=short_img_size[1]:
-                cv2.imwrite(f"{img_dir}_{x_or_y}_[short].jpg", img)
                 if x_or_y == "x":
                     _, non_ground_img, _  = rasterize_3dto2D(
                         pointcloud = np.array(slice_x.points),
@@ -291,7 +290,8 @@ def get_h_from_each_tree_slice2(tree, model_short, img_size:tuple, stepsize, img
                     new_width=img_size[0], new_height=img_size[1],
                     img_arr=non_ground_img, background_color=(0,0,0)
                     )
-                cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
+                # cv2.imwrite(f"{img_dir}_{x_or_y}_[short].jpg", img)
+                # cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
                 cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_padded.jpg", new_img)
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
