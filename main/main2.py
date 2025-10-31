@@ -35,7 +35,18 @@ def get_args(path_directory, input_file, input_file_type):
     # print("input_img_pth", input_img_pth)
     # print("output_img_pth", output_img_pth)
     return None
-
+def numpy_to_bw_3channel(rgb_array, background_threshold=1):
+    if len(rgb_array.shape) == 3 and rgb_array.shape[2] == 3:  # RGB image
+        color_mask = np.any(rgb_array > background_threshold, axis=2)
+    elif len(rgb_array.shape) == 2:  # Grayscale image
+        color_mask = rgb_array > background_threshold
+    else:
+        raise ValueError("Unsupported array shape")
+    bw_3channel = np.zeros((rgb_array.shape[0], rgb_array.shape[1], 3), dtype=np.uint8)
+    
+    bw_3channel[color_mask] = [255, 255, 255]
+    return bw_3channel
+    
 def main(path_directory, pcd_name, input_file_type):
     get_args(path_directory, pcd_name, input_file_type)
     
@@ -111,40 +122,48 @@ def main(path_directory, pcd_name, input_file_type):
         rigidness=1
     )
     # 2. Create img from CSF
-    non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
+    # non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
+    _, non_ground_img_color, _  = rasterize_3dto2D(
+            pointcloud = np.array(non_grd.points),
+            stepsize=topViewStepsize,
+            axis="z",
+            highest_first=True,
+            depth_weighting=True
+        )
+    non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
     if debug:
-        _, non_ground_img, _  = rasterize_3dto2D(
+        _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
                 axis="z",
                 highest_first=True,
                 depth_weighting=True
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", non_ground_img)
-        _, non_ground_img, _  = rasterize_3dto2D(
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", non_ground_img2)
+        _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
                 axis="z",
                 highest_first=False,
                 depth_weighting=True
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", non_ground_img)
-        _, non_ground_img, _  = rasterize_3dto2D(
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", non_ground_img2)
+        _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
                 axis="z",
                 highest_first=True,
                 depth_weighting=False
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img)
-        _, non_ground_img, _  = rasterize_3dto2D(
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img2)
+        _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
                 axis="z",
                 highest_first=False,
                 depth_weighting=False
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img)
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img2)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
