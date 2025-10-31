@@ -42,11 +42,11 @@ def scale_pred_to_xy_point_cloud(pred:np.ndarray, stepsize, min_x:float=0.0, max
     return rtn_arr
 
 
-def draw_coord_on_img(img, coords, circle_size=2):
+def draw_coord_on_img(img, coords, circle_size=2, color=(255,255,255)):
     img = img.copy()
     coords = coords.astype(int)
     for coord in coords:
-        cv2.circle(img,(coord[0],coord[1]), circle_size, (242,2,2),3)
+        cv2.circle(img,(coord[0],coord[1]), circle_size, color,3)
     return img
 
 
