@@ -48,7 +48,7 @@ def main(path_directory, pcd_name, input_file_type):
     # Load Yaml
     with open("config/config.yaml","r") as ymlfile:
         yml_data = yaml.load(ymlfile, Loader = yaml.FullLoader)
-    
+    debug = yml_data["output"]["debug"]
     # Input Folder Location
     curr_dir = os.getcwd()
     folder_loc = path_directory
@@ -112,24 +112,39 @@ def main(path_directory, pcd_name, input_file_type):
     )
     # 2. Create img from CSF
     non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
-    _, non_ground_img_color, _  = rasterize_3dto2D(
-            pointcloud = np.array(non_grd.points),
-            stepsize=topViewStepsize,
-            axis="z",
-            highest_first=True,
-            depth_weighting=False
-        )
-    print(non_ground_img_color.shape)
-    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img_color)
-    _, non_ground_img_color, _  = rasterize_3dto2D(
-            pointcloud = np.array(non_grd.points),
-            stepsize=topViewStepsize,
-            axis="z",
-            highest_first=False,
-            depth_weighting=False
-        )
-    print(non_ground_img_color.shape)
-    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img_color)
+    if debug:
+        _, non_ground_img, _  = rasterize_3dto2D(
+                pointcloud = np.array(non_grd.points),
+                stepsize=topViewStepsize,
+                axis="z",
+                highest_first=True,
+                depth_weighting=True
+            )
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", non_ground_img)
+        _, non_ground_img, _  = rasterize_3dto2D(
+                pointcloud = np.array(non_grd.points),
+                stepsize=topViewStepsize,
+                axis="z",
+                highest_first=False,
+                depth_weighting=True
+            )
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", non_ground_img)
+        _, non_ground_img, _  = rasterize_3dto2D(
+                pointcloud = np.array(non_grd.points),
+                stepsize=topViewStepsize,
+                axis="z",
+                highest_first=True,
+                depth_weighting=False
+            )
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img)
+        _, non_ground_img, _  = rasterize_3dto2D(
+                pointcloud = np.array(non_grd.points),
+                stepsize=topViewStepsize,
+                axis="z",
+                highest_first=False,
+                depth_weighting=False
+            )
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
@@ -227,7 +242,7 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name)
+    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name, debug=debug)
     tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
 
 if __name__ == '__main__':

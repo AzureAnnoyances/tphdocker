@@ -11,6 +11,9 @@ import PIL.ExifTags
 import PIL.Image
 import PIL.ImageOps
 from tqdm import tqdm
+import sys
+sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
+from raster_pcd2img import rasterize_3dto2D
 
 
 def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:list=[10.0,10.0], expand_z:list=[-10.0,10.0]):
@@ -55,7 +58,7 @@ def get_tree_many_from_coords(pcd, grd_pcd, coords, expand_x_y:list=[6.0,6.0], e
     for coord in coords:
         #t.set_description(f'Generating Trees')
         x,y= coord[0], coord[1]
-        tree = get_tree_from_coord(pcd, grd_pcd, [x,y], expand_x_y=expand_x_y, expand_z=expand_z)
+        tree = get_tree_from_coord(pcd, grd_pcd, (x,y), expand_x_y=expand_x_y, expand_z=expand_z)
         bbox = generate_boundingbox(tree)
         trees.append(tree)
         bBoxes.append(bbox)
@@ -151,12 +154,40 @@ def return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_x_or_y, img_shape):
     if len(unique[1]) < 2:
         return np.nan
     else:
+        # Label0 used to be the FFB
         label0_z = x_or_y[np.where(conf==np.amax(conf[(labels == 0)]))]
         x_or_y_coord_ffb = (label0_z[0]*stepsize) + min_x_or_y
-        
+        # TODO: Add the Padding of remove location of label0_z
+        # TODO:
         return x_or_y_coord_ffb
- 
-        
+
+def add_padding_to_image(new_width, new_height, image_path=None, img_arr=None, background_color=(255, 255, 255)):
+    """Add padding to reach specific dimensions, placing image in bottom center"""
+    assert not(image_path is None and img_arr is None), "[image_path or img_arr] must be present for padding"
+    """
+        new_img = add_padding_to_image(
+            new_width=640, new_height=768,
+            image_path="testImg.jpg", 
+            background_color=(0,0,0)
+            )
+    """
+    if image_path:
+        original = PIL.Image.open(image_path)
+    else:
+        original = PIL.Image.fromarray(np.uint8(img_arr)).convert('RGB')
+    
+    # Create new image with desired size
+    new_image = PIL.Image.new(original.mode, (new_width, new_height), background_color)
+    
+    # Calculate position for bottom center placement
+    x = (new_width - original.width) // 2  # Center horizontally
+    y = new_height - original.height       # Bottom aligned
+    
+    # Paste original image at calculated position
+    new_image.paste(original, (x, y))
+    
+    return np.array(new_image).astype(np.uint8)
+
 def img_arr_to_b64(img_arr):
     """Grayscale"""
     img_pil = PIL.Image.fromarray(np.uint8(img_arr)).convert('RGB')
@@ -195,8 +226,7 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
     img_lst = []
     confi_lst = []
     short_img_size = model_short.img_size
-    tall_img_size = model_tall.img_size
-    
+
     z_coord_grd_lst = []
     x_coord_ffb_lst = []
     y_coord_ffb_lst = []
@@ -236,9 +266,31 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
             else:
                 x_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[0], img.shape)
                 x_coord_ffb_lst.append(x_ffb)
-        else:       
+        else:
+            # TODO : Import this
             if gen_undetected_img and img.shape[0]<=short_img_size[1]:
-                cv2.imwrite(f"{img_dir}_{i}_[short].jpg", img)
+                cv2.imwrite(f"{img_dir}_{x_or_y}_[short].jpg", img)
+                if x_or_y == "x":
+                    _, non_ground_img, _  = rasterize_3dto2D(
+                        pointcloud = np.array(slice_x.points),
+                        stepsize=stepsize,
+                        axis="x",
+                        highest_first=True,
+                        depth_weighting=True
+                    )
+                else:
+                    _, non_ground_img, _  = rasterize_3dto2D(
+                        pointcloud = np.array(slice_y.points),
+                        stepsize=stepsize,
+                        axis="y",
+                        highest_first=True,
+                        depth_weighting=True
+                    )
+                new_img = add_padding_to_image(
+                    new_width=img_size[0], new_height=img_size[1],
+                    image_path="testImg.jpg", background_color=(0,0,0)
+                    )
+                cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
             sum(height_lst)/len(height_lst), 
