@@ -16,9 +16,9 @@ yolov5:
   yolov5_pth: "yolov5"
   topView:
     axis      : "z"
-    imgSize   : [640, 640]
+    imgSize   : [320, 320]
     model_pth : "model_weights/topDetec640.pt"
-    stepsize  : 0.1
+    stepsize  : 0.05
   sideView:
     axis    : "x"
     imgSize : [320, 768]
@@ -26,7 +26,7 @@ yolov5:
     stepsize : 0.02
     minNoPoints : 1500
     imgSizeTall : [320, 1280]
-    width_tree : 0.1
+    width_tree : 0.2
 
 yolov7:
   model_pth : "model_weights/crown_TrunkColor.pt"

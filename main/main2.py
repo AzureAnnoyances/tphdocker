@@ -170,7 +170,6 @@ def main(path_directory, pcd_name, input_file_type):
     # logger.info(f"\ny_min: [{y_min}]\ny_max: [{y_max}]\nh_arr_pcd: {h_arr_pcd}")
     # logger.info(f"\nx_min: [{x_min}]\nx_max: [{x_max}]\nw_arr_pcd: {w_arr_pcd}\n\n")
     
-    img_shape = non_ground_img.shape
     # 2. Split images 
     for i, h in enumerate(h_arr[:-1]):
         for j, w in enumerate(w_arr[:-1]):
