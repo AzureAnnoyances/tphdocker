@@ -219,6 +219,7 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
     
     if len(slice_x.points) < min_no_points or len(slice_y.points) < min_no_points:
         return (0,0,0,0,0, (0,0))
+    # TODO: CHange this in the future
     img_x, img_y = pcd2img_np(slice_x,"x",stepsize,use_binary=True), pcd2img_np(slice_y,"y",stepsize, use_binary=True)
     slice_x_min_z, slice_y_min_z = slice_x.get_min_bound()[2], slice_y.get_min_bound()[2]
     slice_x_min_xyz, slice_y_min_xyz = slice_x.get_min_bound(), slice_y.get_min_bound()
@@ -288,9 +289,10 @@ def get_h_from_each_tree_slice2(tree, model_short, model_tall, img_size:tuple, s
                     )
                 new_img = add_padding_to_image(
                     new_width=img_size[0], new_height=img_size[1],
-                    image_path="testImg.jpg", background_color=(0,0,0)
+                    img_arr=non_ground_img, background_color=(0,0,0)
                     )
                 cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
+                cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_padded.jpg", new_img)
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
             sum(height_lst)/len(height_lst), 
