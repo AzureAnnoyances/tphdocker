@@ -190,6 +190,13 @@ def ransac_gen_cylinders(pcd, prim:int = 500, dev_deg:int = 25, r_min:float = 0.
     return meshes, clouds
 
 
+def write_img(save_path, img):
+    try: 
+        img = img.astype(np.uint8)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(save_path, img)
+    except Exception as e:
+        print("couldnt write image")
 class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name, debug):
         self.debug = debug
@@ -228,14 +235,14 @@ class TreeGen():
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
                 if debug:
-                    cv2.imwrite(f"{self.sideViewOut}/{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"].astype(np.uint8))
-                    cv2.imwrite(f"{self.sideViewOut}/{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"].astype(np.uint8))
+                    write_img(f"{self.sideViewOut}/{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
+                    write_img(f"{self.sideViewOut}/{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
                     o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
                     o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
                 if detectedCrownNTrunk:
                     total_h_detected +=1
-                    cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
-                    cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"].astype(np.uint8))
+                    write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
+                    write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"])
                     o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 

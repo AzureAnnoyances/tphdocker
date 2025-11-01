@@ -139,7 +139,7 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=True,
                 depth_weighting=True
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", non_ground_img2)
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
         _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
@@ -147,7 +147,7 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=False,
                 depth_weighting=True
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", non_ground_img2)
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
         _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
@@ -155,7 +155,7 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=True,
                 depth_weighting=False
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", non_ground_img2)
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
         _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),
                 stepsize=topViewStepsize,
@@ -163,7 +163,7 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=False,
                 depth_weighting=False
             )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", non_ground_img2)
+        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
