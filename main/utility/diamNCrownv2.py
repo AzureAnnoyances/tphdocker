@@ -131,7 +131,7 @@ class SingleTreeSegmentation():
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # Trunk
-        filtered_trunk_pcd, raster_image, raster_trunk_img = rasterize_3dto2D(
+        filtered_trunk_pcd, raster_trunk_image, segmented_trunk_img = rasterize_3dto2D(
             pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
@@ -143,7 +143,7 @@ class SingleTreeSegmentation():
 
         
         # Crown
-        filtered_crown_pcd, raster_image, raster_crown_img = rasterize_3dto2D(
+        filtered_crown_pcd, raster_crown_image, segmented_crown_img = rasterize_3dto2D(
             pointcloud = torch.tensor(np.array(crown.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
@@ -155,7 +155,10 @@ class SingleTreeSegmentation():
         # if debug:
         #     o3d.visualization.draw_geometries([trunk])
         #     o3d.visualization.draw_geometries([crown])
-        return raster_trunk_img, raster_crown_img
+        if debug: 
+            return segmented_trunk_img, segmented_crown_img
+        else:
+            return raster_trunk_image, raster_crown_image
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,
