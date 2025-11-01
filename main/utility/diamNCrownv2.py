@@ -57,10 +57,15 @@ class SingleTreeSegmentation():
             stats.update(stem_stats)
             stats["tree_img"] = tree_img
             stats["trunk_img"] = raster_filtered_trunk_img
+            stats["debug_trunk_img"] = raster_trunk_img
+            stats["debug_crown_img"] = raster_crown_img
             return True, stats, single_tree_pcd
         else:
+            rtn_dict = {}
+            rtn_dict["debug_trunk_img"] = raster_trunk_img
+            rtn_dict["debug_crown_img"] = raster_crown_img
             # Dont do anything
-            return False, {}, None
+            return False, rtn_dict, None
         
     def one_ch_to_3ch(self, single_channel):
         three_channel = np.stack([single_channel] * 3, axis=-1)

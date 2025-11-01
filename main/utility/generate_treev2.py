@@ -232,6 +232,9 @@ class TreeGen():
                 cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
                 cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"].astype(np.uint8))
                 o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
+            if debug:
+                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"].astype(np.uint8))
+                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"].astype(np.uint8))
                 
                 
         print("\n\n\n",total_detected, total_side_detected, total_h_detected)
@@ -312,6 +315,8 @@ class TreeGen():
             rtn_dict["segmented_tree"] = segmented_tree
             return True, rtn_dict
         else:
+            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
+            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
             return False, rtn_dict
             # stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
             # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
