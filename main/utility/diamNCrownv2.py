@@ -103,7 +103,7 @@ class SingleTreeSegmentation():
             return False, None, None
                 
         
-    def rasterize_to_trunk_crown(self, pcd, z_ffb, z_grd, center_coord, expansion):  
+    def rasterize_to_trunk_crown(self, pcd, z_ffb, z_grd, center_coord, expansion, debug=False):  
         """
         pcd: (N, 3) array of 3D points.
         z_ffb: 
@@ -147,7 +147,9 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
-        
+        if debug:
+            o3d.visualization.draw_geometries([trunk])
+            o3d.visualization.draw_geometries([crown])
         return raster_trunk_img, raster_crown_img
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
