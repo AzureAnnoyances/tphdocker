@@ -317,10 +317,14 @@ class TreeGen():
             rtn_dict["segmented_tree"] = segmented_tree
             rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
             rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
+            rtn_dict["debug_crown_pcd"] = stats["debug_crown_pcd"]
+            rtn_dict["debug_trunk_pcd"] = stats["debug_trunk_pcd"]
             return True, rtn_dict
         else:
             rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
             rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
+            rtn_dict["debug_crown_pcd"] = stats["debug_crown_pcd"]
+            rtn_dict["debug_trunk_pcd"] = stats["debug_trunk_pcd"]
             return False, rtn_dict
             # stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
             # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
