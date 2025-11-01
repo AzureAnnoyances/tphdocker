@@ -36,13 +36,13 @@ class SingleTreeSegmentation():
         self.model = Infer_seg(weights=weight_src)
         self.curr_params = []
     
-    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
+        raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion, debug=debug)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, uv_tol)
 
         if detected is True:

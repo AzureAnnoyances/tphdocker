@@ -208,7 +208,7 @@ class TreeGen():
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     
-    def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
+    def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
         y_arr_pcd, y_increment = h_lin_pcd
         x_arr_pcd, x_increment = w_lin_pcd
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
@@ -224,7 +224,7 @@ class TreeGen():
                             )
             if detectedSideView:
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
-                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
+                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
                 total_side_detected+=1
             if detectedSideView and detectedCrownNTrunk:
@@ -292,7 +292,7 @@ class TreeGen():
             
             return True, rtn_dict
     
-    def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd):
+    def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd, debug=False):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
         tree_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
@@ -301,7 +301,8 @@ class TreeGen():
                 z_grd=z_grd,
                 center_coord = xy_ffb,
                 expansion = [15.0, 15.0],
-                uv_tol=300
+                uv_tol=300,
+                debug=debug
                 )
         
         rtn_dict = {}
