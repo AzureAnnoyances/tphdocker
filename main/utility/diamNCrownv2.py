@@ -129,14 +129,18 @@ class SingleTreeSegmentation():
         # --- Remove Ground from Trunk and Crown ---
         z_tol = (z_ffb-z_grd)/5 
         trunk_tol = 1.0
-        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
-        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_grd+z_tol), max_bound=(max_bound))
+        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
+            min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), 
+            max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
+        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
+            min_bound=(min_bound[0], min_bound[1], z_grd+z_tol), 
+            max_bound=(max_bound))
         trunk = pcd.crop(bbox_trunk)
         crown = pcd.crop(bbox_crown)
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # Trunk
-        filtered_trunk_pcd, raster_trunk_image, segmented_trunk_img = rasterize_3dto2D(
+        _, raster_trunk_image, _ = rasterize_3dto2D(
             pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
@@ -146,9 +150,8 @@ class SingleTreeSegmentation():
             depth_weighting=True  
         )
 
-        
         # Crown
-        filtered_crown_pcd, raster_crown_image, segmented_crown_img = rasterize_3dto2D(
+        _, raster_crown_image, _ = rasterize_3dto2D(
             pointcloud = torch.tensor(np.array(crown.points)).to(device), 
             img_shape  = (640,640),
             min_xyz = [center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]],
@@ -157,13 +160,10 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
-        # if debug:
-        #     o3d.visualization.draw_geometries([trunk])
-        #     o3d.visualization.draw_geometries([crown])
         if debug: 
             return trunk, crown, raster_trunk_image, raster_crown_image
         else:
-            return trunk, crown, segmented_trunk_img, segmented_crown_img
+            return trunk, crown, raster_trunk_image, raster_trunk_image
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,

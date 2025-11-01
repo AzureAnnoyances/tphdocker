@@ -306,7 +306,7 @@ class TreeGen():
                 z_grd=z_grd,
                 center_coord = xy_ffb,
                 expansion = [15.0, 15.0],
-                uv_tol=300,
+                uv_tol=100,
                 debug=debug
                 )
         
