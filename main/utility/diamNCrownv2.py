@@ -156,9 +156,9 @@ class SingleTreeSegmentation():
         #     o3d.visualization.draw_geometries([trunk])
         #     o3d.visualization.draw_geometries([crown])
         if debug: 
-            return segmented_trunk_img, segmented_crown_img
-        else:
             return raster_trunk_image, raster_crown_image
+        else:
+            return segmented_trunk_img, segmented_crown_img
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,
