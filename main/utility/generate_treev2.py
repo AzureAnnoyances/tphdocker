@@ -223,18 +223,20 @@ class TreeGen():
                             index=index
                             )
             if detectedSideView:
+                total_side_detected+=1
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
                 if debug:
                     cv2.imwrite(f"{self.sideViewOut}/{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"].astype(np.uint8))
                     cv2.imwrite(f"{self.sideViewOut}/{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"].astype(np.uint8))
-                total_side_detected+=1
-            if detectedSideView and detectedCrownNTrunk:
-                total_h_detected +=1
-                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
-                cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"].astype(np.uint8))
-                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
+                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
+                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
+                if detectedCrownNTrunk:
+                    total_h_detected +=1
+                    cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"].astype(np.uint8))
+                    cv2.imwrite(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"].astype(np.uint8))
+                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 
         print("\n\n\n",total_detected, total_side_detected, total_h_detected)
@@ -313,6 +315,8 @@ class TreeGen():
             rtn_dict["DBH"] = stats["DBH"]
             rtn_dict["trunkImg"] = draw_diam_from_stats(stats)
             rtn_dict["segmented_tree"] = segmented_tree
+            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
+            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
             return True, rtn_dict
         else:
             rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]

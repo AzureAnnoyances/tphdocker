@@ -42,7 +42,8 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion, debug=debug)
+        debug_crown_pcd, debug_trunk_pcd, \
+            raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion, debug=debug)
         detected, im_mask_trunk, im_mask_crown = self.get_pred_mask_trunk_crown(raster_trunk_img, raster_crown_img, uv_tol)
 
         if detected is True:
@@ -57,11 +58,15 @@ class SingleTreeSegmentation():
             stats.update(stem_stats)
             stats["tree_img"] = tree_img
             stats["trunk_img"] = raster_filtered_trunk_img
+            stats["debug_crown_pcd"] = debug_crown_pcd
+            stats["debug_trunk_pcd"] = debug_trunk_pcd
             stats["debug_trunk_img"] = raster_trunk_img
             stats["debug_crown_img"] = raster_crown_img
             return True, stats, single_tree_pcd
         else:
             rtn_dict = {}
+            rtn_dict["debug_crown_pcd"] = debug_crown_pcd
+            rtn_dict["debug_trunk_pcd"] = debug_trunk_pcd
             rtn_dict["debug_trunk_img"] = raster_trunk_img
             rtn_dict["debug_crown_img"] = raster_crown_img
             # Dont do anything
@@ -136,7 +141,7 @@ class SingleTreeSegmentation():
             img_shape  = (640,640),
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
-            axis='z', 
+            axis='z',
             highest_first=True,
             depth_weighting=True  
         )
@@ -156,9 +161,9 @@ class SingleTreeSegmentation():
         #     o3d.visualization.draw_geometries([trunk])
         #     o3d.visualization.draw_geometries([crown])
         if debug: 
-            return raster_trunk_image, raster_crown_image
+            return trunk_pcd, crown_pcd, raster_trunk_image, raster_crown_image
         else:
-            return segmented_trunk_img, segmented_crown_img
+            return trunk_pcd, crown_pcd, segmented_trunk_img, segmented_crown_img
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,
