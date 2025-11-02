@@ -235,10 +235,10 @@ class TreeGen():
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
                 if debug:
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
-                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
-                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
+                    write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
+                    write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
+                    # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
+                    # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
                 if detectedCrownNTrunk:
                     total_h_detected +=1
                     write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
