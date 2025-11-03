@@ -200,10 +200,14 @@ def write_img(save_path, img):
     except Exception as e:
         print("couldnt write image")
 class TreeGen():
-    def __init__(self, yml_data, sideViewOut, pcd_name, debug):
+    def __init__(self, yml_data, folder_out_dict, pcd_name, debug):
         self.debug = debug
         self.pcd_name = pcd_name
-        self.sideViewOut = sideViewOut
+        
+        self.sideViewOut = folder_out_dict["sideViewOut"]
+        self.pcdOut = folder_out_dict["pcdOut"]
+        self.diamOut = folder_out_dict["diamOut"]
+        self.debugOut = folder_out_dict["debugOut"]
         
         self.min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         side_view_model_pth = yml_data["yolov5"]["sideView"]["model_pth"]
@@ -259,13 +263,13 @@ class TreeGen():
         
     def save_data_to_directory(self, i, sideViewImg, trunk_img, segmented_tree, CrownNTrunkDict):
         write_img(f"{self.sideViewOut}/{i}_height.jpg", sideViewImg)
-        write_img(f"{self.sideViewOut}/{i}_diam.jpg", trunk_img)
+        write_img(f"{self.diamOut}/{i}_diam.jpg", trunk_img)
         
         crown_str = "" if bool(CrownNTrunkDict["crown_ok"]) else "crown_not_ok"
-        o3d.io.write_point_cloud(f"{self.sideViewOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", write_ascii=False, print_progress=False)
+        o3d.io.write_point_cloud(f"{self.pcdOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", write_ascii=False, print_progress=False)
         if self.debug:
-            write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{i}.jpg", CrownNTrunkDict["debug_crown_img"])
-            write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{i}.jpg", CrownNTrunkDict["debug_trunk_img"])   
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}.jpg", CrownNTrunkDict["debug_crown_img"])
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}.jpg", CrownNTrunkDict["debug_trunk_img"])   
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()

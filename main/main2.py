@@ -67,10 +67,24 @@ def main(path_directory, pcd_name, input_file_type):
     
     # Output Folder Location
     output_folder = folder_loc + pcd_name +"/"
-    topViewOut = output_folder + yml_data["output"]["topView"]["folder_location"]
-    sideViewOut = output_folder + yml_data["output"]["sideView"]["folder_location"]
-    pointCloudOut = output_folder + yml_data["output"]["pcd"]["folder_location"]
-    diamOut = output_folder + yml_data["output"]["diam"]["folder_location"]
+    topViewOut = output_folder + yml_data["output"]["folder_location"]["topView"]
+    sideViewOut = output_folder + yml_data["output"]["folder_location"]["sideView"]
+    pcdOut = output_folder + yml_data["output"]["folder_location"]["pcd"]
+    diamOut = output_folder + yml_data["output"]["folder_location"]["diam"]
+    debugOut = output_folder + yml_data["output"]["folder_location"]["debug"]
+    
+    folder_out_dict = {
+        "output_folder" : output_folder,
+        "topViewOut" : topViewOut,
+        "sideViewOut" : sideViewOut,
+        "pcdOut" : pcdOut,
+        "diamOut" : diamOut
+    }
+    if debug:
+        folder_out_dict["debugOut"] = debugOut
+    for path in folder_out_dict.values():
+        if not os.path.exists(path):
+            os.mkdir(path)
     csvOut = output_folder + pcd_name +".csv"
     
     accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
@@ -94,9 +108,6 @@ def main(path_directory, pcd_name, input_file_type):
     assert len(pcd.points) >= 1,f"Failed to Read Point Cloud file [{pcd_filename}], it's Empty or broken"
 
     logger.info(f"Reading {input_file_type} file successful, Generating stuff")
-    for path in [output_folder, topViewOut, sideViewOut]:
-        if not os.path.exists(path):
-            os.mkdir(path)
     ###################################################
     ######## END File Generation from PCD #############
     ###################################################
@@ -262,7 +273,7 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    tree_gen = TreeGen(yml_data, sideViewOut, pcd_name, debug=debug)
+    tree_gen = TreeGen(yml_data, folder_out_dict, pcd_name, debug=debug)
     df = tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd), debug)
 
     df.to_csv(csvOut)

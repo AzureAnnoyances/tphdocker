@@ -6,15 +6,13 @@ dataset:
 
 output:
   debug : False
-  folder_location : /output
-  topView:
-    folder_location : topView
-  sideView:
-    folder_location : sideView
-  pcd:
-    folder_location : pointcloud
-  diam:
-    folder_location : diam
+  folder_location : 
+    root    : '/output'
+    topView : 'topView'
+    sideView: 'sideView'
+    pcd     : 'pointcloud'
+    diam    : 'diam'
+    debug   : 'debug'
 
 yolov5:
   yolov5_pth: "yolov5"
