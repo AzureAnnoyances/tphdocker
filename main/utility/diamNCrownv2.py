@@ -130,7 +130,7 @@ class SingleTreeSegmentation():
         
         # --- Remove Ground from Trunk and Crown ---
         z_tol = (z_ffb-z_grd)/5 
-        trunk_tol = 1.0
+        trunk_tol = 2.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), 
             max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
