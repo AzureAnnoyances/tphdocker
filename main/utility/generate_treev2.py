@@ -269,8 +269,8 @@ class TreeGen():
         crown_str = "crown_ok" if bool(CrownNTrunkDict["crown_ok"]) else "crown_not_ok"
         o3d.io.write_point_cloud(f"{self.pcdOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", write_ascii=False, print_progress=False)
         if self.debug:
-            write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}.jpg", CrownNTrunkDict["debug_crown_img"])
-            write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}.jpg", CrownNTrunkDict["debug_trunk_img"])   
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_crown_img"])
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_trunk_img"])   
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()
