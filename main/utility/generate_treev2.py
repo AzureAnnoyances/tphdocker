@@ -263,7 +263,7 @@ class TreeGen():
         total_detected = len(coords)
         total_side_detected = 0
         total_side_less_detected = 0
-        total_h_detected = 0
+        total_trees_detected = 0
         
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
