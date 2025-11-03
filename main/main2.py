@@ -67,11 +67,11 @@ def main(path_directory, pcd_name, input_file_type):
     
     # Output Folder Location
     output_folder = folder_loc + pcd_name +"/"
-    topViewOut = output_folder + yml_data["output"]["folder_location"]["topView"]
+    topViewOut  = output_folder + yml_data["output"]["folder_location"]["topView"]
     sideViewOut = output_folder + yml_data["output"]["folder_location"]["sideView"]
-    pcdOut = output_folder + yml_data["output"]["folder_location"]["pcd"]
-    diamOut = output_folder + yml_data["output"]["folder_location"]["diam"]
-    debugOut = output_folder + yml_data["output"]["folder_location"]["debug"]
+    pcdOut      = output_folder + yml_data["output"]["folder_location"]["pcd"]
+    diamOut     = output_folder + yml_data["output"]["folder_location"]["diam"]
+    debugOut    = output_folder + yml_data["output"]["folder_location"]["debug"]
     
     folder_out_dict = {
         "output_folder" : output_folder,

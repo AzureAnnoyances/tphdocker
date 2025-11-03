@@ -202,12 +202,13 @@ def write_img(save_path, img):
 class TreeGen():
     def __init__(self, yml_data, folder_out_dict, pcd_name, debug):
         self.debug = debug
+        if self.debug:
+            self.debugOut = folder_out_dict["debugOut"]
         self.pcd_name = pcd_name
         
         self.sideViewOut = folder_out_dict["sideViewOut"]
         self.pcdOut = folder_out_dict["pcdOut"]
         self.diamOut = folder_out_dict["diamOut"]
-        self.debugOut = folder_out_dict["debugOut"]
         
         self.min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         side_view_model_pth = yml_data["yolov5"]["sideView"]["model_pth"]
