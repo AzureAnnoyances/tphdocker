@@ -274,7 +274,9 @@ class TreeGen():
                 write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
                 write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
                 o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
-                
+                if debug:
+                    write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
+                    write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
                 
         print("\n\n\n",total_detected, total_side_detected, total_side_less_detected,total_h_detected)
         
