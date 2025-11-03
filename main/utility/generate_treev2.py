@@ -99,6 +99,11 @@ class TreeGen():
             write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_crown_img"])
             write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_trunk_img"])   
     
+    def save_debug_data(self, i, CrownNTrunkDict):
+        if self.debug:
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_crown_img"])
+            write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_trunk_img"]) 
+            
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()
         total_detected = len(coords)
