@@ -201,27 +201,25 @@ class TreeGen():
     def __init__(self, yml_data, sideViewOut, pcd_name, debug):
         self.debug = debug
         self.pcd_name = pcd_name
-        self.min_points_per_tree = 1500
         self.sideViewOut = sideViewOut
         
+        self.min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         side_view_model_pth = yml_data["yolov5"]["sideView"]["model_pth"]
         self.side_view_step_size = yml_data["yolov5"]["sideView"]["stepsize"]
         self.side_view_img_size = tuple(yml_data["yolov5"]["sideView"]["imgSize"])
         self.ex_w, self.ex_h = (dim*self.side_view_step_size for dim in self.side_view_img_size)
         self.ex_w=self.ex_w-1
-        min_points_per_tree = yml_data["yolov5"]["sideView"]["minNoPoints"]
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
-        y_arr_pcd, y_increment = h_lin_pcd
-        x_arr_pcd, x_increment = w_lin_pcd
-        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
+        precise_xy_coords = []
         total_detected = len(coords)
         total_side_detected = 0
         total_h_detected = 0
+        
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
             detectedSideView, SideViewDict = self.process_sideView(
@@ -230,6 +228,11 @@ class TreeGen():
                             index=index
                             )
             if detectedSideView:
+                if len(precise_xy_coords) == 0:
+                    precise_xy_coords.append(SideViewDict["xy_ffb"])
+                else:
+                    print(SideViewDict["xy_ffb"])
+                    precise_xy_coords.append(SideViewDict["xy_ffb"])
                 total_side_detected+=1
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
