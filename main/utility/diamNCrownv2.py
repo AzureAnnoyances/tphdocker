@@ -47,7 +47,7 @@ class SingleTreeSegmentation():
         3. Generate image from trunk and crown
         """
         debug_crown_pcd, debug_trunk_pcd, \
-            raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion, debug=debug)
+            raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
         
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol)
