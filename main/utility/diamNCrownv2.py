@@ -131,8 +131,7 @@ class SingleTreeSegmentation():
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
         
         # --- Remove Ground from Trunk and Crown ---
-        trunk_tol = 5
-        trunk_z_tol = np.clip((z_ffb-z_grd)/5 , a_min=1.0, a_max=3.0)
+        trunk_z_tol = np.clip((z_ffb-z_grd)/6 , a_min=0.1, a_max=3.0)
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(min_bound[0], min_bound[1], z_grd+trunk_z_tol), 
             max_bound=(max_bound[0], max_bound[1], z_ffb))
