@@ -5,7 +5,7 @@ dataset:
     file_type       : .pcd
 
 output:
-  debug : True
+  debug : False
   folder_location : /output
   topView:
     folder_location : topView
@@ -31,3 +31,7 @@ yolov5:
 yolov7:
   model_pth : "model_weights/crown_TrunkColor.pt"
   imgShape : [480,480]
+
+save_checks:
+  min_tree_pts : 420
+  min_distance : 0.5

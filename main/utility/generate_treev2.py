@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import open3d as o3d
+import pandas as pd
 from tqdm import tqdm
 import math
 import statistics
@@ -16,9 +17,9 @@ from scipy.cluster.vq import kmeans2, kmeans
 from .csf_py import csf_py
 from .o3d_extras import save_pointcloud
 from typing import Optional
-import cloudComPy as cc
-import cloudComPy.RANSAC_SD  
-cc.initCC()
+# import cloudComPy as cc
+# import cloudComPy.RANSAC_SD  
+# cc.initCC()
 
 
 """
@@ -216,11 +217,13 @@ class TreeGen():
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape)
-
+        
         
         self.precise_xy_coords: Optional[np.ndarray] = None
-        self.dist_minimum = 0.5
+        self.min_distance = float(yml_data["save_checks"]["min_distance"])
+        self.min_tree_points = int(yml_data["save_checks"]["min_tree_pts"])
         
+        self.df_list = []
     def xy_is_duplicate(self, new_xy:list):
         """
         Args:
@@ -234,13 +237,28 @@ class TreeGen():
             return False
         else:
             dist_array = np.linalg.norm(self.precise_xy_coords-new_xy, axis=1)
-            if np.any(dist_array < self.dist_minimum):
+            if np.any(dist_array < self.min_distance):
                 return True
             else:
                 self.precise_xy_coords = np.vstack((self.precise_xy_coords, new_xy))
                 return False
     
-    def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
+    def append_dataframe(self, SideViewDict, CrownNTrunkDict):
+        if self.precise_xy_coords is not None:
+            i = len(self.precise_xy_coords)
+            xy = SideViewDict["xy_ffb"]
+            h = SideViewDict["h"]
+            crown_ok = CrownNTrunkDict["crown_ok"]
+            trunk_diam = CrownNTrunkDict["DBH"]
+            self.df_list.append((i,xy[0],xy[1],h, crown_ok, trunk_diam))
+        else:
+            raise Exception("precise_xy_coords is None! Can't append_dataframe")
+    def create_pd_dataframe(self):
+        df = pd.DataFrame(self.df_list, columns=["i","x","y","h","crown_ok","trunk_diam"])
+        return df
+        
+        
+    def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()
         total_detected = len(coords)
         total_side_detected = 0
@@ -261,20 +279,28 @@ class TreeGen():
                 )
 
                 if trunk_detected:
+                    if len(segmented_tree.points) < self.min_tree_points:
+                        del segmented_tree
+                        continue
                     # Check if new Coord is near another coord
                     if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
+                        del segmented_tree
                         continue
                     total_side_less_detected+=1
-                    total_h_detected = total_h_detected+1 if (CrownNTrunkDict["trunk_ok"] and CrownNTrunkDict["crown_ok"]) else total_h_detected
-                    write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
-                    write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
-                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",segmented_tree, format="ply")
-                    del segmented_tree
+                    total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
+                    
+                    self.append_dataframe(SideViewDict,CrownNTrunkDict)
+                    
+                    write_img(f"{self.sideViewOut}/{total_trees_detected}_height.jpg", SideViewDict["sideViewImg"])
+                    write_img(f"{self.sideViewOut}/{total_trees_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
+                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_trees_detected}_pcd.ply",segmented_tree, format="ply")
                     if debug:
                         write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
                         write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
-                
-        print("\n\n\n",total_detected, total_side_detected, total_side_less_detected,total_h_detected)
+                del segmented_tree
+        print("\n\n\n",total_detected, total_side_detected, total_side_less_detected, total_trees_detected)
+        return self.create_pd_dataframe() 
+        
         
     def process_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
@@ -350,34 +376,8 @@ class TreeGen():
         rtn_dict["trunk_ok"]        = stats["trunk_ok"]
         rtn_dict["crown_ok"]        = stats["crown_ok"]
         if trunk_detected:
-            rtn_dict["DBH"]             = stats["DBH"]
-            rtn_dict["trunk_img"]       = draw_diam_from_stats(stats)
+            rtn_dict["DBH"]         = stats["DBH"]
+            rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
         rtn_dict["debug_trunk_img"] = stats["trunk_img"]
         rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
         return trunk_detected, rtn_dict, segmented_tree
-        if tree_detected is True:
-            rtn_dict["DBH"] = stats["DBH"]
-            rtn_dict["trunkImg"] = draw_diam_from_stats(stats)
-            rtn_dict["segmented_tree"] = segmented_tree
-            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
-            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
-            rtn_dict["debug_crown_pcd"] = stats["debug_crown_pcd"]
-            rtn_dict["debug_trunk_pcd"] = stats["debug_trunk_pcd"]
-            return True, rtn_dict
-        else:
-            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
-            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
-            rtn_dict["debug_crown_pcd"] = stats["debug_crown_pcd"]
-            rtn_dict["debug_trunk_pcd"] = stats["debug_trunk_pcd"]
-            return False, rtn_dict
-            # stats["trunk_vol"] = np.pi*((stats["DBH"]/2)**2)*stats["h"]
-            # img_vol, img_diam = draw_vol_n_diam_from_stats(stats)
-            img_diam = draw_diam_from_stats(stats)
-            cv2.imwrite(f"{self.sideViewOut}/{index}_height.jpg", imgz.astype(np.uint8))
-            cv2.imwrite(f"{self.sideViewOut}/{index}_diam.jpg", img_diam)
-            o3d.io.write_point_cloud(f"{self.sideViewOut}/{index}_pcd.ply",segmented_tree, format="ply")
-            # cv2.imwrite(f"{self.sideViewOut}/{index}_vol.jpg", img_vol)
-            # cv2.imwrite(f"{self.sideViewOut}/{index}_trunk.png", cv2.cvtColor(trunk_img, cv2.COLOR_BGR2RGB))
-            # cv2.imwrite(f"{self.sideViewOut}/{index}_crown.png", cv2.cvtColor(crown_img, cv2.COLOR_BGR2RGB))
-            # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_crown_mesh.obj",stats["crown_mesh"])
-            # o3d.io.write_triangle_mesh(f"{self.sideViewOut}/{index}_trunk_mesh.obj",stats["stem_mesh"])
