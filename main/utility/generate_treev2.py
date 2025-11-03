@@ -257,7 +257,16 @@ class TreeGen():
         df = pd.DataFrame(self.df_list, columns=["i","x","y","h","crown_ok","trunk_diam"])
         return df
         
+    def save_data_to_directory(self, i, sideViewImg, trunk_img, segmented_tree, CrownNTrunkDict):
+        write_img(f"{self.sideViewOut}/{i}_height.jpg", sideViewImg)
+        write_img(f"{self.sideViewOut}/{i}_diam.jpg", trunk_img)
         
+        crown_str = "" if bool(CrownNTrunkDict["crown_ok"]) else "crown_not_ok"
+        o3d.io.write_point_cloud(f"{self.sideViewOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", print_progress=False)
+        if self.debug:
+            write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{i}.jpg", CrownNTrunkDict["debug_crown_img"])
+            write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{i}.jpg", CrownNTrunkDict["debug_trunk_img"])   
+    
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()
         total_detected = len(coords)
@@ -290,13 +299,12 @@ class TreeGen():
                     total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
                     
                     self.append_dataframe(SideViewDict,CrownNTrunkDict)
-                    
-                    write_img(f"{self.sideViewOut}/{total_trees_detected}_height.jpg", SideViewDict["sideViewImg"])
-                    write_img(f"{self.sideViewOut}/{total_trees_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
-                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_trees_detected}_pcd.ply",segmented_tree, format="ply")
-                    if debug:
-                        write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
-                        write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
+                    self.save_data_to_directory(
+                        len(self.df_list), 
+                        SideViewDict["sideViewImg"], 
+                        CrownNTrunkDict["trunk_img"], 
+                        segmented_tree, 
+                        CrownNTrunkDict)
                 del segmented_tree
         print("\n\n\n",total_detected, total_side_detected, total_side_less_detected, total_trees_detected)
         return self.create_pd_dataframe() 
