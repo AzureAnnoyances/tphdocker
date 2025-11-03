@@ -67,6 +67,7 @@ class SingleTreeSegmentation():
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
         stats["debug_crown_img"] = raster_crown_img
+        stats["debug_trunk_img"] = raster_trunk_img
         return trunk_detected, stats, single_tree_pcd
         
     def one_ch_to_3ch(self, single_channel):
@@ -135,7 +136,9 @@ class SingleTreeSegmentation():
             min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), 
             max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
         z_tol = (z_ffb-z_grd)/2
-        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), max_bound=max_bound)
+        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
+            min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
+            max_bound=max_bound)
         trunk = pcd.crop(bbox_trunk)
         crown = pcd.crop(bbox_crown)
 
