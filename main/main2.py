@@ -69,6 +69,8 @@ def main(path_directory, pcd_name, input_file_type):
     output_folder = folder_loc + pcd_name +"/"
     topViewOut = output_folder + yml_data["output"]["topView"]["folder_location"]
     sideViewOut = output_folder + yml_data["output"]["sideView"]["folder_location"]
+    pointCloudOut = output_folder + yml_data["output"]["pcd"]["folder_location"]
+    diamOut = output_folder + yml_data["output"]["diam"]["folder_location"]
     csvOut = output_folder + pcd_name +".csv"
     
     accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]

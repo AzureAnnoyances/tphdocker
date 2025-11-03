@@ -11,6 +11,10 @@ output:
     folder_location : topView
   sideView:
     folder_location : sideView
+  pcd:
+    folder_location : pointcloud
+  diam:
+    folder_location : diam
 
 yolov5:
   yolov5_pth: "yolov5"

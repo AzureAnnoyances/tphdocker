@@ -39,6 +39,7 @@ class SingleTreeSegmentation():
         self.undetected_trunk_mask = self.create_mask_circle(W,H,radius=20)
         self.undetected_crown_mask = self.create_mask_circle(W,H,radius= int(W/1.6/2))
         self.curr_params = []
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
         """
@@ -141,7 +142,7 @@ class SingleTreeSegmentation():
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # Trunk
         _, raster_trunk_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk.points)).to(device), 
+            pointcloud = torch.tensor(np.array(trunk.points)).to(self.device), 
             img_shape  = self.tree_img_shape,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
@@ -152,7 +153,7 @@ class SingleTreeSegmentation():
 
         # Crown
         _, raster_crown_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(crown.points)).to(device), 
+            pointcloud = torch.tensor(np.array(crown.points)).to(self.device), 
             img_shape  = self.tree_img_shape,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]),
@@ -176,7 +177,7 @@ class SingleTreeSegmentation():
         
         # I'm doing it twice... Why?
         filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
-            pointcloud = np.array(trunk.points), 
+            pointcloud = torch.tensor(np.array(trunk.points)).to(self.device), 
             mask_2d  = mask_trunk,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
@@ -186,7 +187,7 @@ class SingleTreeSegmentation():
         )
         
         filtered_crown_pcd, raster_image, crown_img = rasterize_3dto2D(
-            pointcloud = np.array(crown.points), 
+            pointcloud = torch.tensor(np.array(crown.points)).to(self.device), 
             mask_2d  = mask_crown,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]),

@@ -262,7 +262,7 @@ class TreeGen():
         write_img(f"{self.sideViewOut}/{i}_diam.jpg", trunk_img)
         
         crown_str = "" if bool(CrownNTrunkDict["crown_ok"]) else "crown_not_ok"
-        o3d.io.write_point_cloud(f"{self.sideViewOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", print_progress=False)
+        o3d.io.write_point_cloud(f"{self.sideViewOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", write_ascii=False, print_progress=False)
         if self.debug:
             write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{i}.jpg", CrownNTrunkDict["debug_crown_img"])
             write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{i}.jpg", CrownNTrunkDict["debug_trunk_img"])   
@@ -295,6 +295,7 @@ class TreeGen():
                     if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
                         del segmented_tree
                         continue
+                    print(f"segmented_tree_points : [{len(segmented_tree.points)}]")
                     total_side_less_detected+=1
                     total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
                     
