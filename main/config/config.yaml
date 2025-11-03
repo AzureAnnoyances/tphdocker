@@ -35,5 +35,5 @@ yolov7:
   imgShape : [480,480]
 
 save_checks:
-  min_tree_pts : 420
+  min_tree_pts : 1500
   min_distance : 0.5
