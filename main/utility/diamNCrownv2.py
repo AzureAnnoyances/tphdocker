@@ -59,8 +59,9 @@ class SingleTreeSegmentation():
         
         stats = {}
         # crown_stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
-        stem_stats = stem_analysis(stem_cloud=trunk_pcd)
-        stats.update(stem_stats)
+        if trunk_detected:
+            stem_stats = stem_analysis(stem_cloud=trunk_pcd)
+            stats.update(stem_stats)
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
