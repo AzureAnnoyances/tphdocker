@@ -36,7 +36,7 @@ class SingleTreeSegmentation():
         self.model = Infer_seg(weights=weight_src)
         self.tree_img_shape = tree_img_shape
         W,H = self.tree_img_shape
-        self.undetected_trunk_mask = self.create_mask_circle(W,H,radius=20)
+        self.undetected_trunk_mask = self.create_mask_circle(W,H,radius=int(W/18))
         self.undetected_crown_mask = self.create_mask_circle(W,H,radius= int(W/1.6/2))
         self.curr_params = []
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
