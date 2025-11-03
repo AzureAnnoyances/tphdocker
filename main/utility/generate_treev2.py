@@ -15,6 +15,7 @@ import statistics
 from scipy.cluster.vq import kmeans2, kmeans
 from .csf_py import csf_py
 from .o3d_extras import save_pointcloud
+from typing import Optional
 import cloudComPy as cc
 import cloudComPy.RANSAC_SD  
 cc.initCC()
@@ -215,10 +216,12 @@ class TreeGen():
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
-        precise_xy_coords = []
+        precise_xy_coords: Optional[np.ndarray] = None
         total_detected = len(coords)
         total_side_detected = 0
+        total_side_less_detected = 0
         total_h_detected = 0
+        dist_minimum = 0.5
         
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
@@ -228,12 +231,21 @@ class TreeGen():
                             index=index
                             )
             if detectedSideView:
-                if len(precise_xy_coords) == 0:
-                    precise_xy_coords.append(SideViewDict["xy_ffb"])
-                else:
-                    print(SideViewDict["xy_ffb"])
-                    precise_xy_coords.append(SideViewDict["xy_ffb"])
                 total_side_detected+=1
+                # Check if new Coord is near another coord
+                if precise_xy_coords is None:
+                    precise_xy_coords = np.array([SideViewDict["xy_ffb"]])
+                else:
+                    new_pt = SideViewDict["xy_ffb"]
+                    dist_array = np.linalg.norm(precise_xy_coords-new_pt, axis=1)
+                    if np.any(dist_array < dist_minimum):
+                        # Don't start the loop
+                        continue
+                    else:
+                        precise_xy_coords = np.vstack((precise_xy_coords, new_pt))
+                        
+                        
+                total_side_less_detected+=1
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
@@ -249,7 +261,7 @@ class TreeGen():
                     o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 
-        print("\n\n\n",total_detected, total_side_detected, total_h_detected)
+        print("\n\n\n",total_detected, total_side_detected, total_side_less_detected,total_h_detected)
         
     def process_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
