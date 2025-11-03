@@ -256,29 +256,23 @@ class TreeGen():
                             )
             if detectedSideView:
                 total_side_detected+=1
-                # Check if new Coord is near another coord
-                if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
-                    continue
-                         
-                total_side_less_detected+=1
-                CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
+                trunk_detected, CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
-            
-                # if debug:
-                #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
-                #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
-                    # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
-                    # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
-                # if detectedCrownNTrunk:
-                total_h_detected = total_h_detected+1 if (CrownNTrunkDict["trunk_ok"] and CrownNTrunkDict["crown_ok"]) else total_h_detected
-                write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
-                write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
-                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",segmented_tree, format="ply")
-                del segmented_tree
-                if debug:
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
+
+                if trunk_detected:
+                    # Check if new Coord is near another coord
+                    if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
+                        continue
+                    total_side_less_detected+=1
+                    total_h_detected = total_h_detected+1 if (CrownNTrunkDict["trunk_ok"] and CrownNTrunkDict["crown_ok"]) else total_h_detected
+                    write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
+                    write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
+                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",segmented_tree, format="ply")
+                    del segmented_tree
+                    if debug:
+                        write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
+                        write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
                 
         print("\n\n\n",total_detected, total_side_detected, total_side_less_detected,total_h_detected)
         
@@ -341,7 +335,7 @@ class TreeGen():
     def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd, debug=False):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-        stats, segmented_tree = self.single_tree_seg.segment_tree(
+        trunk_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
                 pcd = multi_tree, 
                 z_ffb=z_ffb, 
                 z_grd=z_grd,
@@ -352,13 +346,15 @@ class TreeGen():
                 )
         
         rtn_dict = {}
+        
         rtn_dict["trunk_ok"]        = stats["trunk_ok"]
         rtn_dict["crown_ok"]        = stats["crown_ok"]
-        rtn_dict["DBH"]             = stats["DBH"]
-        rtn_dict["trunk_img"]       = draw_diam_from_stats(stats)
+        if trunk_detected:
+            rtn_dict["DBH"]             = stats["DBH"]
+            rtn_dict["trunk_img"]       = draw_diam_from_stats(stats)
         rtn_dict["debug_trunk_img"] = stats["trunk_img"]
         rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
-        return rtn_dict, segmented_tree
+        return trunk_detected, rtn_dict, segmented_tree
         if tree_detected is True:
             rtn_dict["DBH"] = stats["DBH"]
             rtn_dict["trunkImg"] = draw_diam_from_stats(stats)

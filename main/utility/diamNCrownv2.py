@@ -66,7 +66,7 @@ class SingleTreeSegmentation():
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
         stats["debug_crown_img"] = raster_crown_img
-        return stats, single_tree_pcd
+        return trunk_detected, stats, single_tree_pcd
         
     def one_ch_to_3ch(self, single_channel):
         three_channel = np.stack([single_channel] * 3, axis=-1)
