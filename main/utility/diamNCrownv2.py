@@ -48,7 +48,7 @@ class SingleTreeSegmentation():
         """
         debug_crown_pcd, debug_trunk_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        
+        del debug_crown_pcd, debug_trunk_pcd
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol)
         
@@ -132,9 +132,6 @@ class SingleTreeSegmentation():
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), 
             max_bound=(center_coord[0]+trunk_tol, -center_coord[1]+trunk_tol, z_ffb))
-        # bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
-        #     min_bound=(min_bound[0], min_bound[1], z_grd+z_tol), 
-        #     max_bound=(max_bound))
         z_tol = (z_ffb-z_grd)/2
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), max_bound=max_bound)
         trunk = pcd.crop(bbox_trunk)
@@ -231,13 +228,3 @@ class SingleTreeSegmentation():
         #     return img, depth, mask, cam.intrinsic.intrinsic_matrix, cam.extrinsic
         # vis.destroy_window()
         return cv2.cvtColor(img.astype(np.uint8),cv2.COLOR_BGR2RGB)*255
-# def o3dpcd2img(pcd, width, height, return_camera=False):
-#         vis = o3d.visualization.Visualizer()
-#         vis.create_window(width=width, height=height, visible=False)
-#         vis.get_render_option().point_size = 2
-#         vis.add_geometry(pcd)
-#         view_ctl = vis.get_view_control()
-#         view_ctl.set_zoom(0.5)
-#         view_ctl.set_lookat(pcd.get_center())
-#         view_ctl.set_front((1, 0, 0))
-#         view_ctl.set_up([0,0,1])

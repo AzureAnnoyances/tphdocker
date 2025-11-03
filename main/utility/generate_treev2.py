@@ -261,9 +261,10 @@ class TreeGen():
                     continue
                          
                 total_side_less_detected+=1
-                CrownNTrunkDict = self.process_trunk_n_crown(
+                CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
+            
                 # if debug:
                 #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
                 #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
@@ -273,7 +274,8 @@ class TreeGen():
                 total_h_detected = total_h_detected+1 if (CrownNTrunkDict["trunk_ok"] and CrownNTrunkDict["crown_ok"]) else total_h_detected
                 write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
                 write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
-                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
+                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",segmented_tree, format="ply")
+                del segmented_tree
                 if debug:
                     write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_crown{index}.jpg", CrownNTrunkDict["debug_crown_img"])
                     write_img(f"{self.sideViewOut}/{self.pcd_name}_debug_trunk{index}.jpg", CrownNTrunkDict["debug_trunk_img"])
@@ -356,8 +358,7 @@ class TreeGen():
         rtn_dict["trunk_img"]       = draw_diam_from_stats(stats)
         rtn_dict["debug_trunk_img"] = stats["trunk_img"]
         rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
-        rtn_dict["segmented_tree"]  = segmented_tree
-        return rtn_dict
+        return rtn_dict, segmented_tree
         if tree_detected is True:
             rtn_dict["DBH"] = stats["DBH"]
             rtn_dict["trunkImg"] = draw_diam_from_stats(stats)
