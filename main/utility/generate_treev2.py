@@ -208,12 +208,14 @@ class TreeGen():
         side_view_model_pth = yml_data["yolov5"]["sideView"]["model_pth"]
         self.side_view_step_size = yml_data["yolov5"]["sideView"]["stepsize"]
         self.side_view_img_size = tuple(yml_data["yolov5"]["sideView"]["imgSize"])
+        self.top_view_img_shape = tuple(yml_data["yolov7"]["imgShape"])
         self.ex_w, self.ex_h = (dim*self.side_view_step_size for dim in self.side_view_img_size)
         self.ex_w=self.ex_w-1
+        
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
-        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
+        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape)
 
         
         self.precise_xy_coords: Optional[np.ndarray] = None
@@ -237,6 +239,7 @@ class TreeGen():
             else:
                 self.precise_xy_coords = np.vstack((self.precise_xy_coords, new_xy))
                 return False
+    
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
         precise_xy_coords: Optional[np.ndarray] = None
         total_detected = len(coords)
@@ -258,19 +261,19 @@ class TreeGen():
                     continue
                          
                 total_side_less_detected+=1
-                detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
+                CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
-                if debug:
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
-                    write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
+                # if debug:
+                #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_trunk.jpg", CrownNTrunkDict["debug_trunk_img"])
+                #     write_img(f"{self.sideViewOut}/{self.pcd_name}_{index}_debug_crown.jpg", CrownNTrunkDict["debug_crown_img"])
                     # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_trunk.ply",CrownNTrunkDict["debug_trunk_pcd"], format="ply")
                     # o3d.io.write_point_cloud(f"{self.sideViewOut}/{self.pcd_name}_{index}__debug_pcd_crown.ply",CrownNTrunkDict["debug_crown_pcd"], format="ply")
-                if detectedCrownNTrunk:
-                    total_h_detected +=1
-                    write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
-                    write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunkImg"])
-                    o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
+                # if detectedCrownNTrunk:
+                total_h_detected = total_h_detected+1 if (CrownNTrunkDict["trunk_ok"] and CrownNTrunkDict["crown_ok"]) else total_h_detected
+                write_img(f"{self.sideViewOut}/{total_h_detected}_height.jpg", SideViewDict["sideViewImg"])
+                write_img(f"{self.sideViewOut}/{total_h_detected}_diam.jpg", CrownNTrunkDict["trunk_img"])
+                o3d.io.write_point_cloud(f"{self.sideViewOut}/{total_h_detected}_pcd.ply",CrownNTrunkDict["segmented_tree"], format="ply")
                 
                 
         print("\n\n\n",total_detected, total_side_detected, total_side_less_detected,total_h_detected)
@@ -334,7 +337,7 @@ class TreeGen():
     def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd, debug=False):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-        tree_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
+        stats, segmented_tree = self.single_tree_seg.segment_tree(
                 pcd = multi_tree, 
                 z_ffb=z_ffb, 
                 z_grd=z_grd,
@@ -345,6 +348,14 @@ class TreeGen():
                 )
         
         rtn_dict = {}
+        rtn_dict["trunk_ok"]        = stats["trunk_ok"]
+        rtn_dict["crown_ok"]        = stats["crown_ok"]
+        rtn_dict["DBH"]             = stats["DBH"]
+        rtn_dict["trunk_img"]       = draw_diam_from_stats(stats)
+        rtn_dict["debug_trunk_img"] = stats["trunk_img"]
+        rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
+        rtn_dict["segmented_tree"]  = segmented_tree
+        return rtn_dict
         if tree_detected is True:
             rtn_dict["DBH"] = stats["DBH"]
             rtn_dict["trunkImg"] = draw_diam_from_stats(stats)

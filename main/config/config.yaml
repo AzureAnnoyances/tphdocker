@@ -30,3 +30,4 @@ yolov5:
 
 yolov7:
   model_pth : "model_weights/crown_TrunkColor.pt"
+  imgShape : [480,480]
