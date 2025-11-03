@@ -5,7 +5,7 @@ dataset:
     file_type       : .pcd
 
 output:
-  debug : False
+  debug : True
   folder_location : 
     root    : '/output'
     topView : 'topView'
