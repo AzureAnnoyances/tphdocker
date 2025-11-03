@@ -123,6 +123,7 @@ class TreeGen():
                 trunk_detected, CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
                 )
+                self.save_debug_data(index, CrownNTrunkDict)
 
                 if trunk_detected:
                     if len(segmented_tree.points) < self.min_tree_points:
