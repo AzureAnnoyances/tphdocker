@@ -241,7 +241,7 @@ class TreeGen():
                 return False
     
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
-        precise_xy_coords: Optional[np.ndarray] = None
+        import faulthandler; faulthandler.enable()
         total_detected = len(coords)
         total_side_detected = 0
         total_side_less_detected = 0
