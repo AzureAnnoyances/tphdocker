@@ -214,14 +214,35 @@ class TreeGen():
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
         self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth)
-    
+
+        
+        self.precise_xy_coords: Optional[np.ndarray] = None
+        self.dist_minimum = 0.5
+        
+    def xy_is_duplicate(self, new_xy:list):
+        """
+        Args:
+            new_xy (_list_): [x,y]
+
+        Returns:
+            _bool_ : returns True if xy is a duplicate, else False
+        """
+        if self.precise_xy_coords is None:
+            self.precise_xy_coords = np.array([new_xy]) # Init
+            return False
+        else:
+            dist_array = np.linalg.norm(self.precise_xy_coords-new_xy, axis=1)
+            if np.any(dist_array < self.dist_minimum):
+                return True
+            else:
+                self.precise_xy_coords = np.vstack((self.precise_xy_coords, new_xy))
+                return False
     def process_each_coord(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd, debug):
         precise_xy_coords: Optional[np.ndarray] = None
         total_detected = len(coords)
         total_side_detected = 0
         total_side_less_detected = 0
         total_h_detected = 0
-        dist_minimum = 0.5
         
         coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
         for index, coord in enumerate(coord_loop):
@@ -233,18 +254,9 @@ class TreeGen():
             if detectedSideView:
                 total_side_detected+=1
                 # Check if new Coord is near another coord
-                if precise_xy_coords is None:
-                    precise_xy_coords = np.array([SideViewDict["xy_ffb"]])
-                else:
-                    new_pt = SideViewDict["xy_ffb"]
-                    dist_array = np.linalg.norm(precise_xy_coords-new_pt, axis=1)
-                    if np.any(dist_array < dist_minimum):
-                        # Don't start the loop
-                        continue
-                    else:
-                        precise_xy_coords = np.vstack((precise_xy_coords, new_pt))
-                        
-                        
+                if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
+                    continue
+                         
                 total_side_less_detected+=1
                 detectedCrownNTrunk, CrownNTrunkDict = self.process_trunk_n_crown(
                     pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
