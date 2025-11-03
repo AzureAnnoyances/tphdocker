@@ -66,8 +66,9 @@ class SingleTreeSegmentation():
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
-        stats["debug_crown_img"] = raster_crown_img
-        stats["debug_trunk_img"] = raster_trunk_img
+        if debug:
+            stats["debug_crown_img"] = raster_crown_img
+            stats["debug_trunk_img"] = raster_trunk_img
         return trunk_detected, stats, single_tree_pcd
         
     def one_ch_to_3ch(self, single_channel):
@@ -130,7 +131,8 @@ class SingleTreeSegmentation():
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
         
         # --- Remove Ground from Trunk and Crown ---
-        z_tol = (z_ffb-z_grd)/5 
+        z_tol = np.clip((z_ffb-z_grd)/5 , a_min=1.0, a_max=3.0)
+        
         trunk_tol = 3.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(center_coord[0]-trunk_tol, -center_coord[1]-trunk_tol, z_grd+z_tol), 
