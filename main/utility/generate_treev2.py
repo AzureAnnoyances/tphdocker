@@ -47,7 +47,7 @@ class TreeGen():
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
-        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape)
+        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape, self.debug)
         
         
         self.precise_xy_coords: Optional[np.ndarray] = None
