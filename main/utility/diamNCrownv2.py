@@ -61,6 +61,7 @@ class SingleTreeSegmentation():
         stats = {}
         # crown_stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
         if trunk_detected:
+            print("x2 this should get before stem")
             stem_stats = stem_analysis(stem_cloud=trunk_pcd)
             stats.update(stem_stats)
             print("x2 this should get triggered")
