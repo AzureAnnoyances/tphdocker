@@ -152,6 +152,9 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=True,
                 depth_weighting=True
             )
+        print(non_ground_img2.shape)
+        print(type(non_ground_img2))
+        print(non_ground_img2.dtype)
         cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
         _, non_ground_img2, _  = rasterize_3dto2D(
                 pointcloud = np.array(non_grd.points),

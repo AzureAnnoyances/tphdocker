@@ -25,6 +25,7 @@ docker run -it \
 $docker_name /bin/bash
 ```
 ```bash
+cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-submodules && 
 cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ Tangkak_1 .laz
 ```
 
