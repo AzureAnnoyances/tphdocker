@@ -15,7 +15,7 @@ from segment.predict2 import Infer_seg
 from .analysis import stem_analysis
 
 # Fix split tree to rasters
-# Fix split tree to crown
+# Fix split tree to crown_pcd
 def display_inlier_outlier(cloud):
     size = 0.1
     cloud = cloud.voxel_down_sample(voxel_size=size)
@@ -44,8 +44,8 @@ class SingleTreeSegmentation():
     def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
         """
         1. Split to rasters
-        2. Object Det Each raster to find mask of Crown and Trunk
-        3. Generate image from trunk and crown
+        2. Object Det Each raster to find mask of crown_pcd and trunk_pcd
+        3. Generate image from trunk_pcd and crown_pcd
         """
         trunk_pcd_temp, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
@@ -57,7 +57,6 @@ class SingleTreeSegmentation():
 
         trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
                 pcd, 
-                pcd_crown = crown_pcd,
                 mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
         single_tree_pcd = trunk_pcd+crown_pcd
         
@@ -80,7 +79,7 @@ class SingleTreeSegmentation():
     
     def get_pred_trunk(self, raster_trunk_img, center_tol=100, cls_idx = 1):
         # Indexes
-        # Trunk = 1
+        # trunk_pcd = 1
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img, conf_thres=0.20, iou_thres=0.45)
         if n_det > 0:
             im_mask_trunk, n_valid_trunks, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=cls_idx, center_tol=center_tol)
@@ -93,8 +92,8 @@ class SingleTreeSegmentation():
     
     def get_pred_crown(self, raster_crown_img, center_tol=100, cls_idx=0):
         # Indexes
-        # Crown = 0
-        det_bbox, proto, n_det = self.model.forward(raster_crown_img, conf_thres=0.20, iou_thres=0.45)
+        # crown_pcd = 0
+        det_bbox, proto, n_det = self.model.forward(raster_crown_img, conf_thres=0.25, iou_thres=0.45)
         if n_det > 0:
             im_mask_crown, n_valid_crowns, uv_center_crown = self.model.im_mask_from_center_region(det_bbox, proto, cls=cls_idx, center_tol=center_tol)
             if n_valid_crowns >0:
@@ -128,12 +127,12 @@ class SingleTreeSegmentation():
         center_coord: Tuple of (c_x, c_y, c_z) bounds.
         expansion: Tuple of (x, y) expansion.
         """ 
-        # Get bbox of Trunk by bbox trunk tolerance
-        # Get bbox of Crown with the whole damn thing
+        # Get bbox of trunk_pcd by bbox trunk_pcd tolerance
+        # Get bbox of crown_pcd with the whole damn thing
         self.curr_params = [z_ffb, z_grd, center_coord, expansion]
         min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
         
-        # --- Remove Ground from Trunk and Crown ---
+        # --- Remove Ground from trunk_pcd and crown_pcd ---
         trunk_z_tol = np.clip((z_ffb-z_grd)/5 , a_min=0.1, a_max=3.0)
         trunk_xy_tol = 1.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
@@ -143,35 +142,35 @@ class SingleTreeSegmentation():
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(min_bound[0], min_bound[1], z_ffb-crown_z_tol), 
             max_bound=max_bound)
-        trunk = pcd.crop(bbox_trunk)
-        crown = pcd.crop(bbox_crown)
+        trunk_pcd = pcd.crop(bbox_trunk)
+        crown_pcd = pcd.crop(bbox_crown)
 
-        # Trunk
+        # trunk_pcd
         _, raster_trunk_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk.points)).to(self.device), 
+            pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
             img_shape  = self.tree_img_shape,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk_pcd.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk_pcd.get_max_bound()[2]),
             axis='z',
             highest_first=True,
             depth_weighting=True  
         )
 
-        # Crown
+        # crown_pcd
         _, raster_crown_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(crown.points)).to(self.device), 
+            pointcloud = torch.tensor(np.array(crown_pcd.points)).to(self.device), 
             img_shape  = self.tree_img_shape,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]),
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_pcd.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_pcd.get_max_bound()[2]),
             axis='z', 
             highest_first=True,
             depth_weighting=True  
         )
-        return trunk, crown, raster_trunk_image, raster_crown_image
+        return trunk_pcd, crown_pcd, raster_trunk_image, raster_crown_image
     
-    def split_Tree_to_trunkNCrown(self, pcd, pcd_crown, mask_crown, mask_trunk):
-        # find trunk n crown,
-        # use trunk pcd bbox and remove from crown
+    def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
+        # find trunk_pcd n crown_pcd,
+        # use trunk_pcd pcd bbox and remove from crown_pcd
         
         z_ffb, z_grd, center_coord, expansion = self.curr_params
         z_tol = (z_ffb-z_grd)/2
@@ -182,39 +181,39 @@ class SingleTreeSegmentation():
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
             max_bound=max_bound)
-        trunk = pcd.crop(bbox_trunk)
-        # crown = pcd.crop(bbox_crown)
+        trunk_pcd = pcd.crop(bbox_trunk)
+        crown_pcd = pcd.crop(bbox_crown)
         
         # I'm doing it twice... Why?
-        filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk.points)).to(self.device), 
+        trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
+            pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
             mask_2d  = mask_trunk,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk_pcd.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk_pcd.get_max_bound()[2]),
             axis='z', 
             highest_first=True,
             depth_weighting=True  
         )
         
-        filtered_crown_pcd, raster_image, crown_img = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(pcd_crown.points)).to(self.device), 
+        crown_pcd, raster_image, crown_img = rasterize_3dto2D(
+            pointcloud = torch.tensor(np.array(crown_pcd.points)).to(self.device), 
             mask_2d  = mask_crown,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, pcd_crown.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, pcd_crown.get_max_bound()[2]),
+            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_pcd.get_min_bound()[2]),
+            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_pcd.get_max_bound()[2]),
             axis='z', 
             highest_first=True,
             depth_weighting=True  
         )
-        del trunk, pcd_crown
+
         trunk_pcd = o3d.geometry.PointCloud()
-        trunk_pcd.points = o3d.utility.Vector3dVector(filtered_trunk_pcd)
+        trunk_pcd.points = o3d.utility.Vector3dVector(trunk_pcd)
         trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
         trunk_bbox = trunk_pcd.get_oriented_bounding_box()
         
         crown_pcd = o3d.geometry.PointCloud()
-        crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
+        crown_pcd.points = o3d.utility.Vector3dVector(crown_pcd)
         inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
-        crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
+        crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk_pcd from the crown_pcd
         crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
         
         return trunk_pcd, crown_pcd, trunk_img
