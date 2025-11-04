@@ -47,7 +47,7 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        crown_pcd, trunk_pcd_temp, \
+        trunk_pcd_temp, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
         # TODO:
         del trunk_pcd_temp
@@ -135,9 +135,10 @@ class SingleTreeSegmentation():
         
         # --- Remove Ground from Trunk and Crown ---
         trunk_z_tol = np.clip((z_ffb-z_grd)/5 , a_min=0.1, a_max=3.0)
+        trunk_xy_tol = 1.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
-            min_bound=(min_bound[0], min_bound[1], z_grd+trunk_z_tol), 
-            max_bound=(max_bound[0], max_bound[1], z_ffb-trunk_z_tol))
+            min_bound=(center_coord[0]-trunk_xy_tol, -center_coord[1]-trunk_xy_tol, z_grd+trunk_z_tol), 
+            max_bound=(center_coord[0]+trunk_xy_tol, -center_coord[1]+trunk_xy_tol, z_ffb))
         crown_z_tol = (z_ffb-z_grd)/2
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(min_bound[0], min_bound[1], z_ffb-crown_z_tol), 
