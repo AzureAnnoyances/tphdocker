@@ -51,7 +51,7 @@ class SingleTreeSegmentation():
         trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
-        crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=1)
+        crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=0)
         
 
         trunk_detected, trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
