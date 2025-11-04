@@ -47,10 +47,8 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        trunk_pcd_temp, crown_pcd, \
+        trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        # TODO:
-        del trunk_pcd_temp
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=1)
         
@@ -65,6 +63,7 @@ class SingleTreeSegmentation():
         if trunk_detected:
             stem_stats = stem_analysis(stem_cloud=trunk_pcd)
             stats.update(stem_stats)
+            print("this should get triggered")
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
