@@ -26,6 +26,8 @@ from scipy.spatial import KDTree
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 import laspy
+from azure_helpers.pubsub_manager import PubSubManager
+from azure_helpers.blob_manager import DBManager
 
 def get_args(path_directory, input_file, input_file_type):
     logger.info(f"Inputs:\n   path_directory  : [{path_directory}]\n   input_file_name : [{input_file}]\n   input_file_type : [{input_file_type}]\n")
@@ -49,7 +51,7 @@ def numpy_to_bw_3channel(rgb_array, background_threshold=1):
     
 def main(path_directory, pcd_name, input_file_type):
     get_args(path_directory, pcd_name, input_file_type)
-    
+    pub_obj = DBManager()
     
     #################################################
     ######## 1 File Generation from PCD #############
