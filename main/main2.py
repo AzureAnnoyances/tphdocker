@@ -144,45 +144,6 @@ def main(path_directory, pcd_name, input_file_type):
             depth_weighting=True
         )
     non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
-    if debug:
-        _, non_ground_img2, _  = rasterize_3dto2D(
-                pointcloud = np.array(non_grd.points),
-                stepsize=topViewStepsize,
-                axis="z",
-                highest_first=True,
-                depth_weighting=True
-            )
-        print(non_ground_img2.shape)
-        print(type(non_ground_img2))
-        print(non_ground_img2.dtype)
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
-        _, non_ground_img2, _  = rasterize_3dto2D(
-                pointcloud = np.array(non_grd.points),
-                stepsize=topViewStepsize,
-                axis="z",
-                highest_first=False,
-                depth_weighting=True
-            )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary_lowest.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
-        _, non_ground_img2, _  = rasterize_3dto2D(
-                pointcloud = np.array(non_grd.points),
-                stepsize=topViewStepsize,
-                axis="z",
-                highest_first=True,
-                depth_weighting=False
-            )
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
-        _, non_ground_img2, _  = rasterize_3dto2D(
-                pointcloud = np.array(non_grd.points),
-                stepsize=topViewStepsize,
-                axis="z",
-                highest_first=False,
-                depth_weighting=False
-            )
-        print(non_ground_img2.shape)
-        print(type(non_ground_img2))
-        print(non_ground_img2.dtype)
-        cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
@@ -251,7 +212,7 @@ def main(path_directory, pcd_name, input_file_type):
 
     # 2c Visualization Purpose
     img_with_coord = draw_coord_on_img(non_ground_img_color, np.asarray(coordinates), circle_size=10)
-    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor.png", img_with_coord)
+    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", cv2.cvtColor(img_with_coord, cv2.COLOR_BGR2RGB))
 
     # 3. Scale 2D to 3D
     xmin, ymin, zmin = non_grd.get_min_bound()
