@@ -12,7 +12,7 @@ sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
 sys.path.insert(0, str(yolov7_main_pth))
 from raster_pcd2img import rasterize_3dto2D
 from segment.predict2 import Infer_seg
-from .analysis import stem_crown_analysis, stem_analysis
+from .analysis import stem_analysis
 
 # Fix split tree to rasters
 # Fix split tree to crown

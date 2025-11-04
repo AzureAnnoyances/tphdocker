@@ -196,6 +196,7 @@ def axis_clip(points, axis, lower=-np.inf, upper=np.inf):
     return clip_mask
 
 def crown_to_mesh(crown_cloud, method='alphashape', alpha=.8):
+	# Function currently have error in my docker
 	if method == 'alphashape':
 		try:
 			crown_cloud_sampled = crown_cloud.voxel_down_sample(0.4)
