@@ -202,29 +202,24 @@ class TreeGen():
             return True, rtn_dict
     
     def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd):
-        try:
-            z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
-            multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
-            trunk_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
-                    pcd = multi_tree, 
-                    z_ffb=z_ffb, 
-                    z_grd=z_grd,
-                    center_coord = xy_ffb,
-                    expansion = [15.0, 15.0],
-                    uv_tol=200
-                    )
-            
-            rtn_dict = {}
-            rtn_dict["trunk_ok"]        = stats["trunk_ok"]
-            rtn_dict["crown_ok"]        = stats["crown_ok"]
-            if trunk_detected == True:
-                rtn_dict["DBH"]         = stats["DBH"]
-                rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
-            if self.debug:
-                rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
-                rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
-        except Exception as e:
-            trunk_detected=False
-            rtn_dict = rtn_dict if rtn_dict is not None else {}
-            segmented_tree = None
+        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
+        multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
+        trunk_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
+                pcd = multi_tree, 
+                z_ffb=z_ffb, 
+                z_grd=z_grd,
+                center_coord = xy_ffb,
+                expansion = [15.0, 15.0],
+                uv_tol=200
+                )
+        
+        rtn_dict = {}
+        rtn_dict["trunk_ok"]        = stats["trunk_ok"]
+        rtn_dict["crown_ok"]        = stats["crown_ok"]
+        if trunk_detected == True:
+            rtn_dict["DBH"]         = stats["DBH"]
+            rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
+        if self.debug:
+            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
+            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
         return trunk_detected, rtn_dict, segmented_tree
