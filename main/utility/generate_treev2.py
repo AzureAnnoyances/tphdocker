@@ -215,17 +215,16 @@ class TreeGen():
                     uv_tol=100,
                     debug=self.debug
                     )
-            print()
             
             rtn_dict = {}
-            print("x3 should get triggered")
             rtn_dict["trunk_ok"]        = stats["trunk_ok"]
             rtn_dict["crown_ok"]        = stats["crown_ok"]
-            if trunk_detected:
+            if trunk_detected == True:
                 rtn_dict["DBH"]         = stats["DBH"]
                 rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
-            rtn_dict["debug_trunk_img"] = stats["trunk_img"]
-            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
+            if self.debug:
+                rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
+                rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
         except Exception as e:
             print(e)
         return trunk_detected, rtn_dict, segmented_tree

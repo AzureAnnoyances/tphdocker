@@ -47,30 +47,33 @@ class SingleTreeSegmentation():
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
+        stats = {}
         trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
+        if debug:
+            stats["debug_trunk_img"] = raster_trunk_img
+            stats["debug_crown_img"] = raster_crown_img
+            
+        
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=1)
         
-
+        if not trunk_detected:
+            stats["trunk_ok"] = False
+            return trunk_detected, stats, None
+        
         trunk_detected, trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
                 pcd, 
                 mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
         single_tree_pcd = trunk_pcd+crown_pcd
         
-        stats = {}
         # crown_stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
         if trunk_detected:
-            print("x2 this should get before stem")
             stem_stats = stem_analysis(stem_cloud=trunk_pcd)
             stats.update(stem_stats)
-            print("x2 this should get triggered")
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
-        if debug:
-            stats["debug_crown_img"] = raster_crown_img
-            stats["debug_trunk_img"] = raster_trunk_img
         return trunk_detected, stats, single_tree_pcd
         
     def one_ch_to_3ch(self, single_channel):
@@ -82,16 +85,12 @@ class SingleTreeSegmentation():
         # Trunk = 1
         det_bbox, masks, n_det = self.model.forward(raster_trunk_img, conf_thres=0.20, iou_thres=0.45)
         if n_det > 0:
-            print(f"N_det in trunk : {n_det}")
             im_mask_trunk, n_valid_trunks, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, masks, cls=cls_idx, center_tol=center_tol)
             # im_mask_trunk = self.model.im_mask_from_cls(det_bbox,masks, cls=2)
             if n_valid_trunks >0:
-                print(f" I STILL DETECTED")
                 return True, im_mask_trunk
             else:
-                return False, self.undetected_crown_mask
-            
-            return True, im_mask_trunk
+                return False, self.undetected_trunk_mask
         else:
             return False, self.undetected_trunk_mask
     
@@ -180,7 +179,6 @@ class SingleTreeSegmentation():
             z_ffb, z_grd, center_coord, expansion = self.curr_params
             z_tol = (z_ffb-z_grd)/2
             min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-            print("PCD_points ",len(pcd.points))
             bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_grd), 
                 max_bound=(max_bound[0], max_bound[1], z_ffb))
@@ -188,9 +186,7 @@ class SingleTreeSegmentation():
                 min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
                 max_bound=max_bound)
             trunk_pcd = pcd.crop(bbox_trunk)
-            print(f"trunk_pcd, {len(trunk_pcd.points)}")
             crown_pcd = pcd.crop(bbox_crown)
-            print(f"crop_crown, {len(crown_pcd.points)}")
             # I'm doing it twice... Why?
             filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
                 pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
