@@ -31,7 +31,8 @@ def display_inlier_outlier(cloud):
     
 
 class SingleTreeSegmentation():
-    def __init__(self, weight_src, tree_img_shape):
+    def __init__(self, weight_src, tree_img_shape, debug):
+        self.debug = debug
         # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src, imgz=tree_img_shape)
         self.tree_img_shape = tree_img_shape
