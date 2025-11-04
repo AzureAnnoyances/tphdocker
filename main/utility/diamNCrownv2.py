@@ -84,7 +84,7 @@ class SingleTreeSegmentation():
         if n_det > 0:
             print(f"N_det in trunk : {n_det}")
             # im_mask_trunk, n_valid_trunks, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=cls_idx, center_tol=center_tol)
-            im_mask_trunk = self.model.im_mask_from_cls(self, det_bbox,masks, cls=2)
+            im_mask_trunk = self.model.im_mask_from_cls(det_bbox,masks, cls=2)
             return True, im_mask_trunk
             if n_valid_trunks >0:
                 return True, im_mask_trunk
