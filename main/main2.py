@@ -72,14 +72,14 @@ def main(path_directory, pcd_name, input_file_type):
     pcdOut      = output_folder + yml_data["output"]["folder_location"]["pcd"]
     diamOut     = output_folder + yml_data["output"]["folder_location"]["diam"]
     debugOut    = output_folder + yml_data["output"]["folder_location"]["debug"]
-    
     folder_out_dict = {
         "output_folder" : output_folder,
-        "topViewOut" : topViewOut,
-        "sideViewOut" : sideViewOut,
-        "pcdOut" : pcdOut,
-        "diamOut" : diamOut
+        "topViewOut"    : topViewOut,
+        "sideViewOut"   : sideViewOut,
+        "pcdOut"        : pcdOut,
+        "diamOut"       : diamOut
     }
+    
     if debug:
         folder_out_dict["debugOut"] = debugOut
     for path in folder_out_dict.values():
@@ -119,10 +119,10 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 2: CSF and Rasterize")
     
     # Yaml Params
-    topViewStepsize = yml_data["yolov5"]["topView"]["stepsize"]
-    top_view_model_pth = yml_data["yolov5"]["topView"]["model_pth"]
-    yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
-    ideal_img_size = yml_data["yolov5"]["topView"]["imgSize"]
+    topViewStepsize     = yml_data["yolov5"]["topView"]["stepsize"]
+    top_view_model_pth  = yml_data["yolov5"]["topView"]["model_pth"]
+    yolov5_folder_pth   = yml_data["yolov5"]["yolov5_pth"]
+    ideal_img_size      = yml_data["yolov5"]["topView"]["imgSize"]
 
     # 1. Generate Top View Yolov5 Model
     topViewModel = Detect(yolov5_folder_pth, top_view_model_pth, img_size=ideal_img_size)
@@ -176,6 +176,9 @@ def main(path_directory, pcd_name, input_file_type):
                 highest_first=False,
                 depth_weighting=False
             )
+        print(non_ground_img2.shape)
+        print(type(non_ground_img2))
+        print(non_ground_img2.dtype)
         cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_color_lowest.png", cv2.cvtColor(non_ground_img2, cv2.COLOR_BGR2RGB))
     ############################################
     ######## END CSF and Rasterize #############
