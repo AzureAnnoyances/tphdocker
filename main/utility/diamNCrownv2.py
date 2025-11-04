@@ -181,11 +181,10 @@ class SingleTreeSegmentation():
             bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
                 max_bound=max_bound)
-            print("crop1")
             trunk_pcd = pcd.crop(bbox_trunk)
-            print("crop2")
+            print(f"trunk_pcd, {len(trunk_pcd.points)}")
             crown_pcd = pcd.crop(bbox_crown)
-            print("crop_crown")
+            print(f"crop_crown, {len(crown_pcd.points)}")
             # I'm doing it twice... Why?
             filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
                 pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
@@ -213,6 +212,8 @@ class SingleTreeSegmentation():
             trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
             trunk_bbox = trunk_pcd.get_oriented_bounding_box()
             
+            print(f"trunk_pcd_cropped, {len(trunk_pcd.points)}")
+            print(f"crop_crown_cropped, {len(crown_pcd.points)}")
             crown_pcd = o3d.geometry.PointCloud()
             crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
             inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)

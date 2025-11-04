@@ -215,6 +215,7 @@ class TreeGen():
                     uv_tol=100,
                     debug=self.debug
                     )
+            print()
             
             rtn_dict = {}
             print("x3 should get triggered")
