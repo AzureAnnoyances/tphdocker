@@ -63,7 +63,7 @@ class SingleTreeSegmentation():
         if trunk_detected:
             stem_stats = stem_analysis(stem_cloud=trunk_pcd)
             stats.update(stem_stats)
-            print("this should get triggered")
+            print("x2 this should get triggered")
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
@@ -85,10 +85,6 @@ class SingleTreeSegmentation():
             # im_mask_trunk, n_valid_trunks, uv_center_trunk = self.model.im_mask_from_center_region(det_bbox, proto, cls=cls_idx, center_tol=center_tol)
             im_mask_trunk = self.model.im_mask_from_cls(det_bbox,masks, cls=2)
             return True, im_mask_trunk
-            if n_valid_trunks >0:
-                return True, im_mask_trunk
-            else:
-                return False, self.undetected_trunk_mask
         else:
             return False, self.undetected_trunk_mask
     
