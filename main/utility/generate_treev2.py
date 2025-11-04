@@ -122,7 +122,6 @@ class TreeGen():
                 self.save_debug_data(index, CrownNTrunkDict)
 
                 if trunk_detected:
-                    print("This too should be triggered x4")
                     if len(segmented_tree.points) < self.min_tree_points:
                         del segmented_tree
                         continue
@@ -216,7 +215,6 @@ class TreeGen():
                 )
         
         rtn_dict = {}
-        print("x3 should get triggered")
         rtn_dict["trunk_ok"]        = stats["trunk_ok"]
         rtn_dict["crown_ok"]        = stats["crown_ok"]
         if trunk_detected:

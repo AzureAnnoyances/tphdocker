@@ -175,7 +175,6 @@ class SingleTreeSegmentation():
             z_ffb, z_grd, center_coord, expansion = self.curr_params
             z_tol = (z_ffb-z_grd)/2
             min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-            print("PCD_points ",len(pcd.points))
             bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_grd), 
                 max_bound=(max_bound[0], max_bound[1], z_ffb))
@@ -211,8 +210,6 @@ class SingleTreeSegmentation():
             trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
             trunk_bbox = trunk_pcd.get_oriented_bounding_box()
             
-            print(f"trunk_pcd_cropped, {len(trunk_pcd.points)}")
-            print(f"crop_crown_cropped, {len(crown_pcd.points)}")
             crown_pcd = o3d.geometry.PointCloud()
             crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
             inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
