@@ -31,8 +31,7 @@ def display_inlier_outlier(cloud):
     
 
 class SingleTreeSegmentation():
-    def __init__(self, weight_src, tree_img_shape, debug=False):
-        self.debug=debug
+    def __init__(self, weight_src, tree_img_shape):
         # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src, imgz=tree_img_shape)
         self.tree_img_shape = tree_img_shape
@@ -42,32 +41,24 @@ class SingleTreeSegmentation():
         self.curr_params = []
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
-        stats = {}
         trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        # if self.debug:
-        stats["debug_trunk_img"] = raster_trunk_img
-        stats["debug_crown_img"] = raster_crown_img
-            
-        
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=1)
         
-        if not trunk_detected:
-            stats["trunk_ok"] = False
-            return trunk_detected, stats, None
-        
+
         trunk_detected, trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
                 pcd, 
                 mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
         single_tree_pcd = trunk_pcd+crown_pcd
         
+        stats = {}
         # crown_stats = stem_crown_analysis(stem_cloud=trunk_pcd, crown_cloud=crown_pcd)
         if trunk_detected:
             stem_stats = stem_analysis(stem_cloud=trunk_pcd)
@@ -75,6 +66,9 @@ class SingleTreeSegmentation():
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
+        if debug:
+            stats["debug_crown_img"] = raster_crown_img
+            stats["debug_trunk_img"] = raster_trunk_img
         return trunk_detected, stats, single_tree_pcd
         
     def one_ch_to_3ch(self, single_channel):
@@ -180,6 +174,7 @@ class SingleTreeSegmentation():
             z_ffb, z_grd, center_coord, expansion = self.curr_params
             z_tol = (z_ffb-z_grd)/2
             min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+            print("PCD_points ",len(pcd.points))
             bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_grd), 
                 max_bound=(max_bound[0], max_bound[1], z_ffb))
