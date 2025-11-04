@@ -33,7 +33,7 @@ def display_inlier_outlier(cloud):
 class SingleTreeSegmentation():
     def __init__(self, weight_src, tree_img_shape):
         # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
-        self.model = Infer_seg(weights=weight_src)
+        self.model = Infer_seg(weights=weight_src, conf_thres=0.20, iou_thres=0.45)
         self.tree_img_shape = tree_img_shape
         W,H = self.tree_img_shape
         self.undetected_trunk_mask = self.create_mask_circle(W,H,radius=20)

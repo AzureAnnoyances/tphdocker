@@ -31,7 +31,7 @@ yolov5:
     width_tree : 0.2
 
 yolov7:
-  model_pth : "model_weights/seg_CrownTrunkv2.pt"
+  model_pth : "model_weights/seg_CrownTrunkv3.pt"
   imgShape : [480,480]
 
 save_checks:
