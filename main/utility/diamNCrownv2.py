@@ -77,7 +77,7 @@ class SingleTreeSegmentation():
         three_channel = np.stack([single_channel] * 3, axis=-1)
         return three_channel
     
-    def get_pred_trunk(self, raster_trunk_img, center_tol=100, cls_idx = 1):
+    def get_pred_trunk(self, raster_trunk_img, center_tol=200, cls_idx = 2):
         # Indexes
         # Trunk = 1
         det_bbox, proto, n_det = self.model.forward(raster_trunk_img, conf_thres=0.20, iou_thres=0.45)
@@ -91,7 +91,7 @@ class SingleTreeSegmentation():
         else:
             return False, self.undetected_trunk_mask
     
-    def get_pred_crown(self, raster_crown_img, center_tol=100, cls_idx=0):
+    def get_pred_crown(self, raster_crown_img, center_tol=200, cls_idx=1):
         # Indexes
         # Crown = 0
         det_bbox, proto, n_det = self.model.forward(raster_crown_img, conf_thres=0.25, iou_thres=0.45)
