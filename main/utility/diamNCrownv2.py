@@ -31,7 +31,7 @@ def display_inlier_outlier(cloud):
     
 
 class SingleTreeSegmentation():
-    def __init__(self, weight_src, tree_img_shape):
+    def __init__(self, weight_src, tree_img_shape, debug=False):
         # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src, imgz=tree_img_shape)
         self.tree_img_shape = tree_img_shape
@@ -41,7 +41,7 @@ class SingleTreeSegmentation():
         self.curr_params = []
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
@@ -50,7 +50,7 @@ class SingleTreeSegmentation():
         stats = {}
         trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        if debug:
+        if self.debug:
             stats["debug_trunk_img"] = raster_trunk_img
             stats["debug_crown_img"] = raster_crown_img
             
