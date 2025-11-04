@@ -129,7 +129,6 @@ class TreeGen():
                     if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
                         del segmented_tree
                         continue
-                    print(f"segmented_tree_points : [{len(segmented_tree.points)}]")
                     total_side_less_detected+=1
                     total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
                     
@@ -215,8 +214,8 @@ class TreeGen():
         
         rtn_dict = {}
         rtn_dict["trunk_ok"]        = stats["trunk_ok"]
-        rtn_dict["crown_ok"]        = stats["crown_ok"]
         if trunk_detected == True:
+            rtn_dict["crown_ok"]        = stats["crown_ok"]
             rtn_dict["DBH"]         = stats["DBH"]
             rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
         if self.debug:
