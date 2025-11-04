@@ -185,6 +185,7 @@ class SingleTreeSegmentation():
             trunk_pcd = pcd.crop(bbox_trunk)
             print("crop2")
             crown_pcd = pcd.crop(bbox_crown)
+            print("crop_crown")
             # I'm doing it twice... Why?
             filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
                 pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
