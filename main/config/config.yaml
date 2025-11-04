@@ -32,7 +32,7 @@ yolov5:
 
 yolov7:
   model_pth : "model_weights/seg_CrownTrunkv3.pt"
-  imgShape : [480,480]
+  imgShape : [640,640]
 
 save_checks:
   min_tree_pts : 1500
