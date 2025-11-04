@@ -211,8 +211,7 @@ class TreeGen():
                     z_grd=z_grd,
                     center_coord = xy_ffb,
                     expansion = [15.0, 15.0],
-                    uv_tol=200,
-                    debug=self.debug
+                    uv_tol=200
                     )
             
             rtn_dict = {}
@@ -225,5 +224,7 @@ class TreeGen():
                 rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
                 rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
         except Exception as e:
-            print(e)
+            trunk_detected=False
+            rtn_dict = rtn_dict if rtn_dict is not None else {}
+            segmented_tree = None
         return trunk_detected, rtn_dict, segmented_tree
