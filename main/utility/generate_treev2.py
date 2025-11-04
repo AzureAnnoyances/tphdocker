@@ -1,7 +1,6 @@
 from .pcd2img import *
 from .get_coords import *
 from .generate_tree import get_tree_from_coord, get_h_from_each_tree_slice2
-# from .diamNCrown import AdTree_cls
 from .diamNCrownv2 import SingleTreeSegmentation
 from .encode_decode import img_b64_to_arr
 from .yolo_detect import Detect
@@ -95,9 +94,6 @@ class TreeGen():
         
         crown_str = "crown_ok" if bool(CrownNTrunkDict["crown_ok"]) else "crown_not_ok"
         o3d.io.write_point_cloud(f"{self.pcdOut}/{i}_{crown_str}.ply",segmented_tree, format="ply", write_ascii=False, print_progress=False)
-        if self.debug:
-            write_img(f"{self.debugOut}/{self.pcd_name}_debug_crown{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_crown_img"])
-            write_img(f"{self.debugOut}/{self.pcd_name}_debug_trunk{i}_{self.top_view_img_shape[0]}.jpg", CrownNTrunkDict["debug_trunk_img"])   
     
     def save_debug_data(self, i, CrownNTrunkDict):
         if self.debug:
@@ -121,7 +117,7 @@ class TreeGen():
             if detectedSideView:
                 total_side_detected+=1
                 trunk_detected, CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
-                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"], debug
+                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
                 )
                 self.save_debug_data(index, CrownNTrunkDict)
 
@@ -205,7 +201,7 @@ class TreeGen():
             
             return True, rtn_dict
     
-    def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd, debug=False):
+    def process_trunk_n_crown(self, pcd, grd_pcd, xy_ffb, z_ffb, z_grd):
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         multi_tree = get_tree_from_coord(pcd, grd_pcd, xy_ffb, expand_x_y=[15.0,15.0], expand_z=[z_min, z_max])
         trunk_detected, stats, segmented_tree = self.single_tree_seg.segment_tree(
@@ -215,7 +211,7 @@ class TreeGen():
                 center_coord = xy_ffb,
                 expansion = [15.0, 15.0],
                 uv_tol=100,
-                debug=debug
+                debug=self.debug
                 )
         
         rtn_dict = {}

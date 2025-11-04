@@ -3,13 +3,15 @@ import math, random
 import numba
 import numpy as np
 from numba import jit
-sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
+
 import open3d as o3d
 import trimesh
 import pymeshfix
 from alphashape import alphashape
-from misc.fitcyclinders import fit_vertical_cylinder_3D, fit_cylinders_to_stem
-from adTreeutils.o3d_utils import plot_mesh_cloud, save_ax_nosave, plot_cloud
+
+sys.path.insert(1, '/root/sdp_tph/submodules/PCTM/pctm/src')
+from misc.fitcyclinders import fit_vertical_cylinder_3D
+# from adTreeutils.o3d_utils import save_ax_nosave, plot_cloud
 
 def make_circle(points):
 	# Convert to float and randomize order
