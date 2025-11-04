@@ -51,9 +51,9 @@ class SingleTreeSegmentation():
         stats = {}
         trunk_pcd, crown_pcd, \
             raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
-        if self.debug:
-            stats["debug_trunk_img"] = raster_trunk_img
-            stats["debug_crown_img"] = raster_crown_img
+        # if self.debug:
+        stats["debug_trunk_img"] = raster_trunk_img
+        stats["debug_crown_img"] = raster_crown_img
             
         
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
