@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-dotenv
+azure-messaging-webpubsubclient
+azure-messaging-webpubsubservice
+
+azure-mgmt-storage
+azure-data-tables
+azure-mgmt-resource
+azure-storage-blob
+azure-mgmt-appcontainers
+pytz
+aiohttp
+python-dotenv

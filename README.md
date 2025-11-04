@@ -26,7 +26,7 @@ $docker_name /bin/bash
 ```
 ```bash
 gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
-cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-submodules && 
+cd /root/sdp_tph/ && git fetch && git switch mergeAzure && git pull --recurse-submodules && 
 cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ Tangkak_1 .laz
 ```
 
