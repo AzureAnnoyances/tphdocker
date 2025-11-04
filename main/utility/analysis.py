@@ -111,15 +111,15 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 
 
 ### --- All Analysis  --- ###
-def stem_crown_analysis(stem_cloud, crown_cloud):
-    stats = {}
-    stats.update(stem_analysis(stem_cloud))
-    crown_mesh, crown_volume = crown_to_mesh(crown_cloud)
-    stats["crown_mesh"] = crown_mesh
-    stats["crown_volume"] = crown_volume
-    stats["crown_img"] = save_ax_nosave(plot_cloud(stem_cloud+crown_cloud))
-    # stats["trunk_img"] = save_ax_nosave(plot_cloud(stats["stem_mesh"], stem_cloud+crown_cloud))
-    return stats
+# def stem_crown_analysis(stem_cloud, crown_cloud):
+#     stats = {}
+#     stats.update(stem_analysis(stem_cloud))
+#     crown_mesh, crown_volume = crown_to_mesh(crown_cloud)
+#     stats["crown_mesh"] = crown_mesh
+#     stats["crown_volume"] = crown_volume
+#     stats["crown_img"] = save_ax_nosave(plot_cloud(stem_cloud+crown_cloud))
+#     # stats["trunk_img"] = save_ax_nosave(plot_cloud(stats["stem_mesh"], stem_cloud+crown_cloud))
+#     return stats
 
 ### --- STEM ANALYSIS --- ###
 def stem_analysis(stem_cloud):
@@ -136,7 +136,7 @@ def stem_analysis(stem_cloud):
     dbh = dbh if dbh is not None else diameter_at_everything(stem_cloud,.2)
     stem_dict['DBH'] = dbh
     stem_dict['circumference_BH'] = dbh * np.pi
-    stem_dict['stem_mesh'], stem_dict['stem_volume'] = crown_to_mesh(stem_cloud)
+    # stem_dict['stem_mesh'], stem_dict['stem_volume'] = crown_to_mesh(stem_cloud)
     return stem_dict
 
 def diameter_at_everything(stem_cloud, voxel_size=None):
