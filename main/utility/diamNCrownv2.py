@@ -216,6 +216,7 @@ class SingleTreeSegmentation():
             crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
             crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
         except Exception as e:
+            print(e)
             return False, trunk_pcd, crown_pcd, trunk_img
         
         return True, trunk_pcd, crown_pcd, trunk_img
