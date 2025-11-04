@@ -174,15 +174,17 @@ class SingleTreeSegmentation():
             z_ffb, z_grd, center_coord, expansion = self.curr_params
             z_tol = (z_ffb-z_grd)/2
             min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+            print("PCD_points ",len(pcd.points))
             bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_grd), 
-                max_bound=(max_bound[0],max_bound[1], z_ffb))
+                max_bound=(max_bound[0], max_bound[1], z_ffb))
             bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
                 min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
                 max_bound=max_bound)
+            print("crop1")
             trunk_pcd = pcd.crop(bbox_trunk)
+            print("crop2")
             crown_pcd = pcd.crop(bbox_crown)
-            
             # I'm doing it twice... Why?
             filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
                 pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 

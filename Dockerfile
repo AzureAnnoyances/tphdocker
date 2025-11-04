@@ -49,7 +49,7 @@ RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b testings
 RUN python3 -m pip install --ignore-installed --no-cache-dir torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 
 RUN apt-get --purge remove python3-blinker -y && apt-get install python3-tk -y
 RUN cd /root/Open3D/build && make pip-package && \
-    python3 -m pip install --ignore-installed --no-cache-dir "numpy>=1.17,<1.26.3" trimesh==3.17.1 pymeshfix==0.16.1 alphashape==1.3.1 descartes==1.1.0 && \
+    python3 -m pip install --ignore-installed --no-cache-dir "numpy>=1.17,<1.26.3" pymeshfix==0.16.1 alphashape==1.3.1 descartes==1.1.0 && \
     python3 -m pip install --no-cache-dir --force-reinstall "numpy>=1.17,<1.26.3" quaternion matplotlib==3.6.3 \
         scipy==1.10.1 scikit-image scikit-learn==1.6.1 opencv-python==4.5.5.64 \
         tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 Pillow==9.5.0 laspy[lazrs,laszip] \

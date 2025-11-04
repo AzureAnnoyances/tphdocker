@@ -33,8 +33,10 @@ cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ Tangkak_1 .laz
 ## Old Version
 ```bash
 cd /root/sdp_tph/main
-RUN pip install gdown
-RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
+gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
+. /opt/installConda/CloudComPy310/bin/condaCloud.sh activate CloudComPy310 &&
+cd /root/sdp_tph/ && git fetch && git switch testings_a && git pull --recurse-submodules && 
+cd /root/sdp_tph/main/ && python3 main2.py /root/pcds/ Tangkak_1 .laz
 ```
 Run Docker container and open the Docker container terminal 
 ```bash
