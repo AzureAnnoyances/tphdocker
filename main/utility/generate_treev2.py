@@ -47,7 +47,8 @@ class TreeGen():
         yolov5_folder_pth = yml_data["yolov5"]["yolov5_pth"]
         v7_weight_pth = yml_data["yolov7"]["model_pth"]
         self.obj_det_short = Detect(yolov5_folder_pth, side_view_model_pth, img_size=self.side_view_img_size)
-        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape, debug=self.debug)
+        self.single_tree_seg = SingleTreeSegmentation(v7_weight_pth, self.top_view_img_shape)
+        
         
         self.precise_xy_coords: Optional[np.ndarray] = None
         self.min_distance = float(yml_data["save_checks"]["min_distance"])
@@ -129,6 +130,7 @@ class TreeGen():
                     if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
                         del segmented_tree
                         continue
+                    print(f"segmented_tree_points : [{len(segmented_tree.points)}]")
                     total_side_less_detected+=1
                     total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
                     
@@ -209,16 +211,17 @@ class TreeGen():
                 z_grd=z_grd,
                 center_coord = xy_ffb,
                 expansion = [15.0, 15.0],
-                uv_tol=200
+                uv_tol=100,
+                debug=self.debug
                 )
         
         rtn_dict = {}
+        print("x3 should get triggered")
         rtn_dict["trunk_ok"]        = stats["trunk_ok"]
-        if trunk_detected == True:
-            rtn_dict["crown_ok"]        = stats["crown_ok"]
+        rtn_dict["crown_ok"]        = stats["crown_ok"]
+        if trunk_detected:
             rtn_dict["DBH"]         = stats["DBH"]
             rtn_dict["trunk_img"]   = draw_diam_from_stats(stats)
-        if self.debug:
-            rtn_dict["debug_trunk_img"] = stats["debug_trunk_img"]
-            rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
+        rtn_dict["debug_trunk_img"] = stats["trunk_img"]
+        rtn_dict["debug_crown_img"] = stats["debug_crown_img"]
         return trunk_detected, rtn_dict, segmented_tree
