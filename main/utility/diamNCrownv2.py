@@ -55,7 +55,7 @@ class SingleTreeSegmentation():
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=1)
         
 
-        trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
+        trunk_detected, trunk_pcd, crown_pcd, trunk_img = self.split_Tree_to_trunkNCrown(
                 pcd, 
                 mask_crown=im_mask_crown, mask_trunk=im_mask_trunk)
         single_tree_pcd = trunk_pcd+crown_pcd
@@ -174,53 +174,55 @@ class SingleTreeSegmentation():
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
         # find trunk n crown,
         # use trunk pcd bbox and remove from crown
-        
-        z_ffb, z_grd, center_coord, expansion = self.curr_params
-        z_tol = (z_ffb-z_grd)/2
-        min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
-        bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
-            min_bound=(min_bound[0], min_bound[1], z_grd), 
-            max_bound=(max_bound[0],max_bound[1], z_ffb))
-        bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
-            min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
-            max_bound=max_bound)
-        trunk_pcd = pcd.crop(bbox_trunk)
-        crown_pcd = pcd.crop(bbox_crown)
-        
-        # I'm doing it twice... Why?
-        filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
-            mask_2d  = mask_trunk,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk_pcd.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk_pcd.get_max_bound()[2]),
-            axis='z', 
-            highest_first=True,
-            depth_weighting=True  
-        )
-        
-        filtered_crown_pcd, raster_image, crown_img = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(crown_pcd.points)).to(self.device), 
-            mask_2d  = mask_crown,
-            min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_pcd.get_min_bound()[2]),
-            max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_pcd.get_max_bound()[2]),
-            axis='z', 
-            highest_first=True,
-            depth_weighting=True  
-        )
-        
+        try:
+            z_ffb, z_grd, center_coord, expansion = self.curr_params
+            z_tol = (z_ffb-z_grd)/2
+            min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+            bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
+                min_bound=(min_bound[0], min_bound[1], z_grd), 
+                max_bound=(max_bound[0],max_bound[1], z_ffb))
+            bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
+                min_bound=(min_bound[0], min_bound[1], z_ffb-z_tol), 
+                max_bound=max_bound)
+            trunk_pcd = pcd.crop(bbox_trunk)
+            crown_pcd = pcd.crop(bbox_crown)
+            
+            # I'm doing it twice... Why?
+            filtered_trunk_pcd, raster_image, trunk_img = rasterize_3dto2D(
+                pointcloud = torch.tensor(np.array(trunk_pcd.points)).to(self.device), 
+                mask_2d  = mask_trunk,
+                min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk_pcd.get_min_bound()[2]),
+                max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk_pcd.get_max_bound()[2]),
+                axis='z', 
+                highest_first=True,
+                depth_weighting=True  
+            )
+            
+            filtered_crown_pcd, raster_image, crown_img = rasterize_3dto2D(
+                pointcloud = torch.tensor(np.array(crown_pcd.points)).to(self.device), 
+                mask_2d  = mask_crown,
+                min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_pcd.get_min_bound()[2]),
+                max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_pcd.get_max_bound()[2]),
+                axis='z', 
+                highest_first=True,
+                depth_weighting=True  
+            )
+            
 
-        trunk_pcd = o3d.geometry.PointCloud()
-        trunk_pcd.points = o3d.utility.Vector3dVector(filtered_trunk_pcd)
-        trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
-        trunk_bbox = trunk_pcd.get_oriented_bounding_box()
+            trunk_pcd = o3d.geometry.PointCloud()
+            trunk_pcd.points = o3d.utility.Vector3dVector(filtered_trunk_pcd)
+            trunk_pcd.paint_uniform_color([0.0, 1.0, 0.0])
+            trunk_bbox = trunk_pcd.get_oriented_bounding_box()
+            
+            crown_pcd = o3d.geometry.PointCloud()
+            crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
+            inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
+            crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
+            crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
+        except Exception as e:
+            return False, trunk_pcd, crown_pcd, trunk_img
         
-        crown_pcd = o3d.geometry.PointCloud()
-        crown_pcd.points = o3d.utility.Vector3dVector(filtered_crown_pcd)
-        inlier_indices = trunk_bbox.get_point_indices_within_bounding_box(crown_pcd.points)
-        crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
-        crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
-        
-        return trunk_pcd, crown_pcd, trunk_img
+        return True, trunk_pcd, crown_pcd, trunk_img
             
     
     def o3dpcd2img(self, pcd, width, height, return_camera=False):
