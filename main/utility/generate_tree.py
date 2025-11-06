@@ -267,32 +267,7 @@ def get_h_from_each_tree_slice2(tree, model_short, img_size:tuple, stepsize, img
             else:
                 x_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[0], img.shape)
                 x_coord_ffb_lst.append(x_ffb)
-        else:
-            # TODO : Import this
-            if gen_undetected_img and img.shape[0]<=short_img_size[1]:
-                if x_or_y == "x":
-                    _, non_ground_img, _  = rasterize_3dto2D(
-                        pointcloud = np.array(slice_x.points),
-                        stepsize=stepsize,
-                        axis="x",
-                        highest_first=True,
-                        depth_weighting=True
-                    )
-                else:
-                    _, non_ground_img, _  = rasterize_3dto2D(
-                        pointcloud = np.array(slice_y.points),
-                        stepsize=stepsize,
-                        axis="y",
-                        highest_first=True,
-                        depth_weighting=True
-                    )
-                new_img = add_padding_to_image(
-                    new_width=img_size[0], new_height=img_size[1],
-                    img_arr=non_ground_img, background_color=(0,0,0)
-                    )
-                # cv2.imwrite(f"{img_dir}_{x_or_y}_[short].jpg", img)
-                # cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_new.jpg", non_ground_img)
-                cv2.imwrite(f"{img_dir}_{x_or_y}_[short]_padded.jpg", new_img)
+
     if height_lst and len(y_coord_ffb_lst)>0 and len(x_coord_ffb_lst)>0:
         rtn = (
             sum(height_lst)/len(height_lst), 

@@ -71,4 +71,30 @@ RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders
 WORKDIR /root/sdp_tph
 RUN git fetch && git checkout mergeAzure && git pull --recurse-submodules
 RUN python3 -m pip install --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt
-ENTRYPOINT []
+
+
+ENV PUBSUBGROUPNAME="groupcontainerblob"
+ENV PUBSUBURL="myurl"
+ENV StorageAccName=""
+ENV StorageAccKey=""
+ENV StorageEndpointSuffix=""
+ENV DBRoot=""
+ENV PartitionKey=""
+ENV RowKey=""
+ENV StorageContainer=""
+ENV file_upload_full_path=""
+ENV ext=""
+ENV process_folder=""
+ENV DOCKER_Data_IN="/root/data_in"
+ENV DOCKER_Data_OUT="/root/data_out"
+
+ENV PATH_DIR="/root/pcds/"
+ENV PCD_NAME="Tangkak_1"
+ENV EXT=".laz"
+# ENTRYPOINT ["python3", "main2.py"]
+
+WORKDIR /
+COPY . /root/sdp_tph/
+
+WORKDIR /root/sdp_tph/main
+ENTRYPOINT ["python3", "main2.py"]

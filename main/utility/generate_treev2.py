@@ -16,7 +16,7 @@ from scipy.cluster.vq import kmeans2, kmeans
 from .csf_py import csf_py
 from .o3d_extras import save_pointcloud
 from typing import Optional
-
+from azure_helpers.blob_manager import DBManager
 
 def write_img(save_path, img):
     try: 
@@ -26,11 +26,12 @@ def write_img(save_path, img):
     except Exception as e:
         print("couldnt write image")
 class TreeGen():
-    def __init__(self, yml_data, folder_out_dict, pcd_name, debug):
+    def __init__(self, yml_data, folder_out_dict, pcd_name, pubsub, debug):
         self.debug = debug
         if self.debug:
             self.debugOut = folder_out_dict["debugOut"]
         self.pcd_name = pcd_name
+        self.pubsub:DBManager = pubsub
         
         self.sideViewOut = folder_out_dict["sideViewOut"]
         self.pcdOut = folder_out_dict["pcdOut"]
@@ -106,43 +107,46 @@ class TreeGen():
         total_side_detected = 0
         total_side_less_detected = 0
         total_trees_detected = 0
-        
-        coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
-        for index, coord in enumerate(coord_loop):
-            detectedSideView, SideViewDict = self.process_sideView(
-                pcd, grd_pcd, non_grd_pcd, 
-                coord, w_lin_pcd, h_lin_pcd, 
-                            index=index
-                            )
-            if detectedSideView:
-                total_side_detected+=1
-                trunk_detected, CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
-                    pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
-                )
-                self.save_debug_data(index, CrownNTrunkDict)
+        try:
+            coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+            for index, coord in enumerate(coord_loop):
+                self.pubsub.process_percentage(int((index/len(coord_loop))*100))
+                detectedSideView, SideViewDict = self.process_sideView(
+                    pcd, grd_pcd, non_grd_pcd, 
+                    coord, w_lin_pcd, h_lin_pcd, 
+                                index=index
+                                )
+                if detectedSideView:
+                    total_side_detected+=1
+                    trunk_detected, CrownNTrunkDict, segmented_tree = self.process_trunk_n_crown(
+                        pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"]
+                    )
+                    self.save_debug_data(index, CrownNTrunkDict)
 
-                if trunk_detected:
-                    if len(segmented_tree.points) < self.min_tree_points:
-                        del segmented_tree
-                        continue
-                    # Check if new Coord is near another coord
-                    if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
-                        del segmented_tree
-                        continue
-                    print(f"segmented_tree_points : [{len(segmented_tree.points)}]")
-                    total_side_less_detected+=1
-                    total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
-                    
-                    self.append_dataframe(SideViewDict,CrownNTrunkDict)
-                    self.save_data_to_directory(
-                        len(self.df_list), 
-                        SideViewDict["sideViewImg"], 
-                        CrownNTrunkDict["trunk_img"], 
-                        segmented_tree, 
-                        CrownNTrunkDict)
-                del segmented_tree
-        print("\n\n\n",total_detected, total_side_detected, total_side_less_detected, total_trees_detected)
-        return self.create_pd_dataframe() 
+                    if trunk_detected:
+                        if len(segmented_tree.points) < self.min_tree_points:
+                            del segmented_tree
+                            continue
+                        # Check if new Coord is near another coord
+                        if self.xy_is_duplicate(SideViewDict["xy_ffb"]):
+                            del segmented_tree
+                            continue
+                        print(f"segmented_tree_points : [{len(segmented_tree.points)}]")
+                        total_side_less_detected+=1
+                        total_trees_detected = total_trees_detected+1 if CrownNTrunkDict["crown_ok"] else total_trees_detected
+                        
+                        self.append_dataframe(SideViewDict,CrownNTrunkDict)
+                        self.save_data_to_directory(
+                            len(self.df_list), 
+                            SideViewDict["sideViewImg"], 
+                            CrownNTrunkDict["trunk_img"], 
+                            segmented_tree, 
+                            CrownNTrunkDict)
+                    del segmented_tree
+            print("\n\n\n",total_detected, total_side_detected, total_side_less_detected, total_trees_detected)
+        except Exception as e:
+            self.pubsub.process_error(f"Error found at Processing, {e}")
+        return self.create_pd_dataframe()
         
         
     def process_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):

@@ -66,14 +66,14 @@ class PubSubManager:
         }
         self.pub_dict(json_msg)
     
-    def process_completed(self):
+    def process_completed(self, tree_count):
         json_msg = {
             "status":"process",
             "percentage": 100,
             "completed": True,
             "has_error": False,
             "error_message": "",
-            "tree_count": 0
+            "tree_count": int(tree_count)
         }
         self.pub_dict(json_msg)
 

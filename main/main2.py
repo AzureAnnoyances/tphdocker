@@ -26,16 +26,14 @@ from scipy.spatial import KDTree
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 import laspy
-from azure_helpers.pubsub_manager import PubSubManager
 from azure_helpers.blob_manager import DBManager
+import asyncio
+import time
 
-def get_args(path_directory, input_file, input_file_type):
-    logger.info(f"Inputs:\n   path_directory  : [{path_directory}]\n   input_file_name : [{input_file}]\n   input_file_type : [{input_file_type}]\n")
-    input_img_pth = path_directory + input_file + input_file_type
-    # output_img_pth = path_directory + input_file +"2" + input_file_type
+def get_args(path_directory, input_file, input_pcd_extension):
+    logger.info(f"Inputs:\n   path_directory  : [{path_directory}]\n   input_file_name : [{input_file}]\n   input_pcd_extension : [{input_pcd_extension}]\n")
+    input_img_pth = path_directory + input_file + input_pcd_extension
     assert os.path.exists(input_img_pth), f"the path or file [{input_img_pth}] does not exists"
-    # print("input_img_pth", input_img_pth)
-    # print("output_img_pth", output_img_pth)
     return None
 def numpy_to_bw_3channel(rgb_array, background_threshold=1):
     if len(rgb_array.shape) == 3 and rgb_array.shape[2] == 3:  # RGB image
@@ -48,10 +46,43 @@ def numpy_to_bw_3channel(rgb_array, background_threshold=1):
     
     bw_3channel[color_mask] = [255, 255, 255]
     return bw_3channel
+
+def read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj:DBManager):
+    try:
+        accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
+        assert input_pcd_extension in accepted_file_types,f"Filetype must be {accepted_file_types}"
+        
+        # Read pcd
+        if input_pcd_extension in [".las",".laz"]:
+            with laspy.open(input_pcd_full_path) as fh:
+                las = fh.read()
+            xyz = np.vstack((las.x, las.y, las.z)).T
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(xyz)
+            print(len(pcd.points))
+        elif input_pcd_extension == ".txt":
+            format = 'xyz'
+            pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
+        else:
+            format = 'auto'
+            pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
+
+        assert len(pcd.points) >= 1,f"The PCD Read is INVALID format, Either [Empty or broken] pcd is at file Location [{input_pcd_full_path}]"
+
+        logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")
+        return pcd
+    except Exception as e:
+        pub_obj.process_error(f"Reading PCD Error : \n[ {e} ]")
+        raise Exception(f"Reading PCD Error {e}")
     
-def main(path_directory, pcd_name, input_file_type):
-    get_args(path_directory, pcd_name, input_file_type)
-    pub_obj = DBManager()
+def main(pub_obj:DBManager):    
+    folder_loc      = os.getenv("PATH_DIR")
+    pcd_name        = os.getenv("PCD_NAME")
+    input_pcd_extension = os.getenv("EXT")
+    # for i in range(100):
+    #     time.sleep(0.02)
+    #     pub_obj.process_percentage(i)
+    # pub_obj.process_completed("XYZ")
     
     #################################################
     ######## 1 File Generation from PCD #############
@@ -63,53 +94,62 @@ def main(path_directory, pcd_name, input_file_type):
         yml_data = yaml.load(ymlfile, Loader = yaml.FullLoader)
     debug = yml_data["output"]["debug"]
     # Input Folder Location
-    curr_dir = os.getcwd()
-    folder_loc = path_directory
-    pcd_filename = pcd_name+input_file_type
+    # curr_dir = os.getcwd()
+    # pcd_filename = pcd_name+input_pcd_extension
     
     # Output Folder Location
-    output_folder = folder_loc + pcd_name +"/"
+    # output_folder = folder_loc + pcd_name +"/"
+    input_folder  = pub_obj.docker_input_folder
+    output_folder = pub_obj.docker_output_folder +"/"
+    pcd_name      = pub_obj.filename
     topViewOut  = output_folder + yml_data["output"]["folder_location"]["topView"]
     sideViewOut = output_folder + yml_data["output"]["folder_location"]["sideView"]
     pcdOut      = output_folder + yml_data["output"]["folder_location"]["pcd"]
     diamOut     = output_folder + yml_data["output"]["folder_location"]["diam"]
     debugOut    = output_folder + yml_data["output"]["folder_location"]["debug"]
+    csvOut      = output_folder + pcd_name +".csv"
     folder_out_dict = {
+        "input_folder"  : input_folder,
         "output_folder" : output_folder,
         "topViewOut"    : topViewOut,
         "sideViewOut"   : sideViewOut,
         "pcdOut"        : pcdOut,
         "diamOut"       : diamOut
     }
-    
     if debug:
         folder_out_dict["debugOut"] = debugOut
     for path in folder_out_dict.values():
         if not os.path.exists(path):
             os.mkdir(path)
-    csvOut = output_folder + pcd_name +".csv"
+    pub_obj.process_percentage(5)
+    input_pcd_full_path, input_pcd_extension = pub_obj.download_pointcloud()
+    pub_obj.process_percentage(10)
     
-    accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
-    assert input_file_type in accepted_file_types,f"Filetype must be {accepted_file_types}"
     
-    # Read pcd
-    if input_file_type in [".las",".laz"]:
-        with laspy.open(folder_loc+pcd_filename) as fh:
-            las = fh.read()
-        xyz = np.vstack((las.x, las.y, las.z)).T
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(xyz)
-        print(len(pcd.points))
-    elif input_file_type == ".txt":
-        format = 'xyz'
-        pcd = o3d.io.read_point_cloud(folder_loc+pcd_filename, format=format)
-    else:
-        format = 'auto'
-        pcd = o3d.io.read_point_cloud(folder_loc+pcd_filename, format=format)
+    pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
+    pub_obj.process_percentage(15)
+    # accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
+    # assert input_pcd_extension in accepted_file_types,f"Filetype must be {accepted_file_types}"
+    
+    # # Read pcd
+    # pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
+    # if input_pcd_extension in [".las",".laz"]:
+    #     with laspy.open(input_pcd_full_path) as fh:
+    #         las = fh.read()
+    #     xyz = np.vstack((las.x, las.y, las.z)).T
+    #     pcd = o3d.geometry.PointCloud()
+    #     pcd.points = o3d.utility.Vector3dVector(xyz)
+    #     print(len(pcd.points))
+    # elif input_pcd_extension == ".txt":
+    #     format = 'xyz'
+    #     pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
+    # else:
+    #     format = 'auto'
+    #     pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
 
-    assert len(pcd.points) >= 1,f"Failed to Read Point Cloud file [{pcd_filename}], it's Empty or broken"
+    # assert len(pcd.points) >= 1,f"Failed to Read Point Cloud file [{input_pcd_full_path}], it's Empty or broken"
 
-    logger.info(f"Reading {input_file_type} file successful, Generating stuff")
+    # logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")
     ###################################################
     ######## END File Generation from PCD #############
     ###################################################
@@ -242,14 +282,19 @@ def main(path_directory, pcd_name, input_file_type):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    tree_gen = TreeGen(yml_data, folder_out_dict, pcd_name, debug=debug)
+    tree_gen = TreeGen(yml_data, folder_out_dict, pcd_name, pubsub=pub_obj, debug=debug)
     df = tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd), debug)
-
     df.to_csv(csvOut)
+    
+    num_trees_processed = (len(df)-1)
+    pub_obj.process_completed("XYZ", tree_count=num_trees_processed)
+    asyncio.get_event_loop().run_until_complete(pub_obj.upload_everything_async(pub_obj.docker_output_folder, num_trees_processed))
+
 if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
     logger.info(f"Current dir: [{os.getcwd()}]")
-    main(*sys.argv[1:])
+    pub_obj = DBManager()
+    main(pub_obj)
     
 # 2325 2898
 # H,2326 W2899

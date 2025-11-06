@@ -89,13 +89,9 @@ class DBManager(PubSubManager):
         self.data_loc = str(os.getenv("DATA_LOC"))
         
         
-        self.up_pcdLoc      = f"{self.process_folder}/{self.filename}/pcds/"
-        self.up_sideViewLoc = f"{self.process_folder}/{self.filename}/topView/"
-        self.up_topViewLoc  = f"{self.process_folder}/{self.filename}/sideView/"
-        self.mnt_pcdloc     = f"/data/pcds/"
-        self.mnt_sideViewLoc= f"/data/sideView/"
-        self.mnt_topViewLoc = f"/data/topView/"
-        self.mnt_csv_data   = f"/data/csvdata/"
+        # Docker in out
+        self.docker_input_folder  = f"/root/data_in"
+        self.docker_output_folder = f"/root/data_out"
         
         # self.create_database_if_not_exists()
         print(f"\n\n\n\
@@ -104,23 +100,22 @@ class DBManager(PubSubManager):
             DownloadFullPath : {self.download_full_path}\n\
             Extention : {self.download_file_extension}\
             ")
-        self.pcd_loc, self.extension = self.download_pointcloud()
         
         # self.upload_everything("/app")
         
     
     def download_pointcloud(self):
         try:
-            download_file_path = self.download_full_path+self.download_file_extension
-            docker_file_path = f"{self.data_loc}/{self.filename}{self.download_file_extension}"
+            download_file_path = self.download_full_path
+            docker_file_path = f"{self.docker_input_folder}/{self.filename}{self.download_file_extension}"
             print(f"\n\n\
                 Download_file_path : {download_file_path}\n\
                 docker_file_path : {docker_file_path}\n\
                     ")
-            # self.blob_obj.download_file(download_file_path, docker_file_path)
+            self.blob_obj.download_file(download_file_path, docker_file_path)
             return docker_file_path, self.download_file_extension
         except Exception as e:
-            print(f"Error at Download_pointcloud, {e}")
+            self.process_error(f"Error at Docker Download_pcd: at [ {download_file_path} ]\n[{e}]")
             return "",""
     
     def upload_everything(self, dir_path):
@@ -139,8 +134,8 @@ class DBManager(PubSubManager):
         except Exception as e:
             print(f"\n\n\nERROR at UPLOAD EVERYTHING : {e}\n\n\n")
     
-    async def upload_everything_async(self, dir_path):
-        import time
+    async def upload_everything_async(self, dir_path, tree_count:int):
+        #TODO
         from azure.storage.blob.aio import BlobServiceClient
         try:
             blob_service = BlobServiceClient.from_connection_string(self.connection_string)
@@ -148,11 +143,13 @@ class DBManager(PubSubManager):
                 uploadingBlobs = []
                 for path, subdirs, files in os.walk(dir_path):
                     for name in files:
+                        print(name)
                         fullPath=os.path.join(path, name)
                         file=fullPath.replace(dir_path,'')
                         fileName=file[1:len(file)]
+                        print(f"docker upload {self.process_folder}/{fileName}")
                         # uploadingBlobs.append(blob_client.upload_blob(f"{self.process_folder}/{self.filename}/{fileName}", open(fullPath, "rb"), overwrite=True))
-                        uploadingBlobs.append(blob_client.upload_blob(f"{self.process_folder}/{fileName}", open(fullPath, "rb"), overwrite=True))
+                        uploadingBlobs.append(blob_client.upload_blob(f"{self.process_folder}{fileName}", open(fullPath, "rb"), overwrite=True))
             n_awaitables = len(uploadingBlobs)
             n_awaitables = len(uploadingBlobs)
             completed_count = 0
@@ -163,18 +160,18 @@ class DBManager(PubSubManager):
             
             self.store_percentage(100)
             await asyncio.sleep(1)
-            self.store_completed(completed_count)
+            self.store_completed(tree_count)
             await blob_service.close()
             return True
         except Exception as e:
-            self.store_error(error_message=e)
+            self.store_error(error_msg=f"Error at Storing {e}")
             return False
     
-    def process_completed(self, coordinates:str):
+    def process_completed(self, coordinates:str, tree_count:int):
         if coordinates not in ["XYZ", "Lat/Long"]:
             raise ValueError(f"coordinates must be in ['XYZ','Lat/long'], your coordinates are [{coordinates}]")
-        super().process_completed() # Not a bug, if process is completed it should be store
-        self.update_status(status="store", process_completed=str(True), coordinates=coordinates)
+        super().process_completed(tree_count) # Not a bug, if process is completed it should be store
+        self.update_status(status="store", process_completed=str(True), coordinates=coordinates, trees_completed=tree_count)
     
     def store_completed(self, tree_count: int):
         if not isinstance(tree_count, int):
@@ -199,6 +196,7 @@ class DBManager(PubSubManager):
                 if process_completed is not None:
                     entity["process_completed"]=process_completed
                     entity["coordinates"] = coordinates
+                    entity["trees_completed"] = trees_completed
                 if store_completed is not None:
                     entity["store_completed"] = store_completed
                     entity["completed"] = store_completed
@@ -213,6 +211,7 @@ class DBManager(PubSubManager):
             print(f"Error occured in [update_state], {e}")
             return False
         return False
+    
     def query_table_by_key_value(self, keys:list=["RowKey","ext"], values:list=["filename",".txt"]):
         try:
             results = []
