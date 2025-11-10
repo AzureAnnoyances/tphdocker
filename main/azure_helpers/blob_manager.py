@@ -1,5 +1,7 @@
 import os
+import time
 import asyncio
+from typing import Tuple
 from datetime import datetime,timezone, timedelta
 from azure.storage.blob import BlobServiceClient, BlobSasPermissions
 from azure.core.exceptions import ResourceNotFoundError, ResourceModifiedError
@@ -103,8 +105,24 @@ class DBManager(PubSubManager):
         
         # self.upload_everything("/app")
         
-    
-    def download_pointcloud(self):
+    def download_pcd_timer(self)-> Tuple[str, str]:
+        start_time = time.time()
+        max_wait_time = int(int(os.getenv('DOWNLOAD_WAIT_TIME_MINS', '10'))*60)
+        check_interval = 1
+        while (time.time() - start_time) < max_wait_time:
+            try:
+                docker_file_pth, ext = self.download_pointcloud()
+                if len(docker_file_pth) > 0:
+                    return docker_file_pth, ext
+            
+            except Exception:
+                pass  # Ignore errors and keep waiting
+            # Wait before retry
+            time.sleep(check_interval)
+        # Timeout reached
+        raise TimeoutError(f"Download not available after {max_wait_time} seconds")
+
+    def download_pointcloud(self)-> Tuple[str, str]:
         try:
             download_file_path = self.download_full_path
             docker_file_path = f"{self.docker_input_folder}/{self.filename}{self.download_file_extension}"

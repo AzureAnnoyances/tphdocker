@@ -2,16 +2,23 @@ python3 -m pip uninstall open3d -y
 # OPEN3DVER=v0.18.0
 O3D_VER=$1
 O3D_DIR=$2
+O3D_INSTALL_DIR=$3
+O3D_BUILD_DIR=${O3D_DIR}/build
 
-git clone -b ${O3D_VER} --recursive https://github.com/intel-isl/Open3D \
-    && cd Open3D \
+apt-get update && \
+apt-get install -y build-essential cmake software-properties-common gfortran && \
+rm -rf /var/lib/apt/lists/*
+
+git clone -b ${O3D_VER} --recursive https://github.com/intel-isl/Open3D ${O3D_DIR} \
+    && cd ${O3D_DIR} \
     && git submodule update --init --recursive \
     && chmod +x util/install_deps_ubuntu.sh \
     && sed -i 's/SUDO=${SUDO:=sudo}/SUDO=${SUDO:=}/g' \
               util/install_deps_ubuntu.sh \
     && util/install_deps_ubuntu.sh assume-yes 
-mkdir ${O3D_DIR} && cd ${O3D_DIR}
-cmake -DCMAKE_INSTALL_PREFIX=/open3d \
+
+mkdir -p ${O3D_BUILD_DIR} && cd ${O3D_BUILD_DIR} && \
+cmake -DCMAKE_INSTALL_PREFIX=${O3D_INSTALL_DIR} \
              -DPYTHON_EXECUTABLE=$(which python3) \
              -DBUILD_PYTHON_MODULE=ON \
              -DBUILD_SHARED_LIBS=ON \
@@ -21,4 +28,9 @@ cmake -DCMAKE_INSTALL_PREFIX=/open3d \
              -DBUILD_GUI=ON \
              -DUSE_BLAS=ON \
              ..
-cd ${O3D_DIR} && make install && ldconfig && make -j$(nproc) && make install-pip-package
+
+make -j$(nproc) \
+&& make install \
+&& make install-pip-package \
+&& make pip-package \
+&& ldconfig

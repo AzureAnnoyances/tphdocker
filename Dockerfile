@@ -1,78 +1,65 @@
 FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 LABEL maintainer="Zhuang Chi Sheng <chngdickson@gmail.com>"
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install zsh and git
-RUN apt update && apt install -y wget git zsh tmux vim g++ rsync
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.2/zsh-in-docker.sh)" -- \
-    -t robbyrussell \
-    -p git \
-    -p ssh-agent \
-    -p https://github.com/agkozak/zsh-z \
-    -p https://github.com/zsh-users/zsh-autosuggestions \
-    -p https://github.com/zsh-users/zsh-completions \
-    -p https://github.com/zsh-users/zsh-syntax-highlighting
-RUN git config --global url.https://.insteadOf git://
+RUN apt update && apt install --no-install-recommends -y wget git zsh tmux vim g++ rsync && \
+    sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.2/zsh-in-docker.sh)" -- \
+        -t robbyrussell \
+        -p git \
+        -p ssh-agent \
+        -p https://github.com/agkozak/zsh-z \
+        -p https://github.com/zsh-users/zsh-autosuggestions \
+        -p https://github.com/zsh-users/zsh-completions \
+        -p https://github.com/zsh-users/zsh-syntax-highlighting && \
+    git config --global url.https://.insteadOf git:// && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
 
 # Install python
 ENV PYTHON_VER=3.10
-RUN apt-get install python3-pip -y && pip3 install --upgrade pip 
-RUN apt-get install python${PYTHON_VER} python${PYTHON_VER}-venv python${PYTHON_VER}-dev -y
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VER} 1
-RUN update-alternatives --config python3
+RUN apt-get update && apt install -y software-properties-common && \
+    apt-get install -y python3-pip python3-dev && pip3 install --upgrade pip && \
+    apt-get install -y python${PYTHON_VER} python${PYTHON_VER}-venv python${PYTHON_VER}-dev -y && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VER} 1 && \
+    update-alternatives --config python3 && \
+    python3 -m pip install --ignore-installed --no-cache-dir torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 && \
+    python3 -m pip install --no-cache-dir --force-reinstall "numpy>=1.17,<1.26.3" quaternion matplotlib==3.6.3 \
+        scipy==1.10.1 scikit-image scikit-learn==1.6.1 opencv-python-headless==4.5.5.64 \
+        tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 Pillow==9.5.0 laspy[lazrs,laszip] \
+        pymeshfix==0.16.1 alphashape==1.3.1 descartes==1.1.0 \
+        ipython psutil gdown && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
 
-WORKDIR /root
-# Install CV2 V4.11.0
-ENV OPENCV_VER=4.11.0 
-ENV OPENCV_DIR=/root/opencv_build 
-COPY install_cv2.sh install_cv2.sh  
-RUN chmod +x install_cv2.sh && ./install_cv2.sh ${OPENCV_VER} ${OPENCV_DIR}
 
 # Install open3d cuda
 WORKDIR /root
 ENV O3D_VER=v0.18.0
-ENV O3D_DIR=/root/Open3D/build
+ENV O3D_DIR=/root/Open3D
+ENV O3D_INSTALL_DIR=/usr/local
 COPY install_open3d.sh install_open3d.sh
-RUN chmod +x install_open3d.sh && ./install_open3d.sh ${O3D_VER} ${O3D_DIR} 
-
-# Install Boost and QT
-RUN apt-get install --no-install-recommends -y build-essential cmake-gui mesa-utils xorg-dev libglu1-mesa-dev libboost-all-dev && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install -y gfortran g++ make libgl1 libgl-dev libqt5svg5-dev libqt5opengl5-dev qttools5-dev qttools5-dev-tools libqt5websockets5-dev qtbase5-dev qt5-qmake
+RUN chmod +x install_open3d.sh && \
+    ./install_open3d.sh ${O3D_VER} ${O3D_DIR} ${O3D_INSTALL_DIR} 
+RUN apt-get remove python3-blinker -y && \
+    python3 -m pip install --no-cache-dir --ignore-installed \
+        importlib-metadata \
+        "numpy>=1.17,<1.26.3" \
+        ${O3D_DIR}/build/lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
+# ENTRYPOINT ["/bin/bash"]
+#     RUN python3 -c "import open3d"
 
 # Clone this github
 WORKDIR /root
-RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b testings_a
+RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b mergeAzure && \
+    cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
+    python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \
+    cd /root/sdp_tph/main && \
+    gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
+# ENTRYPOINT ["python3"]
 
 
-
-# Install Python Requirements
-RUN python3 -m pip install --ignore-installed --no-cache-dir torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 
-RUN apt-get --purge remove python3-blinker -y && apt-get install python3-tk -y
-RUN cd /root/Open3D/build && make pip-package && \
-    python3 -m pip install --ignore-installed --no-cache-dir "numpy>=1.17,<1.26.3" pymeshfix==0.16.1 alphashape==1.3.1 descartes==1.1.0 && \
-    python3 -m pip install --no-cache-dir --force-reinstall "numpy>=1.17,<1.26.3" quaternion matplotlib==3.6.3 \
-        scipy==1.10.1 scikit-image scikit-learn==1.6.1 opencv-python==4.5.5.64 \
-        tqdm numba==0.60.0 protobuf==3.20.3 filterpy pandas==1.5.3 seaborn==0.11.0 Pillow==9.5.0 laspy[lazrs,laszip] \
-        tk ipython psutil \
-        lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl \
-        && \
-    cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install  
-    # python3 -m pip install --ignore-installed lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl && \
-    # cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install  
-
-RUN python3 -c "import numpy as np;print(np.__version__);"
-
-
-# Prep Environment for debugging and usage
 ENV QT_QPA_PLATFORM=offscreen
-WORKDIR /root/sdp_tph/main
-RUN pip install gdown
-RUN gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing
-WORKDIR /root/sdp_tph
-RUN git fetch && git checkout mergeAzure && git pull --recurse-submodules
-RUN python3 -m pip install --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt
-
-
 ENV PUBSUBGROUPNAME="groupcontainerblob"
 ENV PUBSUBURL="myurl"
 ENV StorageAccName=""
@@ -91,6 +78,7 @@ ENV DOCKER_Data_OUT="/root/data_out"
 ENV PATH_DIR="/root/pcds/"
 ENV PCD_NAME="Tangkak_1"
 ENV EXT=".laz"
+ENV DOWNLOAD_WAIT_TIME_MINS=10
 # ENTRYPOINT ["python3", "main2.py"]
 
 WORKDIR /

@@ -122,7 +122,7 @@ def main(pub_obj:DBManager):
         if not os.path.exists(path):
             os.mkdir(path)
     pub_obj.process_percentage(5)
-    input_pcd_full_path, input_pcd_extension = pub_obj.download_pointcloud()
+    input_pcd_full_path, input_pcd_extension = pub_obj.download_pcd_timer()
     pub_obj.process_percentage(10)
     
     
