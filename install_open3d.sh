@@ -18,19 +18,37 @@ git clone -b ${O3D_VER} --recursive https://github.com/intel-isl/Open3D ${O3D_DI
     && util/install_deps_ubuntu.sh assume-yes 
 
 mkdir -p ${O3D_BUILD_DIR} && cd ${O3D_BUILD_DIR} && \
+# cmake -DCMAKE_INSTALL_PREFIX=${O3D_INSTALL_DIR} \
+#              -DPYTHON_EXECUTABLE=$(which python3) \
+#              -DBUILD_PYTHON_MODULE=ON \
+#              -DBUILD_SHARED_LIBS=ON \
+#              -DBUILD_EXAMPLES=OFF \
+#              -DBUILD_UNIT_TESTS=OFF \
+#              -DBUILD_CUDA_MODULE=ON \
+#              -DBUILD_GUI=OFF \
+#              -DUSE_BLAS=ON \
+#              ..
+
+# make -j$(nproc) \
+# && make install \
+# && make install-pip-package \
+# && make pip-package \
+# && ldconfig
+
+# Optimized for smallest size of Open3d  
+# https://github.com/isl-org/Open3D/blob/v0.18.0/CMakeLists.txt
 cmake -DCMAKE_INSTALL_PREFIX=${O3D_INSTALL_DIR} \
              -DPYTHON_EXECUTABLE=$(which python3) \
              -DBUILD_PYTHON_MODULE=ON \
-             -DBUILD_SHARED_LIBS=ON \
+             -DBUILD_CUDA_MODULE=ON \
+             -DUSE_BLAS=ON \
+             -DBUILD_SHARED_LIBS=OFF \
              -DBUILD_EXAMPLES=OFF \
              -DBUILD_UNIT_TESTS=OFF \
-             -DBUILD_CUDA_MODULE=ON \
-             -DBUILD_GUI=ON \
-             -DUSE_BLAS=ON \
+             -DBUILD_GUI=OFF \
+             -DENABLE_HEADLESS_RENDERING=OFF \
              ..
 
 make -j$(nproc) \
-&& make install \
-&& make install-pip-package \
 && make pip-package \
 && ldconfig

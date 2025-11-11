@@ -4,6 +4,7 @@ Build Docker image
 export docker_name="tphv2"
 docker build \
 --ssh github_ssh_key=/home/ds1804/.ssh/id_ed25519 \
+--progress=plain \
 -t $docker_name -f Dockerfile .
 ```
 ```bash

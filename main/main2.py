@@ -286,7 +286,7 @@ def main(pub_obj:DBManager):
     df = tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd), debug)
     df.to_csv(csvOut)
     
-    num_trees_processed = (len(df)-1)
+    num_trees_processed = int(len(df)-1)
     pub_obj.process_completed("XYZ", tree_count=num_trees_processed)
     asyncio.get_event_loop().run_until_complete(pub_obj.upload_everything_async(pub_obj.docker_output_folder, num_trees_processed))
 
