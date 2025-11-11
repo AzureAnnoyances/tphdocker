@@ -111,9 +111,10 @@ class DBManager(PubSubManager):
         check_interval = 1
         while (time.time() - start_time) < max_wait_time:
             try:
-                docker_file_pth, ext = self.download_pointcloud()
-                if len(docker_file_pth) > 0:
-                    return docker_file_pth, ext
+                if self.frontend_Upload_completed():
+                    docker_file_pth, ext = self.download_pointcloud()
+                    if len(docker_file_pth) > 0:
+                        return docker_file_pth, ext
             
             except Exception:
                 pass  # Ignore errors and keep waiting
@@ -121,6 +122,32 @@ class DBManager(PubSubManager):
             time.sleep(check_interval)
         # Timeout reached
         raise TimeoutError(f"Download not available after {max_wait_time} seconds")
+
+    def frontend_Upload_completed(self)->bool:
+        truth_map = {
+            "true": True,
+            "false": False,
+            "1": True,
+            "0": False,
+            "yes": True,
+            "no": False
+        }
+        try:
+            with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
+                entity = table_client.get_entity(
+                    partition_key=self.PartitionKey, 
+                    row_key=self.row_key
+                    )
+                upload_completed_string = entity["upload_completed"]
+                upload_completed = truth_map.get(upload_completed_string.lower())
+                if upload_completed is None:
+                    raise TypeError(f"Data From Data-Tables is Wrong, [{self.PartitionKey}, {self.row_key}]")
+                return upload_completed
+        except Exception as e:
+            print(f"Exception occured in [frontend_Upload_completed] , \nError : [{e}]")
+            return False
+            
+            
 
     def download_pointcloud(self)-> Tuple[str, str]:
         try:

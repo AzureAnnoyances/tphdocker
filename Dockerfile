@@ -45,8 +45,7 @@ RUN apt-get remove python3-blinker -y && \
         "numpy>=1.17,<1.26.3" \
         ${O3D_DIR}/build/lib/python_package/pip_package/open3d-0.18.0+0f06a149c-cp310-cp310-manylinux_2_35_x86_64.whl && \
     rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
-# ENTRYPOINT ["/bin/bash"]
-#     RUN python3 -c "import open3d"
+
 
 # Clone this github
 WORKDIR /root
@@ -56,8 +55,6 @@ RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b mergeAzu
     cd /root/sdp_tph/main && \
     gdown --no-check-certificate --folder https://drive.google.com/drive/folders/10ounVnH2i16FWl3WK4alm0YOAGsuH__f?usp=sharing && \
     rm -rf /var/lib/apt/lists/* && apt-get clean && apt autoremove -y 
-# ENTRYPOINT ["python3"]
-
 
 ENV QT_QPA_PLATFORM=offscreen
 ENV PUBSUBGROUPNAME="groupcontainerblob"
@@ -81,8 +78,8 @@ ENV EXT=".laz"
 ENV DOWNLOAD_WAIT_TIME_MINS=10
 # ENTRYPOINT ["python3", "main2.py"]
 
-WORKDIR /
-COPY . /root/sdp_tph/
+# WORKDIR /
+# COPY . /root/sdp_tph/
 
 WORKDIR /root/sdp_tph/main
 ENTRYPOINT ["python3", "main2.py"]
