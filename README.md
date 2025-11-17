@@ -1,7 +1,7 @@
 Build Docker image
 ## New Version
 ```bash
-export docker_name="tphv2"
+export docker_name="tphv4"
 docker build \
 --ssh github_ssh_key=/home/ds1804/.ssh/id_ed25519 \
 --progress=plain \

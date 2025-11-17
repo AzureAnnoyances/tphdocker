@@ -9,7 +9,6 @@ import numpy as np
 from utility.yolo_detect import Detect
 from utility.pcd2img import pcd2img_np
 from utility.get_coords import scale_pred_to_xy_point_cloud, draw_coord_on_img, scale_coord, get_strides
-# from utility.generate_tree import get_h_from_each_tree_slice, crop_pcd_to_many
 from utility.generate_treev2 import TreeGen
 from utility.csf_py import csf_py
 from utility.encode_decode import img_b64_to_arr

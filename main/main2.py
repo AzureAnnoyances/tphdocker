@@ -6,13 +6,11 @@ import os
 import sys
 import cv2 
 import numpy as np
+from utility import tph
 from utility.yolo_detect import Detect
-from utility.pcd2img import pcd2img_np
 from utility.get_coords import scale_pred_to_xy_point_cloud, draw_coord_on_img, scale_coord, get_strides
-# from utility.generate_tree import get_h_from_each_tree_slice, crop_pcd_to_many
 from utility.generate_treev2 import TreeGen
 from utility.csf_py import csf_py
-from utility.encode_decode import img_b64_to_arr
 sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
 from raster_pcd2img import rasterize_3dto2D
 
@@ -28,8 +26,12 @@ import matplotlib.pyplot as plt
 import laspy
 from azure_helpers.blob_manager import DBManager
 import asyncio
-import time
 
+def create_folder_from_dict(folder_dict:dict):
+    for path in folder_dict.values():
+        if not os.path.exists(path):
+            os.mkdir(path)
+            
 def get_args(path_directory, input_file, input_pcd_extension):
     logger.info(f"Inputs:\n   path_directory  : [{path_directory}]\n   input_file_name : [{input_file}]\n   input_pcd_extension : [{input_pcd_extension}]\n")
     input_img_pth = path_directory + input_file + input_pcd_extension
@@ -93,34 +95,42 @@ def main(pub_obj:DBManager):
     with open("config/config.yaml","r") as ymlfile:
         yml_data = yaml.load(ymlfile, Loader = yaml.FullLoader)
     debug = yml_data["output"]["debug"]
-    # Input Folder Location
-    # curr_dir = os.getcwd()
-    # pcd_filename = pcd_name+input_pcd_extension
     
-    # Output Folder Location
-    # output_folder = folder_loc + pcd_name +"/"
+    # Input Folder Location
     input_folder  = pub_obj.docker_input_folder
     output_folder = pub_obj.docker_output_folder +"/"
     pcd_name      = pub_obj.filename
-    topViewOut  = output_folder + yml_data["output"]["folder_location"]["topView"]
-    sideViewOut = output_folder + yml_data["output"]["folder_location"]["sideView"]
-    pcdOut      = output_folder + yml_data["output"]["folder_location"]["pcd"]
-    diamOut     = output_folder + yml_data["output"]["folder_location"]["diam"]
-    debugOut    = output_folder + yml_data["output"]["folder_location"]["debug"]
-    csvOut      = output_folder + pcd_name +".csv"
+
+    topViewOut  = output_folder + yml_data["output"]["folder_location"]["topViewOut"]
+    topViewBin_save_pth  = f"{topViewOut}/{pcd_name}_coor_binary.png"
+    csvOut      = os.path.join(output_folder, f"{pcd_name}.csv")
     folder_out_dict = {
         "input_folder"  : input_folder,
         "output_folder" : output_folder,
-        "topViewOut"    : topViewOut,
-        "sideViewOut"   : sideViewOut,
-        "pcdOut"        : pcdOut,
-        "diamOut"       : diamOut
+        # "topViewOut"    : topViewOut,
+        # "sideViewOut"   : sideViewOut,
+        # "pcdOut"        : pcdOut,
+        # "diamOut"       : diamOut
     }
-    if debug:
-        folder_out_dict["debugOut"] = debugOut
-    for path in folder_out_dict.values():
-        if not os.path.exists(path):
-            os.mkdir(path)
+    # Create Folder Location from config.yaml
+    for k,v in yml_data["output"]["folder_location"].items():
+        folder_out_dict[k] = os.path.join(output_folder, v)
+        if debug and k == "debugOut":
+            folder_out_dict[k] = v
+    
+    preprocess_root_folder = os.path.join(output_folder,yml_data["output"]["folder_preprocess"]["root"])
+    pre_process_folders = {
+        "root": preprocess_root_folder
+    }
+    # Create Preprocesss Folder location
+    for k, v in yml_data["output"]["folder_preprocess"]["internal"].items():
+        pre_process_folders[k] = os.path.join(preprocess_root_folder, v)
+        
+    create_folder_from_dict(folder_out_dict)
+    create_folder_from_dict(pre_process_folders)
+    outputFolder_obj = tph.OutputFolder(**folder_out_dict)
+    preprocessFolder_obj = tph.PreprocessFolder(**pre_process_folders)
+    
     pub_obj.process_percentage(5)
     input_pcd_full_path, input_pcd_extension = pub_obj.download_pcd_timer()
     pub_obj.process_percentage(10)
@@ -128,28 +138,9 @@ def main(pub_obj:DBManager):
     
     pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
     pub_obj.process_percentage(15)
-    # accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
-    # assert input_pcd_extension in accepted_file_types,f"Filetype must be {accepted_file_types}"
-    
-    # # Read pcd
-    # pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
-    # if input_pcd_extension in [".las",".laz"]:
-    #     with laspy.open(input_pcd_full_path) as fh:
-    #         las = fh.read()
-    #     xyz = np.vstack((las.x, las.y, las.z)).T
-    #     pcd = o3d.geometry.PointCloud()
-    #     pcd.points = o3d.utility.Vector3dVector(xyz)
-    #     print(len(pcd.points))
-    # elif input_pcd_extension == ".txt":
-    #     format = 'xyz'
-    #     pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
-    # else:
-    #     format = 'auto'
-    #     pcd = o3d.io.read_point_cloud(input_pcd_full_path, format=format)
 
-    # assert len(pcd.points) >= 1,f"Failed to Read Point Cloud file [{input_pcd_full_path}], it's Empty or broken"
 
-    # logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")
+    logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")
     ###################################################
     ######## END File Generation from PCD #############
     ###################################################
@@ -177,7 +168,6 @@ def main(pub_obj:DBManager):
         rigidness=1
     )
     # 2. Create img from CSF
-    # non_ground_img = pcd2img_np(non_grd,"z",topViewStepsize)
     _, non_ground_img_color, _  = rasterize_3dto2D(
             pointcloud = np.array(non_grd.points),
             stepsize=topViewStepsize,
@@ -254,7 +244,7 @@ def main(pub_obj:DBManager):
 
     # 2c Visualization Purpose
     img_with_coord = draw_coord_on_img(non_ground_img_color, np.asarray(coordinates), circle_size=10)
-    cv2.imwrite(f"{topViewOut}/{pcd_name}_coor_binary.png", cv2.cvtColor(img_with_coord, cv2.COLOR_BGR2RGB))
+    cv2.imwrite(topViewBin_save_pth, cv2.cvtColor(img_with_coord, cv2.COLOR_BGR2RGB))
 
     # 3. Scale 2D to 3D
     xmin, ymin, zmin = non_grd.get_min_bound()
@@ -282,14 +272,35 @@ def main(pub_obj:DBManager):
     logger.info("Step 4. Generate Height ")
     
     # Yaml Params
-    tree_gen = TreeGen(yml_data, folder_out_dict, pcd_name, pubsub=pub_obj, debug=debug)
-    df = tree_gen.process_each_coord(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd), debug)
+    tree_gen = TreeGen(yml_data, outputFolder_obj, preprocessFolder_obj, pcd_name, pubsub=pub_obj, debug=debug, )
+    
+    # pcd = pcd.uniform_down_sample(3)
+    # grd = grd.uniform_down_sample(3)
+    # non_grd = non_grd.uniform_down_sample(3)
+    df = tree_gen.process_each_coordv2(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
     df.to_csv(csvOut)
+    
     
     num_trees_processed = int(len(df)-1)
     pub_obj.process_completed("XYZ", tree_count=num_trees_processed)
+    
+    remove_preprocess_folders([preprocessFolder_obj.root])
+    make_zipfile(output_folder, pcd_name, output_folder)
+    remove_preprocess_folders([outputFolder_obj.pcdOut, outputFolder_obj.diamOut])
     asyncio.get_event_loop().run_until_complete(pub_obj.upload_everything_async(pub_obj.docker_output_folder, num_trees_processed))
 
+def make_zipfile(save_path, filename_no_ext, folder_to_zip):
+    import shutil
+    if not os.path.exists(save_path):
+        raise FileNotFoundError(f"this save_path does not exist {save_path}")
+    
+    save_path_with_filename = os.path.join(save_path, filename_no_ext)
+    shutil.make_archive(save_path_with_filename, 'zip', root_dir=folder_to_zip)
+
+def remove_preprocess_folders(list_of_folders):
+    import shutil
+    for folder in list_of_folders:
+        shutil.rmtree(folder)
 if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
     logger.info(f"Current dir: [{os.getcwd()}]")

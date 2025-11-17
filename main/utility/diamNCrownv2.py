@@ -5,7 +5,7 @@ import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import leastsq
 import sys, pathlib
-
+from . import tph
 # Personal Libs
 yolov7_main_pth = pathlib.Path(__file__).resolve().parent.parent.joinpath("yolov7")
 sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
@@ -13,6 +13,7 @@ sys.path.insert(0, str(yolov7_main_pth))
 from raster_pcd2img import rasterize_3dto2D
 from segment.predict2 import Infer_seg
 from .analysis import stem_analysis
+from .tph_io import threaded
 
 # Fix split tree to rasters
 # Fix split tree to crown
@@ -31,8 +32,10 @@ def display_inlier_outlier(cloud):
     
 
 class SingleTreeSegmentation():
-    def __init__(self, weight_src, tree_img_shape, debug=False):
-        self.debug = debug
+    def __init__(self, weight_src, tree_img_shape, expansion:tuple, debug:bool=False):
+        self.debug      :bool   = debug
+        self.expansion  :tuple  = expansion
+        
         # weight_src = f"{yolov7_main_pth}/runs/train-seg/exp10/weights/last.pt"
         self.model = Infer_seg(weights=weight_src, imgz=tree_img_shape)
         self.tree_img_shape = tree_img_shape
@@ -42,14 +45,14 @@ class SingleTreeSegmentation():
         self.curr_params = []
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol, debug=False):
+    def segment_tree(self, pcd, z_ffb, z_grd, center_coord, expansion, uv_tol):
         """
         1. Split to rasters
         2. Object Det Each raster to find mask of Crown and Trunk
         3. Generate image from trunk and crown
         """
         trunk_pcd, crown_pcd, \
-            raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord, expansion)
+            raster_trunk_img, raster_crown_img = self.rasterize_to_trunk_crown(pcd, z_ffb, z_grd, center_coord)
         trunk_detected, im_mask_trunk = self.get_pred_trunk(raster_trunk_img, center_tol=uv_tol, cls_idx=2)
         crown_detected, im_mask_crown = self.get_pred_crown(raster_crown_img, center_tol=uv_tol, cls_idx=0)
         
@@ -67,7 +70,7 @@ class SingleTreeSegmentation():
         stats["trunk_ok"] = trunk_detected
         stats["crown_ok"] = crown_detected
         stats["trunk_img"] = trunk_img
-        if debug:
+        if self.debug:
             stats["debug_crown_img"] = raster_crown_img
             stats["debug_trunk_img"] = raster_trunk_img
         return trunk_detected, stats, single_tree_pcd
@@ -117,23 +120,29 @@ class SingleTreeSegmentation():
         y, x = np.ogrid[:H, :W]
         center = (W//2, H//2)
         mask_2d = (x - center[0])**2 + (y - center[1])**2 <= radius**2
-        return mask_2d
-        
-    def rasterize_to_trunk_crown(self, pcd, z_ffb, z_grd, center_coord, expansion):  
+        return mask_2d.astype(np.bool_)
+    
+    
+    def downsample_pcd(self, pcd):
+        downampled_cloud = pcd.voxel_down_sample(0.05)
+        return downampled_cloud
+    
+    def rasterize_to_trunk_crown(self, multi_tree_pcd, z_ffb, z_grd, center_coord):  
         """
-        pcd: (N, 3) array of 3D points.
-        z_ffb: 
-        z_grd: (
-        center_coord: Tuple of (c_x, c_y, c_z) bounds.
-        expansion: Tuple of (x, y) expansion.
+        pcd     (o3d.pcd)   : (N, 3) array of 3D points.
+        z_ffb   (float)     : 
+        z_grd   (float)     : 
+        center_coord (tuple): (c_x, c_y, c_z) bounds.
         """ 
         # Get bbox of Trunk by bbox trunk tolerance
         # Get bbox of Crown with the whole damn thing
+        expansion:tuple = self.expansion
         self.curr_params = [z_ffb, z_grd, center_coord, expansion]
-        min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
+        min_bound, max_bound  = multi_tree_pcd.get_min_bound(), multi_tree_pcd.get_max_bound()
+        
         
         # --- Remove Ground from Trunk and Crown ---
-        trunk_z_tol = np.clip((z_ffb-z_grd)/5 , a_min=0.1, a_max=3.0)
+        trunk_z_tol = np.clip((z_ffb-z_grd)/4 , a_min=0.1, a_max=3.0)
         trunk_xy_tol = 1.0
         bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(center_coord[0]-trunk_xy_tol, -center_coord[1]-trunk_xy_tol, z_grd+trunk_z_tol), 
@@ -142,8 +151,8 @@ class SingleTreeSegmentation():
         bbox_crown = o3d.geometry.AxisAlignedBoundingBox(
             min_bound=(min_bound[0], min_bound[1], z_ffb-crown_z_tol), 
             max_bound=max_bound)
-        trunk = pcd.crop(bbox_trunk)
-        crown = pcd.crop(bbox_crown)
+        trunk = multi_tree_pcd.crop(bbox_trunk)
+        crown = multi_tree_pcd.crop(bbox_crown)
 
         # Trunk
         _, raster_trunk_image, _ = rasterize_3dto2D(
@@ -168,11 +177,12 @@ class SingleTreeSegmentation():
         )
         return trunk, crown, raster_trunk_image, raster_crown_image
     
-    def split_Tree_to_trunkNCrown(self, pcd, mask_crown, mask_trunk):
+    def split_Tree_to_trunkNCrown(self, pcd, mask_crown:np.ndarray, mask_trunk:np.ndarray, tphinit:tph.Oitems):
         # find trunk n crown,
         # use trunk pcd bbox and remove from crown
         try:
-            z_ffb, z_grd, center_coord, expansion = self.curr_params
+            z_ffb, z_grd, center_coord = tphinit.z_ffb, tphinit.z_grd, tphinit.xy
+            expansion = self.expansion
             z_tol = (z_ffb-z_grd)/2
             min_bound, max_bound  = pcd.get_min_bound(), pcd.get_max_bound()
             bbox_trunk = o3d.geometry.AxisAlignedBoundingBox(
@@ -216,8 +226,7 @@ class SingleTreeSegmentation():
             crown_pcd = crown_pcd.select_by_index(inlier_indices, invert=True) # Select Outside the trunk from the crown
             crown_pcd.paint_uniform_color([1.0, 0.0, 0.0])
         except Exception as e:
-            print(e)
-            return False, trunk_pcd, crown_pcd, trunk_img
+            return False, None, None, None
         
         return True, trunk_pcd, crown_pcd, trunk_img
             

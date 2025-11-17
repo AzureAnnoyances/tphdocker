@@ -7,12 +7,20 @@ dataset:
 output:
   debug : True
   folder_location : 
-    root    : '/output'
-    topView : 'topView'
-    sideView: 'sideView'
-    pcd     : 'pointcloud'
-    diam    : 'diam'
-    debug   : 'debug'
+    topViewOut : 'topView'
+    sideViewOut: 'sideView'
+    pcdOut     : 'pointcloud'
+    diamOut    : 'diam'
+    debugOut   : 'debug'
+
+  folder_preprocess : 
+    root  : 'preprocess'
+    internal :
+      pre_diam    : 'diam'
+      pre_crown   : 'crown'
+      pre_pcd     : 'pcd'
+      post_diam   : 'post_diam'
+      post_crown  : 'post_crown'
 
 yolov5:
   yolov5_pth: "yolov5"
@@ -32,8 +40,8 @@ yolov5:
 
 yolov7:
   model_pth : "model_weights/seg_CrownTrunkv3.pt"
-  imgShape : [640,640]
+  imgShape : [480,480]
 
 save_checks:
   min_tree_pts : 1500
-  min_distance : 0.5
+  min_distance : 0.3

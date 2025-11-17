@@ -119,8 +119,8 @@ ENV EXT=".laz"
 ENV DOWNLOAD_WAIT_TIME_MINS=10
 
 ### Comment this if u want to debug in real time
-# WORKDIR /
-# COPY . /root/sdp_tph/
+WORKDIR /
+COPY . /root/sdp_tph/
 
 WORKDIR /root/sdp_tph/main
 ENTRYPOINT ["python3", "main2.py"]
