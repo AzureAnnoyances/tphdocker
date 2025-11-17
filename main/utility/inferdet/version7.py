@@ -4,7 +4,7 @@ from inferenceFrombatch import *
 
 
 class Detect7Bro:
-    def __init__(self, source_img_dir, yaml_conf_dir, weights_pth, batch_size, image_size, save_mask_dir, save_overlays_dir=None, conf_thres=0.25, iou_thres=0.6, max_det=300):
-        self.run = Detectv7(source_img_dir, yaml_conf_dir, weights_pth, batch_size, image_size, save_mask_dir, save_overlays_dir=None, conf_thres=0.25, iou_thres=0.6, max_det=300)
+    def __init__(self, source_img_dir, yaml_conf_dir, weights_pth, batch_size, image_size, save_mask_dir, save_overlays_dir=None, conf_thres=0.25, iou_thres=0.6, max_det=300, all_labels_must_be_present=False):
+        self.run = Detectv7(source_img_dir, yaml_conf_dir, weights_pth, batch_size, image_size, save_mask_dir, save_overlays_dir=None, conf_thres=0.25, iou_thres=0.6, max_det=300, all_labels_must_be_present=all_labels_must_be_present)
     
     

@@ -203,7 +203,7 @@ class TreeGen():
         try:
             coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
             for index, coord in enumerate(coord_loop):
-                # self.pubsub.process_percentage(int((index/len(coord_loop))*50))
+                self.pubsub.process_percentage(int((index/len(coord_loop))*50))
                 
                 detectedSideView, SideViewDict = self.process_single_sideView(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
                 
@@ -244,7 +244,9 @@ class TreeGen():
                 source_img_dir=input_folder_crown, yaml_conf_dir="/root/sdp_tph/main/model_weights/version7config.yaml",
                 weights_pth=self.v7_weight_pth,
                 batch_size=8, image_size=640,
-                save_mask_dir=output_folder_crown
+                save_mask_dir=output_folder_crown,
+                all_labels_must_be_present=True
+                
             )
             self.pubsub.process_percentage(int(55))
             Detect7Bro(
