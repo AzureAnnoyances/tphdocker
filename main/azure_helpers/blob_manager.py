@@ -8,7 +8,7 @@ from azure.core.exceptions import ResourceNotFoundError, ResourceModifiedError
 from azure.data.tables import TableClient, TableServiceClient, UpdateMode
 from typing_extensions import TypedDict
 from dotenv import find_dotenv, load_dotenv
-from .helper import get_time_now
+from .helper import count_iter_items
 from .pubsub_manager import PubSubManager
 class RootDataTable(TypedDict, total=False):
     PartitionKey: str           # ID                    # Passed to Container
@@ -35,8 +35,10 @@ class RootDataTable(TypedDict, total=False):
     # Function App
     trees_completed : int       # [Number of Trees]
     
-class Blob_Manager():
+class Blob_Manager(PubSubManager):
     def __init__(self, conn_string, container_name):
+        self.init_pubsub()
+        load_dotenv(find_dotenv())
         self.conn_string = conn_string
         self.container_name = container_name
         self.blob_service = BlobServiceClient.from_connection_string(conn_string)
@@ -54,11 +56,23 @@ class Blob_Manager():
             container.create_container()
         return container
     
-    def download_file(self, blob_path, write_path):
+    def download_filev0(self, blob_path, write_path):
         blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
         with open(file=write_path, mode="wb") as file_download:
             download_stream = blob_file_client.download_blob()
             file_download.write(download_stream.readall())
+            
+    def download_file(self, blob_path, write_path):
+        blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
+        total_file_size = blob_file_client.get_blob_properties().size
+        total_chunk_size = 0
+        with open(file=write_path, mode="wb") as file_download:
+            for chunk in blob_file_client.download_blob().chunks():
+                file_download.write(chunk)
+                
+                total_chunk_size+=len(chunk)
+                self.process_percentage(2+int((total_chunk_size/total_file_size)*18))
+                
     
     def upload_file(self, docker_path, write_path):
         blob_file_client = self.blob_container_client.get_blob_client(blob=write_path)
@@ -120,10 +134,9 @@ class DBManager(PubSubManager):
         check_interval = 1
         while (time.time() - start_time) < max_wait_time:
             try:
-                self.process_percentage(5)
+                self.process_percentage(2)
                 if self.frontend_Upload_completed():
                     self.upload_completed()
-                    self.process_percentage(10)
                     docker_file_pth, ext = self.download_pointcloud()
                     if len(docker_file_pth) > 0:
                         return docker_file_pth, ext
@@ -136,31 +149,6 @@ class DBManager(PubSubManager):
             time.sleep(check_interval)
         # Timeout reached
         raise TimeoutError(f"Download not available after {max_wait_time} seconds")
-
-    # def frontend_Upload_completed(self)->bool:
-    #     truth_map = {
-    #         "true": True,
-    #         "false": False,
-    #         "1": True,
-    #         "0": False,
-    #         "yes": True,
-    #         "no": False
-    #     }
-        
-    #     try:
-    #         with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
-    #             entity = table_client.get_entity(
-    #                 partition_key=self.PartitionKey, 
-    #                 row_key=self.row_key
-    #                 )
-    #             upload_completed_string = entity["upload_completed"]
-    #             upload_completed = truth_map.get(upload_completed_string.lower())
-    #             if upload_completed is None:
-    #                 raise TypeError(f"Data From Data-Tables is Wrong, [{self.PartitionKey}, {self.row_key}]")
-    #             return upload_completed
-    #     except Exception as e:
-    #         print(f"Exception occured in [frontend_Upload_completed] , \nError : [{e}]")
-    #         return False
     
     def frontend_Upload_completed(self)->bool:
         download_file_path = self.download_full_path
@@ -175,7 +163,28 @@ class DBManager(PubSubManager):
         except Exception as e:
             print(f"Exception occured in [frontend_Upload_completed] , \nError : [{e}]")
             return False
+
+    ## Azure hmm... Not going to tell us there's no folder? Hmmmmmm?
+    async def delete_process_folder_on_pcd_upload(self):
+        from azure.storage.blob.aio import BlobServiceClient
+        blob_service = BlobServiceClient.from_connection_string(self.connection_string)
+        try:
+            async with blob_service.get_container_client(self.storageContainer) as blob_client:
+                deletingBlobs=[]
+                self.store_percentage(51)
+                async for blob in blob_client.list_blobs():
+                    if blob.name.startswith(self.process_folder):
+                        deletingBlobs.append(blob_client.delete_blob(blob.name, delete_snapshots="include"))
+            await asyncio.gather(*deletingBlobs)
+            await blob_service.close()
+            self.store_percentage(50)
+            print(f"deleted Blobs Successfully")
+            return True
             
+        except Exception as e:
+            self.store_error(f"Error occured in [delete_process_folder_on_pcd_upload], [{e}]")
+            await blob_service.close()
+            return False
 
     def download_pointcloud(self)-> Tuple[str, str]:
         try:
@@ -229,7 +238,7 @@ class DBManager(PubSubManager):
             for first_completed in asyncio.as_completed(uploadingBlobs):
                 res = await first_completed
                 completed_count+=1
-                self.store_percentage((completed_count/n_awaitables)*100)
+                self.store_percentage(int(50+(completed_count/n_awaitables)*50))
             
             self.store_percentage(100)
             await asyncio.sleep(1)

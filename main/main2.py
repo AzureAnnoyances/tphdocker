@@ -131,9 +131,8 @@ def main(pub_obj:DBManager):
     outputFolder_obj = tph.OutputFolder(**folder_out_dict)
     preprocessFolder_obj = tph.PreprocessFolder(**pre_process_folders)
     
-    pub_obj.process_percentage(5)
+    pub_obj.process_percentage(1)
     input_pcd_full_path, input_pcd_extension = pub_obj.download_pcd_timer()
-    pub_obj.process_percentage(15)
     
     
     pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
@@ -287,6 +286,7 @@ def main(pub_obj:DBManager):
     remove_preprocess_folders([preprocessFolder_obj.root])
     make_zipfile(output_folder, pcd_name, output_folder)
     remove_preprocess_folders([outputFolder_obj.pcdOut, outputFolder_obj.diamOut])
+    asyncio.get_event_loop().run_until_complete(pub_obj.delete_process_folder_on_pcd_upload())
     asyncio.get_event_loop().run_until_complete(pub_obj.upload_everything_async(pub_obj.docker_output_folder, num_trees_processed))
 
 def make_zipfile(save_path, filename_no_ext, folder_to_zip):

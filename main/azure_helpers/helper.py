@@ -3,6 +3,8 @@ from datetime import datetime, timezone, timedelta, date
 from pathlib import Path
 from datetime import datetime
 import pytz
+import collections
+import itertools
 
 def clean_the_string(full_path):
     """
@@ -69,3 +71,8 @@ def time_human_readable(iso_string):
     time_part = dt_object.strftime("%I:%M %p")
 
     return f"{date_part}, {time_part}"
+
+def count_iter_items(iterable):
+    counter = itertools.count()
+    collections.deque(zip(iterable, counter), maxlen=0)
+    return next(counter)

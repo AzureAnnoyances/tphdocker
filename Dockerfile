@@ -55,7 +55,7 @@ RUN apt-get remove python3-blinker -y && \
 
 # Clone Git -> Install CSF py module -> Model Weights
 WORKDIR /root
-ARG CACHE_BUST=7
+ARG CACHE_BUST=10
 RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b mergeAzure && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
     python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \
