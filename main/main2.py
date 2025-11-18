@@ -133,11 +133,11 @@ def main(pub_obj:DBManager):
     
     pub_obj.process_percentage(5)
     input_pcd_full_path, input_pcd_extension = pub_obj.download_pcd_timer()
-    pub_obj.process_percentage(10)
+    pub_obj.process_percentage(15)
     
     
     pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
-    pub_obj.process_percentage(15)
+    pub_obj.process_percentage(20)
 
 
     logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")

@@ -45,7 +45,6 @@ RUN chmod +x install_open3d.sh && \
 ARG CACHE_BUST=2
 RUN find / -name "*pybind*" -type f 2>/dev/null | head -50 || true 
 RUN find / -name "*open3d*" -type f 2>/dev/null | head -50 || true
-ARG CACHE_BUST=5
 
 RUN apt-get remove python3-blinker -y && \
     python3 -m pip install --no-cache-dir --ignore-installed \
@@ -56,6 +55,7 @@ RUN apt-get remove python3-blinker -y && \
 
 # Clone Git -> Install CSF py module -> Model Weights
 WORKDIR /root
+ARG CACHE_BUST=7
 RUN git clone --recursive https://github.com/chngdickson/sdp_tph.git -b mergeAzure && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
     python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \

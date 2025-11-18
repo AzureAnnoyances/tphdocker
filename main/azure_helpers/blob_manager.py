@@ -8,7 +8,7 @@ from azure.core.exceptions import ResourceNotFoundError, ResourceModifiedError
 from azure.data.tables import TableClient, TableServiceClient, UpdateMode
 from typing_extensions import TypedDict
 from dotenv import find_dotenv, load_dotenv
-
+from .helper import get_time_now
 from .pubsub_manager import PubSubManager
 class RootDataTable(TypedDict, total=False):
     PartitionKey: str           # ID                    # Passed to Container
@@ -64,6 +64,15 @@ class Blob_Manager():
         blob_file_client = self.blob_container_client.get_blob_client(blob=write_path)
         with open(file=docker_path, mode="rb") as data:
             blob_file_client.upload_blob(data=data, overwrite=True)
+            
+    def get_blob_metadata(self, blob_path)->dict:
+        blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
+        blob_metadata = blob_file_client.get_blob_properties().metadata
+        print(blob_metadata)
+        if blob_metadata is not None:
+            return blob_metadata
+        else:
+            return {}
 
 class DBManager(PubSubManager):
     def __init__(self):
@@ -111,10 +120,15 @@ class DBManager(PubSubManager):
         check_interval = 1
         while (time.time() - start_time) < max_wait_time:
             try:
+                self.process_percentage(5)
                 if self.frontend_Upload_completed():
+                    self.upload_completed()
+                    self.process_percentage(10)
                     docker_file_pth, ext = self.download_pointcloud()
                     if len(docker_file_pth) > 0:
                         return docker_file_pth, ext
+                    else:
+                        return '',''
             
             except Exception:
                 pass  # Ignore errors and keep waiting
@@ -123,30 +137,44 @@ class DBManager(PubSubManager):
         # Timeout reached
         raise TimeoutError(f"Download not available after {max_wait_time} seconds")
 
+    # def frontend_Upload_completed(self)->bool:
+    #     truth_map = {
+    #         "true": True,
+    #         "false": False,
+    #         "1": True,
+    #         "0": False,
+    #         "yes": True,
+    #         "no": False
+    #     }
+        
+    #     try:
+    #         with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
+    #             entity = table_client.get_entity(
+    #                 partition_key=self.PartitionKey, 
+    #                 row_key=self.row_key
+    #                 )
+    #             upload_completed_string = entity["upload_completed"]
+    #             upload_completed = truth_map.get(upload_completed_string.lower())
+    #             if upload_completed is None:
+    #                 raise TypeError(f"Data From Data-Tables is Wrong, [{self.PartitionKey}, {self.row_key}]")
+    #             return upload_completed
+    #     except Exception as e:
+    #         print(f"Exception occured in [frontend_Upload_completed] , \nError : [{e}]")
+    #         return False
+    
     def frontend_Upload_completed(self)->bool:
-        truth_map = {
-            "true": True,
-            "false": False,
-            "1": True,
-            "0": False,
-            "yes": True,
-            "no": False
-        }
+        download_file_path = self.download_full_path
+        
         try:
-            with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
-                entity = table_client.get_entity(
-                    partition_key=self.PartitionKey, 
-                    row_key=self.row_key
-                    )
-                upload_completed_string = entity["upload_completed"]
-                upload_completed = truth_map.get(upload_completed_string.lower())
-                if upload_completed is None:
-                    raise TypeError(f"Data From Data-Tables is Wrong, [{self.PartitionKey}, {self.row_key}]")
-                return upload_completed
+            metadata:dict = self.blob_obj.get_blob_metadata(download_file_path)
+            ok = metadata.get("ok")
+            if ok == 'true':
+                return True
+            else:
+                return False 
         except Exception as e:
             print(f"Exception occured in [frontend_Upload_completed] , \nError : [{e}]")
             return False
-            
             
 
     def download_pointcloud(self)-> Tuple[str, str]:
@@ -212,6 +240,18 @@ class DBManager(PubSubManager):
             self.store_error(error_msg=f"Error at Storing {e}")
             return False
     
+    def upload_completed(self):
+        try:
+            with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
+                update_entity = table_client.get_entity(partition_key=self.PartitionKey, row_key=self.row_key)
+                update_entity["status"]= "process"
+                update_entity["upload_completed"] = str(True)
+                table_client.upsert_entity(mode=UpdateMode.MERGE, entity=update_entity)
+            return True
+        except Exception as e:
+            print(f"Error occured in [update_state], {e}")
+            return False
+
     def process_completed(self, coordinates:str, tree_count:int):
         if coordinates not in ["XYZ", "Lat/Long"]:
             raise ValueError(f"coordinates must be in ['XYZ','Lat/long'], your coordinates are [{coordinates}]")
