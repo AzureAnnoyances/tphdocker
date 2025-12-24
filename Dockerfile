@@ -55,7 +55,7 @@ RUN apt-get remove python3-blinker -y && \
 
 # Clone Git -> Install CSF py module -> Model Weights
 WORKDIR /root
-ARG CACHE_BUST=13
+ARG CACHE_BUST=16
 RUN git clone --recursive https://github.com/AzureAnnoyances/tphdocker.git -b main sdp_tph && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
     python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \
@@ -110,8 +110,8 @@ ENV StorageContainer=""
 ENV file_upload_full_path=""
 ENV ext=""
 ENV process_folder=""
-ENV DOCKER_Data_IN="/pcddata"
-ENV DOCKER_Data_OUT="/pcddata"
+ENV DOCKER_Data_IN="/root/data_in"
+ENV DOCKER_Data_OUT="/root/data_out"
 
 ENV PATH_DIR="/root/pcds/"
 ENV PCD_NAME="Tangkak_1"
@@ -122,6 +122,9 @@ ENV DOWNLOAD_WAIT_TIME_MINS=10
 # WORKDIR /
 # COPY . /root/sdp_tph/
 
+### Workaround to azure piece of shit
+WORKDIR /
+COPY ./increaseMemoryPlaceholder ${DOCKER_Data_IN}
 
 ### Unrelated
 WORKDIR /root/sdp_tph/main

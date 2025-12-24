@@ -204,6 +204,12 @@ class DBManager(PubSubManager):
 
     def download_pointcloud(self)-> Tuple[str, str]:
         try:
+            os.rmdir(self.docker_input_folder)
+            os.mkdir(self.docker_input_folder)
+        except Exception as e:
+            logger.info(f"Error occured in removing docker input folder : {e}")
+        
+        try:
             download_file_path = self.download_full_path
             docker_file_path = f"{self.docker_input_folder}/{self.filename}{self.download_file_extension}"
             print(f"\n\n\
