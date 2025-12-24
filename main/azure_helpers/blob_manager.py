@@ -129,8 +129,10 @@ class DBManager(PubSubManager):
         
         
         # Docker in out
-        self.docker_input_folder  = f"/root/data_in"
-        self.docker_output_folder = f"/root/data_out"
+        self.docker_input_folder  = str(os.environ["DOCKER_Data_IN"])
+        self.docker_output_folder = str(os.environ["DOCKER_Data_OUT"])
+        # self.docker_input_folder  = f"/root/data_in"
+        # self.docker_output_folder = f"/root/data_out"
         
         # self.create_database_if_not_exists()
         print(f"\n\n\n\
@@ -208,7 +210,7 @@ class DBManager(PubSubManager):
                 Download_file_path : {download_file_path}\n\
                 docker_file_path : {docker_file_path}\n\
                     ")
-            self.blob_obj.download_file(download_file_path, docker_file_path)
+            self.blob_obj.download_file(blob_path=download_file_path, write_path=docker_file_path)
             return docker_file_path, self.download_file_extension
         except Exception as e:
             self.process_error(f"Error at Docker Download_pcd: at [ {download_file_path} ]\n[{e}]")
