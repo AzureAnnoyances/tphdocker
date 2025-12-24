@@ -3,5 +3,7 @@ main/tests/
 *.pdf
 *.pt
 *.ply
+*.laz
+*.las
 main/model_weights/
 main/runs/
