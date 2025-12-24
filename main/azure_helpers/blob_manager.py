@@ -81,11 +81,12 @@ class Blob_Manager(PubSubManager):
                 del chunk
                 gc.collect()
                 import shutil
+                import psutil
                 total, used, free = shutil.disk_usage('/')
-                logger.info("Total: %d GiB" % (total // (2**30)))
-                logger.info("Used: %d GiB" % (used // (2**30)))
-                logger.info("Free: %d GiB" % (free // (2**30)))
-                
+                memory_info = psutil.virtual_memory()
+                logger.info(f"Memory Total: {(memory_info.total // (2**30))} GiB, Used: {(memory_info.used // (2**30))} GiB, Free: {(memory_info.available // (2**30))} GiB")
+                logger.info(f"Disk Total: {total // (2**30)} GiB, Used: {used // (2**30)} GiB, Free: {free // (2**30)} GiB")
+
     
     def upload_file(self, docker_path, write_path):
         blob_file_client = self.blob_container_client.get_blob_client(blob=write_path)
