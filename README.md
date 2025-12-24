@@ -1,5 +1,4 @@
-Build Docker image
-## New Version
+## Building Docker Image
 ```bash
 export docker_name="tphv3"
 docker build \
@@ -7,6 +6,8 @@ docker build \
 --progress=plain \
 -t $docker_name -f Dockerfile .
 ```
+
+### Running Docker
 ```bash
 xhost local:docker
 

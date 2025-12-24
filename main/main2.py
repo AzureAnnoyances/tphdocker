@@ -51,6 +51,7 @@ def numpy_to_bw_3channel(rgb_array, background_threshold=1):
 
 def read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj:DBManager):
     try:
+        logger.info(f"Reading {input_pcd_full_path} File...")
         accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
         assert input_pcd_extension in accepted_file_types,f"Filetype must be {accepted_file_types}"
         
@@ -136,7 +137,7 @@ def main(pub_obj:DBManager):
     
     
     pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
-    pub_obj.process_percentage(20)
+    pub_obj.process_percentage(22)
 
 
     logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")

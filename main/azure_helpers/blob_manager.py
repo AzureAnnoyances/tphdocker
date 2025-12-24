@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger("my-app")
+logger.setLevel(logging.INFO)
 import os
 import time
 import asyncio
@@ -10,6 +14,7 @@ from typing_extensions import TypedDict
 from dotenv import find_dotenv, load_dotenv
 from .helper import count_iter_items
 from .pubsub_manager import PubSubManager
+
 class RootDataTable(TypedDict, total=False):
     PartitionKey: str           # ID                    # Passed to Container
     RowKey: str                 # Filename              # Passed to Container
@@ -66,12 +71,20 @@ class Blob_Manager(PubSubManager):
         blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
         total_file_size = blob_file_client.get_blob_properties().size
         total_chunk_size = 0
+        download_stream = blob_file_client.download_blob()
+        import gc
         with open(file=write_path, mode="wb") as file_download:
-            for chunk in blob_file_client.download_blob().chunks():
+            for chunk in download_stream.chunks():
                 file_download.write(chunk)
-                
-                total_chunk_size+=len(chunk)
+                total_chunk_size+=int(len(chunk))
                 self.process_percentage(2+int((total_chunk_size/total_file_size)*18))
+                del chunk
+                gc.collect()
+                import shutil
+                total, used, free = shutil.disk_usage('/')
+                logger.info("Total: %d GiB" % (total // (2**30)))
+                logger.info("Used: %d GiB" % (used // (2**30)))
+                logger.info("Free: %d GiB" % (free // (2**30)))
                 
     
     def upload_file(self, docker_path, write_path):
