@@ -133,11 +133,13 @@ def main(pub_obj:DBManager):
     preprocessFolder_obj = tph.PreprocessFolder(**pre_process_folders)
     
     pub_obj.process_percentage(1)
-    input_pcd_full_path, input_pcd_extension = pub_obj.download_pcd_timer()
+    if os.getenv("IS_LOCAL","false").lower() == "true":
+        input_pcd_full_path = os.path.join(input_folder, f"{pcd_name}{input_pcd_extension}")
+        pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
+    else:
+        pcd = pub_obj.download_pcd_timer()
     
-    
-    pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
-    pub_obj.process_percentage(22)
+    pub_obj.process_percentage(20)
 
 
     logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")

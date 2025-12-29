@@ -109,6 +109,7 @@ ENV RowKey=""
 ENV StorageContainer=""
 ENV file_upload_full_path=""
 ENV ext=""
+ENV IS_LOCAL="false"
 ENV process_folder=""
 ENV DOCKER_Data_IN="/root/data_in"
 ENV DOCKER_Data_OUT="/root/data_out"
@@ -123,8 +124,8 @@ ENV DOWNLOAD_WAIT_TIME_MINS=10
 # COPY . /root/sdp_tph/
 
 ### Workaround to azure piece of shit
-WORKDIR /
-COPY ./increaseMemoryPlaceholder ${DOCKER_Data_IN}
+# WORKDIR /
+# COPY ./increaseMemoryPlaceholder ${DOCKER_Data_IN}
 
 ### Unrelated
 WORKDIR /root/sdp_tph/main
