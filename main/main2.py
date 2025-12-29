@@ -169,6 +169,7 @@ def main(pub_obj:DBManager):
         threshold= 2.0, 
         rigidness=1
     )
+    logger.info("Step 2.2: Creating Rasterized Image")
     # 2. Create img from CSF
     _, non_ground_img_color, _  = rasterize_3dto2D(
             pointcloud = np.array(non_grd.points),
