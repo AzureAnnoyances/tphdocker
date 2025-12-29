@@ -4,7 +4,8 @@ logger = logging.getLogger("my-app")
 logger.setLevel(logging.INFO)
 import os
 import sys
-import cv2 
+import cv2
+import torch
 import numpy as np
 from utility import tph
 from utility.yolo_detect import Detect
@@ -171,8 +172,9 @@ def main(pub_obj:DBManager):
     )
     logger.info("Step 2.2: Creating Rasterized Image")
     # 2. Create img from CSF
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     _, non_ground_img_color, _  = rasterize_3dto2D(
-            pointcloud = np.array(non_grd.points),
+            pointcloud = torch.tensor(np.array(non_grd.points)).to(device),
             stepsize=topViewStepsize,
             axis="z",
             highest_first=True,
