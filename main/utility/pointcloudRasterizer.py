@@ -121,7 +121,7 @@ class CSFandImageStitcher:
                 non_grd = non_grd + cropped_non_grd
                 
                 tile_img = self._create_tile_image(
-                    cropped_pcd, crop_min_b, crop_max_b,
+                    cropped_non_grd, crop_min_b, crop_max_b,
                     [tile_h, tile_w], step_size
                 )
                 # Add to stitcher
