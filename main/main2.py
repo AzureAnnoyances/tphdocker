@@ -156,6 +156,20 @@ def main(pub_obj:DBManager):
     logger.info("Step 2: CSF and Rasterize")
     
     # Yaml Params
+    """
+    Original TopView Config for the TopViewModel
+        - stepsize = 0.1
+        - ImgSize = (640, 640)
+        - Meters xy = (64, 64)
+    Model Works best in that config
+    
+    However, due to current restrictions, we're limited to 15 meters, that is 5 trees
+        - stepsize = 0.05
+        - ImgSize = (320, 320)
+        - Meters xy = (16, 16)
+        
+    This causes much more data and time added due to false positives of trees being detected.
+    """
     topViewStepsize     = yml_data["yolov5"]["topView"]["stepsize"]
     top_view_model_pth  = yml_data["yolov5"]["topView"]["model_pth"]
     yolov5_folder_pth   = yml_data["yolov5"]["yolov5_pth"]
@@ -299,9 +313,9 @@ def main(pub_obj:DBManager):
     num_trees_processed = int(len(df)-1)
     pub_obj.process_completed("XYZ", tree_count=num_trees_processed)
     
-    remove_preprocess_folders([preprocessFolder_obj.root])
+    remove_preprocess_folders([preprocessFolder_obj.pre_pcd, preprocessFolder_obj.post_crown, preprocessFolder_obj.post_diam])
     make_zipfile(output_folder, pcd_name, output_folder)
-    remove_preprocess_folders([outputFolder_obj.pcdOut, outputFolder_obj.diamOut])
+    remove_preprocess_folders([outputFolder_obj.pcdOut, outputFolder_obj.diamOut, preprocessFolder_obj.root])
     asyncio.get_event_loop().run_until_complete(pub_obj.delete_process_folder_on_pcd_upload())
     asyncio.get_event_loop().run_until_complete(pub_obj.upload_everything_async(pub_obj.docker_output_folder, num_trees_processed))
 
