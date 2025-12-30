@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 import collections
 import itertools
-
+import gc, ctypes, torch
 def clean_the_string(full_path):
     """
     Args:
@@ -76,3 +76,9 @@ def count_iter_items(iterable):
     counter = itertools.count()
     collections.deque(zip(iterable, counter), maxlen=0)
     return next(counter)
+
+def release_memory():
+    torch.cuda.empty_cache()
+    gc.collect()
+    libc = ctypes.CDLL("libc.so.6")
+    libc.malloc_trim(0)

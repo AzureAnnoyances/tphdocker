@@ -108,7 +108,7 @@ class Blob_Manager(PubSubManager):
     def download_file_to_memory(self, blob_path : str):        
         try:
             byte_value, file_type = self.download_to_memory(blob_path)
-            pcd = self.populate_pointcloud_from_bytes(byte_value, filetype=file_type, batch_size=100000)
+            pcd = self.populate_pointcloud_from_bytes(byte_value, filetype=file_type, batch_size=1000000)
             del byte_value
         except MemoryError as me:
             logger.info(f"Memory Error Occurred during Point Cloud Download/Population: {me}")

@@ -18,6 +18,7 @@ from .csf_py import csf_py
 from .o3d_extras import save_pointcloud
 from typing import Optional
 from azure_helpers.blob_manager import DBManager
+from azure_helpers.helper import release_memory
 from .analysis import stem_analysis
 import logging
 logger = logging.getLogger("my-app")
@@ -182,7 +183,7 @@ class TreeGen():
             print("\n\n\n",total_detected, total_side_detected, total_side_less_detected, total_trees_detected)
         except Exception as e:
             self.pubsub.process_error(f"Error found at Processing, {e}")
-        return self.create_pd_dataframe()
+        return self.create_pd_dataframe(self.tph_items)
     
     
     def process_each_coordv2(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd) -> pd.DataFrame:

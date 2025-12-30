@@ -14,6 +14,7 @@ from raster_pcd2img import rasterize_3dto2D
 from segment.predict2 import Infer_seg
 from .analysis import stem_analysis
 from .tph_io import threaded
+from azure_helpers.helper import release_memory
 
 # Fix split tree to rasters
 # Fix split tree to crown
@@ -155,8 +156,12 @@ class SingleTreeSegmentation():
         crown = multi_tree_pcd.crop(bbox_crown)
 
         # Trunk
+        np_trunk = np.array(trunk.points) # Annoying roundabout way to release the memory
+        torch_trunk = torch.tensor(np_trunk).to(self.device)
+        del np_trunk
+        release_memory()
         _, raster_trunk_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(trunk.points)).to(self.device), 
+            pointcloud = torch_trunk, 
             img_shape  = self.tree_img_shape,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk.get_max_bound()[2]),
@@ -164,10 +169,16 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
-
+        del torch_trunk
+        release_memory()
+        
         # Crown
+        np_crown = np.array(trunk.points)
+        torch_crown = torch.tensor(np_crown).to(self.device)
+        del np_crown
+        release_memory()
         _, raster_crown_image, _ = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(crown.points)).to(self.device), 
+            pointcloud = torch_crown, 
             img_shape  = self.tree_img_shape,
             min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown.get_min_bound()[2]),
             max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown.get_max_bound()[2]),
@@ -175,6 +186,8 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
+        del torch_crown
+        release_memory()
         return trunk, crown, raster_trunk_image, raster_crown_image
     
     def split_Tree_to_trunkNCrown(self, pcd, mask_crown:np.ndarray, mask_trunk:np.ndarray, tphinit:tph.Oitems):

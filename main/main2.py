@@ -11,9 +11,10 @@ from utility import tph
 from utility.yolo_detect import Detect
 from utility.get_coords import scale_pred_to_xy_point_cloud, draw_coord_on_img, scale_coord, get_strides
 from utility.generate_treev2 import TreeGen
-from utility.csf_py import csf_py
-sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
-from raster_pcd2img import rasterize_3dto2D
+from utility.pointcloudRasterizer import CSFandImageStitcher
+# from utility.csf_py import csf_py
+# sys.path.insert(0, '/root/sdp_tph/submodules/proj_3d_and_2d')
+# from raster_pcd2img import rasterize_3dto2D
 
 # Standard Libraries
 import yaml
@@ -111,7 +112,7 @@ def main(pub_obj:DBManager):
         "output_folder" : output_folder,
         # "topViewOut"    : topViewOut,
         # "sideViewOut"   : sideViewOut,
-        # "pcdOut"        : pcdOut,
+        # "pcdOut"        : pcdOut,o3d_pcd_to_image
         # "diamOut"       : diamOut
     }
     # Create Folder Location from config.yaml
@@ -162,25 +163,38 @@ def main(pub_obj:DBManager):
 
     # 1. Generate Top View Yolov5 Model
     topViewModel = Detect(yolov5_folder_pth, top_view_model_pth, img_size=ideal_img_size)
-    grd, non_grd = csf_py(
-        pcd, 
-        return_non_ground = "both", 
-        bsloopSmooth = True, 
-        cloth_res = 1.0, 
-        threshold= 2.0, 
-        rigidness=1
+    
+    # 2. Perform CSF and TopView Image
+    csf_N_stitch_obj = CSFandImageStitcher(pubsub=pub_obj, min_percentage=20, max_percentage=30)
+    non_ground_img_color, pcd, grd, non_grd = csf_N_stitch_obj.o3d_csf_Split_N_rasterize(
+        pcd=pcd,
+        tile_size=(640*2, 640*2),  # Tile size in pixels
+        step_size=topViewStepsize,      
+        stride_ratio=0,            # 50% overlap
+        downsample_voxel_size=0.02
     )
-    logger.info("Step 2.2: Creating Rasterized Image")
-    # 2. Create img from CSF
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    _, non_ground_img_color, _  = rasterize_3dto2D(
-            pointcloud = torch.tensor(np.array(non_grd.points)).to(device),
-            stepsize=topViewStepsize,
-            axis="z",
-            highest_first=True,
-            depth_weighting=True
-        )
     non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
+    
+    # # 2. Create img from CSF
+    # grd, non_grd = csf_py(
+    #     pcd, 
+    #     return_non_ground = "both", 
+    #     bsloopSmooth = True, 
+    #     cloth_res = 1.0, 
+    #     threshold= 2.0, 
+    #     rigidness=1,
+    #     iterations=1500
+    # )
+    # logger.info("Step 2.2: Creating Rasterized Image")
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # _, non_ground_img_color, _  = rasterize_3dto2D(
+    #         pointcloud = torch.tensor(np.array(non_grd.points)).to(device),
+    #         stepsize=topViewStepsize,
+    #         axis="z",
+    #         highest_first=True,
+    #         depth_weighting=True
+    #     )
+    # non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  
@@ -278,10 +292,6 @@ def main(pub_obj:DBManager):
     
     # Yaml Params
     tree_gen = TreeGen(yml_data, outputFolder_obj, preprocessFolder_obj, pcd_name, pubsub=pub_obj, debug=debug, )
-    
-    pcd = pcd.voxel_down_sample(voxel_size=0.02)
-    grd = grd.voxel_down_sample(voxel_size=0.02)
-    non_grd = non_grd.voxel_down_sample(voxel_size=0.02)
     df = tree_gen.process_each_coordv2(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
     df.to_csv(csvOut)
     
