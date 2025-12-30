@@ -158,8 +158,6 @@ class SingleTreeSegmentation():
         # Trunk
         np_trunk = np.array(trunk.points) # Annoying roundabout way to release the memory
         torch_trunk = torch.tensor(np_trunk).to(self.device)
-        del np_trunk
-        release_memory()
         _, raster_trunk_image, _ = rasterize_3dto2D(
             pointcloud = torch_trunk, 
             img_shape  = self.tree_img_shape,
@@ -169,14 +167,10 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
-        del torch_trunk
-        release_memory()
-        
+
         # Crown
         np_crown = np.array(trunk.points)
         torch_crown = torch.tensor(np_crown).to(self.device)
-        del np_crown
-        release_memory()
         _, raster_crown_image, _ = rasterize_3dto2D(
             pointcloud = torch_crown, 
             img_shape  = self.tree_img_shape,
@@ -186,7 +180,7 @@ class SingleTreeSegmentation():
             highest_first=True,
             depth_weighting=True  
         )
-        del torch_crown
+        del np_trunk, np_crown, torch_trunk, torch_crown
         release_memory()
         return trunk, crown, raster_trunk_image, raster_crown_image
     

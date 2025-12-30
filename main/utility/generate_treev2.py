@@ -226,11 +226,11 @@ class TreeGen():
         seg_obj = self.single_tree_seg
         z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
         multi_tree = get_tree_from_coord(pcd, grd_pcd, center_coord, expand_x_y=expansion, expand_z=[z_min, z_max])
-        trunk_pcd, crown_pcd, \
+        _, _, \
             raster_trunk_img, raster_crown_img = seg_obj.rasterize_to_trunk_crown(multi_tree, z_ffb, z_grd, center_coord)
+        multi_tree = multi_tree.uniform_down_sample(5)
         self.io_tph.save_img(raster_crown_img, self.pre_out.pre_crown, str(i))
         self.io_tph.save_img(raster_trunk_img, self.pre_out.pre_diam, str(i))
-        multi_tree = multi_tree.uniform_down_sample(3)
         self.io_tph.save_pcd_compressed(multi_tree, self.pre_out.pre_pcd, i)
     
     def loop_obj_det(self):

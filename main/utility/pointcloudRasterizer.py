@@ -91,9 +91,7 @@ class CSFandImageStitcher:
                 total_tiles += 1
                 logger.info(f"Processing Tile Number [{total_tiles}] ")
                 tile_pct = int((total_tiles/to_be_processed_tiles) * self.max_pct)
-                if self.curr_pct < tile_pct:
-                    self.curr_pct = tile_pct
-                    self.pubsub.process_percentage(self.curr_pct)
+                self.pubsub.process_percentage(tile_pct)
                 
                 # Get tile image
                 cropped_pcd, crop_min_b, crop_max_b= self._crop_pcd(pcd, min_bound, max_bound,
@@ -116,7 +114,9 @@ class CSFandImageStitcher:
                 if downsample_voxel_size is not None:
                     cropped_grd     = cropped_grd.voxel_down_sample(voxel_size=downsample_voxel_size)
                     cropped_non_grd = cropped_non_grd.voxel_down_sample(voxel_size=downsample_voxel_size)
-                
+                    cropped_grd = cropped_grd.uniform_down_sample(2)
+                    cropped_non_grd = cropped_non_grd.uniform_down_sample(2)
+                    
                 grd = grd + cropped_grd
                 non_grd = non_grd + cropped_non_grd
                 
