@@ -51,6 +51,8 @@ class CSFandImageStitcher:
         Returns:
             Stitched 2D image as numpy array (H, W, 3)
         """
+        logger.info(f"In the Rasterizing function")
+        
         # Get point cloud data
         if len(pcd.points) == 0:
             raise ValueError("Point cloud is empty")
@@ -64,7 +66,7 @@ class CSFandImageStitcher:
         full_width_px = int((max_bound[0] - min_bound[0]) / step_size) + 1
         full_height_px = int((max_bound[1] - min_bound[1]) / step_size) + 1
         
-        print(f"Full image size: {full_width_px} x {full_height_px} pixels")
+        logger.info(f"Full image size: {full_width_px} x {full_height_px} pixels")
         
         # Initialize stitcher
         self.stitcher = self._create_stitcher(full_height_px, full_width_px)
@@ -83,10 +85,11 @@ class CSFandImageStitcher:
         w_fully_divided = 0 if ((full_height_px + 1) % stride) == 0 else 1
         h_fully_divided = 0 if ((full_width_px + 1) % stride) == 0 else 1
         to_be_processed_tiles = int(( (full_height_px + 1) / stride ) + w_fully_divided) * int(( (full_width_px + 1) / stride ) + h_fully_divided)
-        print(f"Tiles to process N [{to_be_processed_tiles}] ")
+        logger.info(f"Tiles to process N [{to_be_processed_tiles}] ")
         for y in range(0, full_height_px + 1, stride):
             for x in range(0, full_width_px + 1, stride):
                 total_tiles += 1
+                logger.info(f"Processing Tile Number [{total_tiles}] ")
                 tile_pct = int((total_tiles/to_be_processed_tiles) * self.max_pct)
                 if self.curr_pct < tile_pct:
                     self.curr_pct = tile_pct
@@ -101,7 +104,7 @@ class CSFandImageStitcher:
                 
                 # CSF Filter here
                 cropped_grd, cropped_non_grd = csf_py(
-                    pcd, 
+                    cropped_pcd, 
                     return_non_ground = "both", 
                     bsloopSmooth = True, 
                     cloth_res = 1.0, 
@@ -124,7 +127,7 @@ class CSFandImageStitcher:
                 # Add to stitcher
                 self.stitcher.add_tile(tile_img, y, x)
         
-        print(f"Processed {total_tiles} tiles")
+        logger.info(f"Processed {total_tiles} tiles")
         
         # Get final stitched image
         final_image = self.stitcher.get_final_image()
