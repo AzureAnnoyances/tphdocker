@@ -93,14 +93,14 @@ class CSFandImageStitcher:
                 tile_pct = int((total_tiles/to_be_processed_tiles) * self.max_pct)
                 self.pubsub.process_percentage(tile_pct)
                 
-                # Get tile image
+                # 1. Get Tile pointcloud
                 cropped_pcd, crop_min_b, crop_max_b= self._crop_pcd(pcd, min_bound, max_bound,
                     y, x, tile_h, tile_w, step_size)
                 
                 if len(cropped_pcd.points) < 100:
                     continue
                 
-                # CSF Filter here
+                # 2. CSF Filter 
                 cropped_grd, cropped_non_grd = csf_py(
                     cropped_pcd, 
                     return_non_ground = "both", 
@@ -111,21 +111,24 @@ class CSFandImageStitcher:
                     iterations=500
                 )
                 
+                # 3. Downsample
                 if downsample_voxel_size is not None:
                     cropped_grd     = cropped_grd.voxel_down_sample(voxel_size=downsample_voxel_size)
                     cropped_non_grd = cropped_non_grd.voxel_down_sample(voxel_size=downsample_voxel_size)
                     cropped_grd = cropped_grd.uniform_down_sample(2)
                     cropped_non_grd = cropped_non_grd.uniform_down_sample(2)
-                    
-                grd = grd + cropped_grd
-                non_grd = non_grd + cropped_non_grd
                 
+                # 4 Making Tile_image with NonGround and append image to Master Image
                 tile_img = self._create_tile_image(
                     cropped_non_grd, crop_min_b, crop_max_b,
                     [tile_h, tile_w], step_size
                 )
                 # Add to stitcher
                 self.stitcher.add_tile(tile_img, y, x)
+                
+                # 5. Add to Ground Image
+                grd = grd + cropped_grd
+                non_grd = non_grd + cropped_non_grd
         
         logger.info(f"Processed {total_tiles} tiles")
         
