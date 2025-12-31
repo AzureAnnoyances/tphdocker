@@ -204,7 +204,7 @@ class CSFandImageStitcher:
             release_memory()
             _, non_ground_img_color, _  = rasterize_3dto2D(
                     pointcloud = tensor_points,
-                    stepsize=step_size,
+                    # stepsize=step_size,
                     img_shape= img_shape_h_w,
                     axis="z",
                     highest_first=True,
