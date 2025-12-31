@@ -169,7 +169,7 @@ class SingleTreeSegmentation():
         )
 
         # Crown
-        np_crown = np.array(trunk.points)
+        np_crown = np.array(crown.points)
         torch_crown = torch.tensor(np_crown).to(self.device)
         _, raster_crown_image, _ = rasterize_3dto2D(
             pointcloud = torch_crown, 

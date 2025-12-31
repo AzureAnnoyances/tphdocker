@@ -60,6 +60,10 @@ class CSFandImageStitcher:
         
         # Downsample then perform CSF
         pcd = self._downsample_pcd_via_tile(pcd, tile_size, step_size, stride_ratio, downsample_voxel_size)
+        
+        # Shift Coordinates & Get Bounds
+        pcd = self.shift_pcd_y_axis(pcd)
+        
         release_memory()
         pcd_grd, pcd_non_grd = csf_py(
                     pcd, 
@@ -72,8 +76,6 @@ class CSFandImageStitcher:
                 )
         release_memory()
         
-        # Shift Coordinates & Get Bounds
-        pcd_non_grd = self.shift_pcd_y_axis(pcd_non_grd)
         min_bound = pcd.get_min_bound() # Not an error, we want the Ori PCD Bounds
         max_bound = pcd.get_max_bound()
         
@@ -120,6 +122,8 @@ class CSFandImageStitcher:
         
         # Stich Final Image and Reshift the axis
         final_image = self.stitcher.get_final_image()
+        pcd =  self.shift_pcd_y_axis(pcd)
+        pcd_grd = self.shift_pcd_y_axis(pcd_grd)
         pcd_non_grd = self.shift_pcd_y_axis(pcd_non_grd)
         return final_image, pcd, pcd_grd, pcd_non_grd
     
