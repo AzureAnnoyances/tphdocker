@@ -291,7 +291,7 @@ def main(pub_obj:DBManager):
     
     # Yaml Params
     tree_gen = TreeGen(yml_data, outputFolder_obj, preprocessFolder_obj, pcd_name, pubsub=pub_obj, debug=debug, )
-    df = tree_gen.process_each_coordv2(pcd, grd, non_grd, coordinates, (w_arr_pcd,w_incre_pcd), (h_arr_pcd,h_incre_pcd))
+    df = tree_gen.process_each_coordv2(grd, non_grd, coordinates)
     df.to_csv(csvOut)
     
     

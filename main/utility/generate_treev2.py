@@ -32,7 +32,7 @@ def write_img(save_path, img):
     except Exception as e:
         print("couldnt write image")
 
-def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:tuple=(10.0,10.0), expand_z:list=[-10.0,10.0]):
+def get_tree_from_coord(non_grd_pcd, grd_pcd, coord:tuple, expand_x_y:tuple=(10.0,10.0), expand_z:list=[-10.0,10.0]):
     # CAREFUL THE Y IS ACTUALLY NEGATIVE
     xc, yc = coord[0], -coord[1]
     
@@ -46,7 +46,7 @@ def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:tuple=(10.0,10.0),
     zmin_tolerance = ground.get_max_bound()[2] - 2.0
     zmin = zmin_tolerance if zmin > zmin_tolerance else zmin
     bbox = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-l/2,yc-w/2,zmin),max_bound=(xc+l/2,yc+w/2,zmax))
-    tree = pcd.crop(bbox) + ground
+    tree = non_grd_pcd.crop(bbox) + ground
     return tree
 
 class TreeGen():
@@ -146,9 +146,8 @@ class TreeGen():
             for index, coord in enumerate(coord_loop):
                 self.pubsub.process_percentage(int((index/len(coord_loop))*100))
                 detectedSideView, SideViewDict = self.process_single_sideView(
-                    pcd, grd_pcd, non_grd_pcd, 
-                    coord, w_lin_pcd, h_lin_pcd, 
-                                index=index
+                    grd_pcd, non_grd_pcd, 
+                    coord, index=index
                                 )
                 
                 if detectedSideView:
@@ -186,12 +185,12 @@ class TreeGen():
         return self.create_pd_dataframe(self.tph_items)
     
     
-    def process_each_coordv2(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd) -> pd.DataFrame:
+    def process_each_coordv2(self, grd_pcd, non_grd_pcd, coords) -> pd.DataFrame:
         import faulthandler; faulthandler.enable()
 
         try:
-            self.loop_sideView(pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd)
-            del non_grd_pcd, grd_pcd, pcd
+            self.loop_sideView(grd_pcd, non_grd_pcd, coords)
+            del non_grd_pcd, grd_pcd
             self.loop_obj_det()
             self.loop_topView()
             
@@ -199,14 +198,14 @@ class TreeGen():
             self.pubsub.process_error(f"Error found at Processing, {e}")
         return self.create_pd_dataframe(self.tph_items)
     
-    def loop_sideView(self, pcd, grd_pcd, non_grd_pcd, coords, w_lin_pcd, h_lin_pcd):
+    def loop_sideView(self, grd_pcd, non_grd_pcd, coords):
         total_side_detected = 0
         try:
             coord_loop = tqdm(coords ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
             for index, coord in enumerate(coord_loop):
                 self.pubsub.process_percentage(int((index/len(coord_loop))*50))
                 
-                detectedSideView, SideViewDict = self.process_single_sideView(pcd, grd_pcd, non_grd_pcd, coord, w_lin_pcd, h_lin_pcd, index=index)
+                detectedSideView, SideViewDict = self.process_single_sideView(grd_pcd, non_grd_pcd, coord, index=index)
                 
                 if not detectedSideView:
                     continue
@@ -216,16 +215,16 @@ class TreeGen():
                 
                 i = total_side_detected
                 self.tph_items.append(tph.Oitems(i, xy= SideViewDict["xy_ffb"], z_ffb=SideViewDict["z_ffb"], z_grd=SideViewDict["z_grd"],h=SideViewDict["h"]))
-                self.generate_and_saveTopView(i, pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"])
+                self.generate_and_saveTopView(i, non_grd_pcd, grd_pcd, SideViewDict["xy_ffb"], SideViewDict["z_ffb"], SideViewDict["z_grd"])
                 self.io_tph.save_img(SideViewDict["sideViewImg"], self.sideViewOut, str(i))
                 total_side_detected+=1
         except Exception as e:
             self.pubsub.process_error(f"Error found at loop_sideView, {e}")
     
-    def generate_and_saveTopView(self, i, pcd, grd_pcd, center_coord, z_ffb, z_grd, expansion:tuple = (15.0, 15.0)):
+    def generate_and_saveTopView(self, i, non_grd_pcd, grd_pcd, center_coord, z_ffb, z_grd, expansion:tuple = (15.0, 15.0)):
         seg_obj = self.single_tree_seg
-        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
-        multi_tree = get_tree_from_coord(pcd, grd_pcd, center_coord, expand_x_y=expansion, expand_z=[z_min, z_max])
+        z_min, z_max = grd_pcd.get_min_bound()[2], non_grd_pcd.get_max_bound()[2]
+        multi_tree = get_tree_from_coord(non_grd_pcd, grd_pcd, center_coord, expand_x_y=expansion, expand_z=[z_min, z_max])
         _, _, \
             raster_trunk_img, raster_crown_img = seg_obj.rasterize_to_trunk_crown(multi_tree, z_ffb, z_grd, center_coord)
         multi_tree = multi_tree.uniform_down_sample(5)
@@ -318,8 +317,8 @@ class TreeGen():
         return True, mask_trunk, mask_crown, multi_tree_pcd
         
     
-    def process_single_sideView(self, pcd, grd_pcd, non_grd_pcd, center_coord, x_lin_pcd, y_lin_pcd, index):
-        z_min, z_max = grd_pcd.get_min_bound()[2], pcd.get_max_bound()[2]
+    def process_single_sideView(self, grd_pcd, non_grd_pcd, center_coord, index):
+        z_min, z_max = grd_pcd.get_min_bound()[2], non_grd_pcd.get_max_bound()[2]
         loop_dict = {}
 
         # ---- Detect XYZ or Crown Center and Ground ----
