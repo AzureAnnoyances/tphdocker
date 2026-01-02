@@ -57,17 +57,19 @@ class RootDataTable(TypedDict, total=False):
 class Blob_Manager(PubSubManager):
     def __init__(self, conn_string, container_name):
         load_dotenv(find_dotenv())
-        self.conn_string = conn_string
-        self.container_name = container_name
-        self.blob_service = BlobServiceClient.from_connection_string(conn_string)
-        self.blob_container_client = self._check_container_exist(container_name)
-        self.blob_account_key = self.blob_service.credential.account_key
-        self.blob_account_name = self.blob_service.account_name
-        self.blob_primary_endpoint = self.blob_service.primary_endpoint
         self.accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
         self.percentage_start = 2
         self.percentage_dl_complete = 12
         self.percentage_load_complete = 20
+        
+        if self.IS_LOCAL:
+            self.conn_string = conn_string
+            self.container_name = container_name
+            self.blob_service = BlobServiceClient.from_connection_string(conn_string)
+            self.blob_container_client = self._check_container_exist(container_name)
+            self.blob_account_key = self.blob_service.credential.account_key
+            self.blob_account_name = self.blob_service.account_name
+            self.blob_primary_endpoint = self.blob_service.primary_endpoint
         
     def _check_container_exist(self, container_name):
         # ✅ Ensure container exists, if not exist create one

@@ -16,7 +16,7 @@ class PubSubManager:
         self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME","")
         self.PUBSUBURL=os.getenv("PUBSUBURL","")
         
-        self.IS_LOCAL = str_to_bool(os.getenv("IS_LOCAL",""))
+        self.IS_LOCAL:bool = str_to_bool(os.getenv("IS_LOCAL",""))
         
         if self.IS_LOCAL == True:
             pass
