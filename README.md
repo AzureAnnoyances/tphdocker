@@ -9,8 +9,7 @@ docker build \
 
 ### Running Docker
 ```bash
-xhost local:docker
-
+xhost local:docker && \
 docker run -it \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /usr/bin/docker:/usr/bin/docker \

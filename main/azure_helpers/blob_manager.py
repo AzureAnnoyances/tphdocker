@@ -56,6 +56,7 @@ class RootDataTable(TypedDict, total=False):
     
 class Blob_Manager(PubSubManager):
     def __init__(self, conn_string, container_name):
+        self.init_pubsub()
         load_dotenv(find_dotenv())
         self.accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
         self.percentage_start = 2
@@ -203,6 +204,7 @@ class Blob_Manager(PubSubManager):
 
 class DBManager(PubSubManager):
     def __init__(self):
+        self.init_pubsub()
         load_dotenv(find_dotenv())
         # Blob Init
         self.strg_account_name      = str(os.environ["StorageAccName"])

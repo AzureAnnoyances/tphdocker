@@ -13,6 +13,9 @@ from azure.messaging.webpubsubclient.models import (
 
 class PubSubManager:
     def __init__(self):
+        pass
+    
+    def init_pubsub(self):
         self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME","")
         self.PUBSUBURL=os.getenv("PUBSUBURL","")
         
