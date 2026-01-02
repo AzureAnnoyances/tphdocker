@@ -83,13 +83,7 @@ def read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj:DBManager):
     
 def main(pub_obj:DBManager):    
     pcd_name        = os.getenv("PCD_NAME")
-    input_pcd_extension = os.getenv("EXT")
-    
-    #################################################
-    ######## 1 File Generation from PCD #############
-    #################################################
-    logger.info("Step 1: Reading pcd file...")
-    
+    input_pcd_extension = os.getenv("EXT")    
     # Load Yaml
     with open("config/config.yaml","r") as ymlfile:
         yml_data = yaml.load(ymlfile, Loader = yaml.FullLoader)
@@ -126,16 +120,15 @@ def main(pub_obj:DBManager):
     outputFolder_obj = tph.OutputFolder(**folder_out_dict)
     preprocessFolder_obj = tph.PreprocessFolder(**pre_process_folders)
     
-    pub_obj.process_percentage(1)
-    if pub_obj.IS_LOCAL:
-        input_pcd_full_path = os.path.join(input_folder, f"{pcd_name}{input_pcd_extension}")
-        pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
-    else:
-        pcd = pub_obj.download_pcd_timer()
     
+    #################################################
+    ######## 1 File Generation from PCD #############
+    #################################################
+    local_or_cloud = "local" if pub_obj.IS_LOCAL else "cloud"
+    logger.info(f"Step 1: Reading pcd file... from [{local_or_cloud}]")
+    pub_obj.process_percentage(1)
+    pcd = pub_obj.read_pointcloud()
     pub_obj.process_percentage(20)
-
-
     logger.info(f"Reading {input_pcd_extension} file successful, Generating stuff")
     ###################################################
     ######## END File Generation from PCD #############
