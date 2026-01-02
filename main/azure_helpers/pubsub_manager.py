@@ -13,22 +13,17 @@ from azure.messaging.webpubsubclient.models import (
 
 class PubSubManager:
     def __init__(self):
-        pass
-    
-    def init_pubsub(self):
         self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME","")
         self.PUBSUBURL=os.getenv("PUBSUBURL","")
         
         IS_LOCAL = os.getenv("IS_LOCAL","")
         self.IS_LOCAL:bool = str_to_bool(IS_LOCAL)
         print(f"am i local? {self.IS_LOCAL}, {IS_LOCAL}")
-        if self.IS_LOCAL == True:
-            return
-  
-        self.client_write = WebPubSubClient(credential=WebPubSubClientCredential(client_access_url_provider=self.PUBSUBURL))
-        self._init_callbacks()
-        self.client_write.open()
-        self.client_write.join_group(self.PUBSUBGROUPNAME)
+        if self.IS_LOCAL == False:
+            self.client_write = WebPubSubClient(credential=WebPubSubClientCredential(client_access_url_provider=self.PUBSUBURL))
+            self._init_callbacks()
+            self.client_write.open()
+            self.client_write.join_group(self.PUBSUBGROUPNAME)
         
         
     def pub_dict(self, dict_msg):

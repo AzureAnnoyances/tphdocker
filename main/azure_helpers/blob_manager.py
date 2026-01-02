@@ -56,14 +56,13 @@ class RootDataTable(TypedDict, total=False):
     
 class Blob_Manager(PubSubManager):
     def __init__(self, conn_string, container_name):
-        self.init_pubsub()
         load_dotenv(find_dotenv())
         self.accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
         self.percentage_start = 2
         self.percentage_dl_complete = 12
         self.percentage_load_complete = 20
         
-        if self.IS_LOCAL:
+        if self.IS_LOCAL == False:
             self.conn_string = conn_string
             self.container_name = container_name
             self.blob_service = BlobServiceClient.from_connection_string(conn_string)
@@ -204,7 +203,6 @@ class Blob_Manager(PubSubManager):
 
 class DBManager(PubSubManager):
     def __init__(self):
-        self.init_pubsub()
         load_dotenv(find_dotenv())
         # Blob Init
         self.strg_account_name      = str(os.environ["StorageAccName"])
