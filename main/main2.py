@@ -26,6 +26,7 @@ from scipy.spatial import KDTree
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 import laspy
+from typing import Optional
 from azure_helpers.blob_manager import DBManager
 import asyncio
 
@@ -81,13 +82,8 @@ def read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj:DBManager):
         raise Exception(f"Reading PCD Error {e}")
     
 def main(pub_obj:DBManager):    
-    folder_loc      = os.getenv("PATH_DIR")
     pcd_name        = os.getenv("PCD_NAME")
     input_pcd_extension = os.getenv("EXT")
-    # for i in range(100):
-    #     time.sleep(0.02)
-    #     pub_obj.process_percentage(i)
-    # pub_obj.process_completed("XYZ")
     
     #################################################
     ######## 1 File Generation from PCD #############
@@ -110,10 +106,6 @@ def main(pub_obj:DBManager):
     folder_out_dict = {
         "input_folder"  : input_folder,
         "output_folder" : output_folder,
-        # "topViewOut"    : topViewOut,
-        # "sideViewOut"   : sideViewOut,
-        # "pcdOut"        : pcdOut,o3d_pcd_to_image
-        # "diamOut"       : diamOut
     }
     # Create Folder Location from config.yaml
     for k,v in yml_data["output"]["folder_location"].items():
@@ -135,7 +127,7 @@ def main(pub_obj:DBManager):
     preprocessFolder_obj = tph.PreprocessFolder(**pre_process_folders)
     
     pub_obj.process_percentage(1)
-    if os.getenv("IS_LOCAL","false").lower() == "true":
+    if pub_obj.IS_LOCAL:
         input_pcd_full_path = os.path.join(input_folder, f"{pcd_name}{input_pcd_extension}")
         pcd = read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj)
     else:

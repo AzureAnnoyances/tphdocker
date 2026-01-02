@@ -23,7 +23,7 @@ docker run -it \
 --env SSH_AUTH_SOCK=/ssh-agent \
 --env DISPLAY=$DISPLAY \
 --env TERM=xterm-256color \
--v /home/ds1804/pcds:/root/pcds \
+-v /home/ds1804/pcds:/root/data_in \
 $docker_name /bin/bash
 ```
 ```bash

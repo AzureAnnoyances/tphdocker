@@ -1,8 +1,6 @@
 import os
-import asyncio
-import time
+from .helper import str_to_bool
 from azure.messaging.webpubsubclient import WebPubSubClient, WebPubSubClientCredential
-from azure.messaging.webpubsubservice import WebPubSubServiceClient
 from azure.messaging.webpubsubclient.models import (
     OnConnectedArgs,
     OnGroupDataMessageArgs,
@@ -15,23 +13,29 @@ from azure.messaging.webpubsubclient.models import (
 
 class PubSubManager:
     def __init__(self):
-        pass
+        self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME","")
+        self.PUBSUBURL=os.getenv("PUBSUBURL","")
         
-    def init_pubsub(self):
-        self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME")
-        self.PUBSUBURL=os.getenv("PUBSUBURL")
-        self.write_token_url = self.PUBSUBURL
-        self.group_name = self.PUBSUBGROUPNAME
-        self.client_write = WebPubSubClient(credential=WebPubSubClientCredential(client_access_url_provider=self.write_token_url))
+        self.IS_LOCAL = str_to_bool(os.getenv("IS_LOCAL",""))
+        
+        if self.IS_LOCAL == True:
+            pass
+  
+        self.client_write = WebPubSubClient(credential=WebPubSubClientCredential(client_access_url_provider=self.PUBSUBURL))
         self._init_callbacks()
         self.client_write.open()
         self.client_write.join_group(self.PUBSUBGROUPNAME)
         
+        
     def pub_dict(self, dict_msg):
-        self.client_write.send_to_group(self.group_name, dict_msg, WebPubSubDataType.JSON, no_echo=False, ack=False)
+        if self.IS_LOCAL == True:
+            pass
+        self.client_write.send_to_group(self.PUBSUBGROUPNAME, dict_msg, WebPubSubDataType.JSON, no_echo=False, ack=False)
     
     def pub_string(self, str_msg):
-        self.client_write.send_to_group(self.group_name, str_msg, WebPubSubDataType.TEXT, no_echo=False, ack=False)
+        if self.IS_LOCAL == True:
+            pass
+        self.client_write.send_to_group(self.PUBSUBGROUPNAME, str_msg, WebPubSubDataType.TEXT, no_echo=False, ack=False)
 
     def _init_callbacks(self):
         self.client_write.subscribe(CallbackType.CONNECTED, self._on_connected)

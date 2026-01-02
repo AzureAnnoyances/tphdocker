@@ -43,7 +43,7 @@ class CSFandImageStitcher:
         pcd: o3d.geometry.PointCloud,
         tile_size: Tuple[int, int] = (480, 480),  # (height, width) in pixels
         step_size: float = 0.05,                  # meters per pixel
-        stride_ratio: float = 0.5,                # 0.5 = 50% overlap
+        stride_ratio: float = 0.0,                # 0.5 = 50% overlap
         downsample_voxel_size: Optional[float] = None
     ):
         """
@@ -131,7 +131,7 @@ class CSFandImageStitcher:
             pcd, 
             tile_size: Tuple[int, int] = (480, 480),  # (height, width) in pixels
             step_size: float = 0.05,                  # meters per pixel
-            stride_ratio: float = 0.5,                # 0.5 = 50% overlap
+            stride_ratio: float = 0.0,                # 0.0 = 0% overlap
             downsample_voxel_size: Optional[float] = None
         ):
         new_pcd = o3d.geometry.PointCloud()

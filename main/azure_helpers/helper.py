@@ -82,3 +82,13 @@ def release_memory():
     gc.collect()
     libc = ctypes.CDLL("libc.so.6")
     libc.malloc_trim(0)
+    
+def str_to_bool(s):
+    # Remove leading/trailing spaces and convert to lowercase for flexibility
+    s = s.strip().lower() 
+    if s in ('true', 'yes', 'on', '1'):
+        return True
+    elif s in ('false', 'no', 'off', '0', ''):
+        return False
+    else:
+        return False

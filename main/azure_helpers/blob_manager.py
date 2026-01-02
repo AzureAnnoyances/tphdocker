@@ -10,14 +10,14 @@ import open3d as o3d
 import numpy as np
 import time
 import asyncio
-from typing import Tuple
+from typing import Tuple, Union, Optional
 from datetime import datetime,timezone, timedelta
 from azure.storage.blob import BlobServiceClient, BlobSasPermissions
 from azure.core.exceptions import ResourceNotFoundError, ResourceModifiedError
 from azure.data.tables import TableClient, TableServiceClient, UpdateMode
 from typing_extensions import TypedDict
 from dotenv import find_dotenv, load_dotenv
-from .helper import count_iter_items
+from .helper import count_iter_items, str_to_bool, release_memory
 from .pubsub_manager import PubSubManager
 
 def get_ram_usage_mb():
@@ -56,7 +56,6 @@ class RootDataTable(TypedDict, total=False):
     
 class Blob_Manager(PubSubManager):
     def __init__(self, conn_string, container_name):
-        self.init_pubsub()
         load_dotenv(find_dotenv())
         self.conn_string = conn_string
         self.container_name = container_name
@@ -78,53 +77,26 @@ class Blob_Manager(PubSubManager):
         except ResourceNotFoundError:
             container.create_container()
         return container
-    
-    def download_filev0(self, blob_path, write_path):
-        blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
-        with open(file=write_path, mode="wb") as file_download:
-            download_stream = blob_file_client.download_blob()
-            file_download.write(download_stream.readall())
             
-    def download_file(self, blob_path, write_path):
-        blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
-        total_file_size = blob_file_client.get_blob_properties().size
-        total_chunk_size = 0
-        download_stream = blob_file_client.download_blob()
-        import gc
-        with open(file=write_path, mode="wb") as file_download:
-            for chunk in download_stream.chunks():
-                file_download.write(chunk)
-                total_chunk_size+=int(len(chunk))
-                self.process_percentage(2+int((total_chunk_size/total_file_size)*18))
-                del chunk
-                gc.collect()
-                import shutil
-                import psutil
-                total, used, free = shutil.disk_usage('/')
-                memory_info = psutil.virtual_memory()
-                logger.info(f"Memory Total: {(memory_info.total // (2**30))} GiB, Used: {(memory_info.used // (2**30))} GiB, Free: {(memory_info.available // (2**30))} GiB")
-                logger.info(f"Disk Total: {total // (2**30)} GiB, Used: {used // (2**30)} GiB, Free: {free // (2**30)} GiB")
-    
     def download_file_to_memory(self, blob_path : str):        
         try:
-            byte_value, file_type = self.download_to_memory(blob_path)
-            pcd = self.populate_pointcloud_from_bytes(byte_value, filetype=file_type, batch_size=1000000)
+            byte_value, blob_full_path = self.download_to_memory(blob_path)
+            pcd = self.read_pointcloud(byte_value, full_path=blob_full_path, batch_size=1000000)
             del byte_value
         except MemoryError as me:
             logger.info(f"Memory Error Occurred during Point Cloud Download/Population: {me}")
         finally:
-            self.cleanup_ram()
+            release_memory()
         self.process_percentage(self.percentage_load_complete)
         return pcd
     
     def download_to_memory(self, blob_path)-> Tuple[bytes, str]:
         # Initiate Azure Download
         blob_file_client = self.blob_container_client.get_blob_client(blob=blob_path)
-        extension = Path(blob_file_client.get_blob_properties().name).suffix
-        
-        logger.info(f"Reading filetype [{extension}] File...")
-        accepted_file_types = [".las",".laz",".txt",".pcd",".ply"]
-        assert extension in accepted_file_types,f"Filetype must be {accepted_file_types}"
+        # extension = Path(blob_file_client.get_blob_properties().name).suffix
+        blob_full_path = Path(blob_file_client.get_blob_properties().name)
+        logger.info(f"Reading file [{blob_full_path}] File...")
+
         
         # Download to Memory Stream
         buffer = io.BytesIO()
@@ -156,16 +128,19 @@ class Blob_Manager(PubSubManager):
         view.release()
         del view
         del buffer
-        self.cleanup_ram()
+        release_memory()
         get_peak_ram_usage_mb()
         logger.info("Memory Cleanup Completed.")
-        return byte_value, extension
+        return byte_value, str(blob_full_path)
 
-    def populate_pointcloud_from_bytes(self, buffer : bytes, filetype: str, batch_size: int = 100000):
-        logger.info(f"Populating Point Cloud from {filetype} stream...")
+    def read_pointcloud(self, buffer_or_path :Union[bytes, str], full_path :str, batch_size: int = 100000):
+        extension = Path(full_path).suffix
+        logger.info(f"Reading pcd of filetype [{extension}] File...")
+        assert extension in self.accepted_file_types, f"Filetype must be {self.accepted_file_types}"
         percentage_start = curr_percentage = self.percentage_dl_complete
-
-        if filetype.lower() in [".las", ".laz"]:
+        self.process_percentage(curr_percentage)
+        
+        if extension.lower() in [".las", ".laz"]:
             """Do not Do this, causes 10x memory
             # with laspy.open(buffer, mode="r") as las_file:
             #   las = las_file.read()
@@ -177,7 +152,7 @@ class Blob_Manager(PubSubManager):
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector()
             
-            with laspy.open(buffer, mode="r") as las_file:
+            with laspy.open(buffer_or_path, mode="r") as las_file:
                 total_points = las_file.header.point_count
                 total_chunks = total_points / batch_size
                 for i, points_chunk in enumerate(las_file.chunk_iterator(batch_size)):
@@ -191,33 +166,24 @@ class Blob_Manager(PubSubManager):
                     )
                     del temp
                     del points_chunk
-                    self.cleanup_ram()
+                    release_memory()
                     get_peak_ram_usage_mb()
                     curr = percentage_start+int( ((i+1)/total_chunks) * (self.percentage_load_complete-percentage_start))
-                    curr = int(curr)
-                    if curr > curr_percentage:
-                        curr_percentage = curr
-                        self.process_percentage(curr_percentage)
-            self.cleanup_ram()
-
-        elif filetype.lower() in [".ply", ".pcd", ".txt"]:
-            if filetype.lower() == ".txt":
-                format = "xyz"
+                    curr_percentage = int(round(curr))
+                    self.process_percentage(curr_percentage)
+            release_memory()
+        elif extension.lower() in [".ply", ".pcd", ".txt"]:
+            format = "xyz" if extension.lower() == ".txt" else "auto"
+            if isinstance(buffer_or_path, bytes):
+                pcd = o3d.io.read_point_cloud_from_bytes(buffer_or_path, format=format)
             else:
-                format = "auto"
-            self.process_percentage(curr_percentage)
-            pcd = o3d.io.read_point_cloud_from_bytes(buffer, format=format)
+                pcd = o3d.io.read_point_cloud(buffer_or_path, format=format)
             self.process_percentage(self.percentage_load_complete)
-            self.cleanup_ram()
+            release_memory()
         else:
-            raise ValueError(f"Unsupported file type: {filetype}")
+            raise ValueError(f"Unsupported file type: {extension}")
         logger.info(f"Population Completed, Total points in Point Cloud: {len(pcd.points)}")
         return pcd
-    
-    def cleanup_ram(self):
-        gc.collect()
-        libc = ctypes.CDLL("libc.so.6")
-        libc.malloc_trim(0)
         
     def upload_file(self, docker_path, write_path):
         blob_file_client = self.blob_container_client.get_blob_client(blob=write_path)
@@ -235,37 +201,35 @@ class Blob_Manager(PubSubManager):
 
 class DBManager(PubSubManager):
     def __init__(self):
-        self.init_pubsub()
         load_dotenv(find_dotenv())
         # Blob Init
-        self.strg_account_name    = str(os.environ["StorageAccName"])
-        self.strg_access_key      = str(os.environ["StorageAccKey"])
-        self.strg_endpoint_suffix = str(os.environ["StorageEndpointSuffix"])
-        self.storageContainer   = str(os.getenv("StorageContainer"))
+        self.strg_account_name      = str(os.environ["StorageAccName"])
+        self.strg_access_key        = str(os.environ["StorageAccKey"])
+        self.strg_endpoint_suffix   = str(os.environ["StorageEndpointSuffix"])
+        self.storageContainer       = str(os.getenv("StorageContainer"))
         self.connection_string      = f"DefaultEndpointsProtocol=https;AccountName={self.strg_account_name};AccountKey={self.strg_access_key};EndpointSuffix={self.strg_endpoint_suffix}"
-        self.blob_obj = Blob_Manager(self.connection_string, self.storageContainer)
+        self.blob_obj               = Blob_Manager(self.connection_string, self.storageContainer)
         
         # Logs
-        self.root_log_table_name= str(os.getenv("DBRoot", "rootLog"))
-        self.PartitionKey = str(os.getenv("PartitionKey"))
-        self.row_key = self.filename = str(os.getenv("RowKey"))
+        self.root_log_table_name    = str(os.getenv("DBRoot", "rootLog"))
+        self.PartitionKey           = str(os.getenv("PartitionKey"))
+        self.row_key = self.filename= str(os.getenv("RowKey"))
         
         # Download
-        self.download_full_path = str(os.getenv("file_upload_full_path"))
-        self.download_file_extension = str(os.getenv("ext"))
+        self.download_full_path     = str(os.getenv("file_upload_full_path"))
+        self.download_file_extension= str(os.getenv("ext"))
         
         # Upload
-        self.process_folder = str(os.getenv("process_folder"))
-        self.data_loc = str(os.getenv("DATA_LOC"))
+        self.process_folder         = str(os.getenv("process_folder"))
+        self.data_loc               = str(os.getenv("DATA_LOC"))
         
+        # Docker input folder out
+        self.docker_input_folder    = str(os.getenv("DOCKER_Data_IN","/root/data_in"))
+        self.docker_output_folder   = str(os.getenv("DOCKER_Data_OUT","/root/data_out"))
+
+        # Local Testing
+        self.local_pcd_name         = str(os.getenv("LOCAL_PCD_NAME", "Tangkak_1.laz"))
         
-        # Docker in out
-        self.docker_input_folder  = str(os.environ["DOCKER_Data_IN"])
-        self.docker_output_folder = str(os.environ["DOCKER_Data_OUT"])
-        # self.docker_input_folder  = f"/root/data_in"
-        # self.docker_output_folder = f"/root/data_out"
-        
-        # self.create_database_if_not_exists()
         logger.info(f"\n\n\n\
             PartitionKey : {self.PartitionKey}\n\
             Storage_container : {self.storageContainer}\n\
@@ -273,9 +237,15 @@ class DBManager(PubSubManager):
             Extention : {self.download_file_extension}\
             ")
         
-        # self.upload_everything("/app")
-        
-    def download_pcd_timer(self):
+    
+    def read_pointcloud(self):
+        if self.IS_LOCAL:
+            return self.blob_obj.read_pointcloud(self.local_pcd_name, self.local_pcd_name)
+        else:
+            return self.download_pcd_timer(self.download_full_path)
+    
+    
+    def download_pcd_timer(self, download_file_path):
         start_time = time.time()
         max_wait_time = int(int(os.getenv('DOWNLOAD_WAIT_TIME_MINS', '10'))*60)
         check_interval = 1
@@ -284,8 +254,8 @@ class DBManager(PubSubManager):
                 self.process_percentage(2)
                 if self.frontend_Upload_completed():
                     self.upload_completed()
-                    return self.download_pointcloud_to_memory()
-            
+                    # Read Pointcloud
+                    return self.blob_obj.download_file_to_memory(blob_path=download_file_path)
             except Exception:
                 pass  # Ignore errors and keep waiting
             # Wait before retry
@@ -329,26 +299,6 @@ class DBManager(PubSubManager):
             await blob_service.close()
             return False
 
-    # def download_pointcloud(self):
-    #     try:
-    #         download_file_path = self.download_full_path
-    #         docker_file_path = f"{self.docker_input_folder}/{self.filename}{self.download_file_extension}"
-    #         logger.info(f"\n\n\
-    #             Download_file_path : {download_file_path}\n\
-    #             docker_file_path : {docker_file_path}\n\
-    #                 ")
-    #         self.blob_obj.download_file(blob_path=download_file_path, write_path=docker_file_path)
-    #         return docker_file_path, self.download_file_extension
-    #     except Exception as e:
-    #         self.process_error(f"Error at Docker Download_pcd: at [ {download_file_path} ]\n[{e}]")
-    #         return "",""
-    
-    def download_pointcloud_to_memory(self):
-        try:
-            download_file_path = self.download_full_path
-            return self.blob_obj.download_file_to_memory(blob_path=download_file_path)
-        except Exception as e:
-            return None
     
     def upload_everything(self, dir_path):
         try:
@@ -432,6 +382,8 @@ class DBManager(PubSubManager):
         self.update_status(error=str(True), error_msg=error_msg)
         
     def update_status(self, status=None, process_completed=None, store_completed=None, error=None, error_msg=None, coordinates=None, trees_completed=None):
+        if self.IS_LOCAL == True:
+            pass
         try:
             with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
                 entity = table_client.get_entity(partition_key=self.PartitionKey, row_key=self.row_key)

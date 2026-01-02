@@ -55,7 +55,7 @@ RUN apt-get remove python3-blinker -y && \
 
 # Clone Git -> Install CSF py module -> Model Weights
 WORKDIR /root
-ARG CACHE_BUST=78
+ARG CACHE_BUST=70
 RUN git clone --recursive https://github.com/AzureAnnoyances/tphdocker.git -b main sdp_tph && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
     python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \
@@ -106,18 +106,17 @@ ENV StorageEndpointSuffix=""
 ENV DBRoot=""
 ENV PartitionKey=""
 ENV RowKey=""
+# Cloud Paths
+ENV DOWNLOAD_WAIT_TIME_MINS=10
 ENV StorageContainer=""
 ENV file_upload_full_path=""
 ENV ext=""
-ENV IS_LOCAL="false"
 ENV process_folder=""
 ENV DOCKER_Data_IN="/root/data_in"
 ENV DOCKER_Data_OUT="/root/data_out"
-
-ENV PATH_DIR="/root/pcds/"
-ENV PCD_NAME="Tangkak_1"
-ENV EXT=".laz"
-ENV DOWNLOAD_WAIT_TIME_MINS=10
+# Local Dir Path for local testing
+ENV IS_LOCAL="false"
+ENV LOCAL_PCD_NAME="Tangkak_1.laz"
 
 ### Comment this if u want to debug in real time
 # WORKDIR /
