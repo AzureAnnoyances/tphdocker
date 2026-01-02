@@ -19,10 +19,11 @@ class PubSubManager:
         self.PUBSUBGROUPNAME=os.getenv("PUBSUBGROUPNAME","")
         self.PUBSUBURL=os.getenv("PUBSUBURL","")
         
-        self.IS_LOCAL:bool = str_to_bool(os.getenv("IS_LOCAL",""))
-        
+        IS_LOCAL = os.getenv("IS_LOCAL","")
+        self.IS_LOCAL:bool = str_to_bool(IS_LOCAL)
+        print(f"am i local? {self.IS_LOCAL}, {IS_LOCAL}")
         if self.IS_LOCAL == True:
-            pass
+            return
   
         self.client_write = WebPubSubClient(credential=WebPubSubClientCredential(client_access_url_provider=self.PUBSUBURL))
         self._init_callbacks()
@@ -32,12 +33,12 @@ class PubSubManager:
         
     def pub_dict(self, dict_msg):
         if self.IS_LOCAL == True:
-            pass
+            return
         self.client_write.send_to_group(self.PUBSUBGROUPNAME, dict_msg, WebPubSubDataType.JSON, no_echo=False, ack=False)
     
     def pub_string(self, str_msg):
         if self.IS_LOCAL == True:
-            pass
+            return
         self.client_write.send_to_group(self.PUBSUBGROUPNAME, str_msg, WebPubSubDataType.TEXT, no_echo=False, ack=False)
 
     def _init_callbacks(self):

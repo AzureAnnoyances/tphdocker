@@ -387,7 +387,7 @@ class DBManager(PubSubManager):
         
     def update_status(self, status=None, process_completed=None, store_completed=None, error=None, error_msg=None, coordinates=None, trees_completed=None):
         if self.IS_LOCAL == True:
-            pass
+            return 
         try:
             with TableClient.from_connection_string(conn_str=self.connection_string, table_name=self.root_log_table_name) as table_client:
                 entity = table_client.get_entity(partition_key=self.PartitionKey, row_key=self.row_key)
