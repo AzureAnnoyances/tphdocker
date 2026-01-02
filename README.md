@@ -23,6 +23,7 @@ docker run -it \
 --env DISPLAY=$DISPLAY \
 --env TERM=xterm-256color \
 --env IS_LOCAL='true' \
+--env LOCAL_PCD_NAME='tangkak_1.laz' \
 -v /home/ds1804/pcds:/root/data_in \
 $docker_image_name /bin/bash
 ```

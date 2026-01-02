@@ -244,7 +244,8 @@ class DBManager(PubSubManager):
     
     def read_pointcloud(self):
         if self.IS_LOCAL:
-            return self.blob_obj.read_pointcloud(self.local_pcd_name, self.local_pcd_name)
+            pcd_loc= os.path.join(self.docker_input_folder, self.local_pcd_name)
+            return self.blob_obj.read_pointcloud(pcd_loc, self.local_pcd_name)
         else:
             return self.download_pcd_timer(self.download_full_path)
     
