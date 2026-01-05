@@ -84,7 +84,7 @@ class Blob_Manager(PubSubManager):
     def download_file_to_memory(self, blob_path : str):        
         try:
             byte_value, blob_full_path = self.download_to_memory(blob_path)
-            pcd = self.read_pointcloud(byte_value, full_path=blob_full_path, batch_size=1000000)
+            pcd = self.read_pointcloud(byte_value, full_path=blob_full_path, batch_size=1_000_000)
             del byte_value
         except MemoryError as me:
             logger.info(f"Memory Error Occurred during Point Cloud Download/Population: {me}")
@@ -136,7 +136,7 @@ class Blob_Manager(PubSubManager):
         logger.info("Memory Cleanup Completed.")
         return byte_value, str(blob_full_path)
 
-    def read_pointcloud(self, buffer_or_path :Union[bytes, str], full_path :str, batch_size: int = 100000):
+    def read_pointcloud(self, buffer_or_path :Union[bytes, str], full_path :str, batch_size: int = 1_000_000):
         extension = Path(full_path).suffix
         logger.info(f"Reading pcd of filetype [{extension}] File...")
         assert extension in self.accepted_file_types, f"Filetype must be {self.accepted_file_types}"
@@ -245,7 +245,7 @@ class DBManager(PubSubManager):
     def read_pointcloud(self):
         if self.IS_LOCAL:
             pcd_loc= os.path.join(self.docker_input_folder, self.local_pcd_name)
-            return self.blob_obj.read_pointcloud(pcd_loc, self.local_pcd_name)
+            return self.blob_obj.read_pointcloud(pcd_loc, self.local_pcd_name, batch_size=1_000_000)
         else:
             return self.download_pcd_timer(self.download_full_path)
     

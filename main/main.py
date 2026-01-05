@@ -27,7 +27,7 @@ from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 import laspy
 from typing import Optional
-from azure_helpers.blob_manager import DBManager
+from azure_helpers.blob_manager import DBManager, release_memory
 import asyncio
 
 def create_folder_from_dict(folder_dict:dict):
@@ -81,7 +81,8 @@ def read_pcd(input_pcd_full_path, input_pcd_extension, pub_obj:DBManager):
         pub_obj.process_error(f"Reading PCD Error : \n[ {e} ]")
         raise Exception(f"Reading PCD Error {e}")
     
-def main(pub_obj:DBManager):    
+def main(pub_obj:DBManager):
+     
     pcd_name        = os.getenv("PCD_NAME")
     input_pcd_extension = os.getenv("EXT")    
     # Load Yaml
@@ -164,15 +165,23 @@ def main(pub_obj:DBManager):
     topViewModel = Detect(yolov5_folder_pth, top_view_model_pth, img_size=ideal_img_size)
     
     # 2. Perform CSF and TopView Image
-    csf_N_stitch_obj = CSFandImageStitcher(pubsub=pub_obj, min_percentage=20, max_percentage=30)
-    non_ground_img_color, pcd, grd, non_grd = csf_N_stitch_obj.o3d_csf_Split_N_rasterize(
-        pcd=pcd,
-        tile_size=(640*2, 640*2),  # Tile size in pixels
-        step_size=topViewStepsize,      
-        stride_ratio=0,            # 50% overlap
-        downsample_voxel_size=0.02
+    # csf_N_stitch_obj = CSFandImageStitcher(pubsub=pub_obj, min_percentage=20, max_percentage=30)
+    csf_N_stitch_obj = CSFandImageStitcher(
+        tile_size=(640, 640), 
+        step_size=topViewStepsize,
+        min_percentage=20, max_percentage=50,
+        uniform_downsample_ratio=None,
+        voxel_downsample_size=0.02,
+        pubsub=pub_obj
+        )
+    pcd = csf_N_stitch_obj.convert_to_cuda(pcd)
+    non_ground_img_color, query_non_grd, query_grd = csf_N_stitch_obj.o3d_csf_Split_N_rasterize(
+        pcd=pcd,  
+        stride_ratio=0.5 # 50% overlap
     )
     non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
+    del pcd
+    
     
     # # 2. Create img from CSF
     # grd, non_grd = csf_py(
@@ -212,12 +221,10 @@ def main(pub_obj:DBManager):
     w_arr, w_incre = np.linspace(0, non_ground_img.shape[1], w_s+1, retstep=True)
     
     # 1.b Calculate spacing for PCD splitting.
-    x_min_pcd, y_min_pcd, z_min = non_grd.get_min_bound()
-    x_max_pcd, y_max_pcd, z_max = non_grd.get_max_bound()
+    x_min_pcd, y_min_pcd, z_min = query_non_grd.get_min_bound()
+    x_max_pcd, y_max_pcd, z_max = query_non_grd.get_max_bound()
     h_arr_pcd , h_incre_pcd = np.linspace(y_min_pcd, y_max_pcd, h_s+1, retstep=True)
     w_arr_pcd , w_incre_pcd = np.linspace(x_min_pcd, x_max_pcd, w_s+1, retstep=True)
-    # logger.info(f"\ny_min: [{y_min}]\ny_max: [{y_max}]\nh_arr_pcd: {h_arr_pcd}")
-    # logger.info(f"\nx_min: [{x_min}]\nx_max: [{x_max}]\nw_arr_pcd: {w_arr_pcd}\n\n")
     
     # 2. Split images 
     for i, h in enumerate(h_arr[:-1]):
@@ -265,8 +272,8 @@ def main(pub_obj:DBManager):
     cv2.imwrite(topViewBin_save_pth, cv2.cvtColor(img_with_coord, cv2.COLOR_BGR2RGB))
 
     # 3. Scale 2D to 3D
-    xmin, ymin, zmin = non_grd.get_min_bound()
-    xmax, ymax, zmax = non_grd.get_max_bound()
+    xmin, ymin, zmin = query_non_grd.get_min_bound()
+    xmax, ymax, zmax = query_non_grd.get_max_bound()
     range_x, range_y, range_z = xmax-xmin, ymax-ymin, zmax-zmin
 
     height, width,_ = non_ground_img.shape
@@ -291,9 +298,10 @@ def main(pub_obj:DBManager):
     
     # Yaml Params
     tree_gen = TreeGen(yml_data, outputFolder_obj, preprocessFolder_obj, pcd_name, pubsub=pub_obj, debug=debug, )
-    df = tree_gen.process_each_coordv2(grd, non_grd, coordinates)
+    df = tree_gen.process_each_coordv2(query_grd, query_non_grd, coordinates)
     df.to_csv(csvOut)
-    
+    del query_grd, query_non_grd
+    release_memory()
     
     num_trees_processed = int(len(df)-1)
     pub_obj.process_completed("XYZ", tree_count=num_trees_processed)
@@ -320,7 +328,12 @@ if __name__ == '__main__':
     logger.info("Done Loading Libraries\n")
     logger.info(f"Current dir: [{os.getcwd()}]")
     pub_obj = DBManager()
+    
+    import datetime
+    start_time = datetime.datetime.now()
     main(pub_obj)
+    execution_time_minutes = (datetime.datetime.now() - start_time).total_seconds() / 60
+    print(f"Total execution time in minutes: {execution_time_minutes:.2f}m")
     
 # 2325 2898
 # H,2326 W2899

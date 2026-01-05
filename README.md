@@ -1,6 +1,6 @@
 ## Building Docker Image
 ```bash
-export docker_image_name="tphv3"
+export docker_image_name="tphv4" && \
 docker build \
 --ssh github_ssh_key=/home/ds1804/.ssh/id_ed25519 \
 --progress=plain \
@@ -23,8 +23,9 @@ docker run -it \
 --env DISPLAY=$DISPLAY \
 --env TERM=xterm-256color \
 --env IS_LOCAL='true' \
---env LOCAL_PCD_NAME='tangkak_1.laz' \
+--env LOCAL_PCD_NAME='SeriIntan17DDay201laz14.laz' \
 -v /home/ds1804/pcds:/root/data_in \
+-v /home/ds1804/pcds/docker_out:/root/data_out \
 $docker_image_name /bin/bash
 ```
 ```bash

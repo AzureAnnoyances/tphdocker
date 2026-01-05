@@ -119,8 +119,9 @@ ENV IS_LOCAL="false"
 ENV LOCAL_PCD_NAME="Tangkak_1.laz"
 
 ### Comment this if u want to debug in real time
-# WORKDIR /
-# COPY . /root/sdp_tph/
+ARG CACHE_BUST=1813
+WORKDIR /
+COPY /main /root/sdp_tph/main
 
 ### Workaround to azure piece of shit
 # WORKDIR /

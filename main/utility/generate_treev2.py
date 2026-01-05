@@ -39,14 +39,19 @@ def get_tree_from_coord(non_grd_pcd, grd_pcd, coord:tuple, expand_x_y:tuple=(10.
     l,w = expand_x_y
     zmin, zmax = expand_z
     bbox = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-l/2,yc-w/2,zmin),max_bound=(xc+l/2,yc+w/2,zmax))
-    ground = grd_pcd.crop(bbox)
+    # ground = grd_pcd.crop(bbox)
+    ground = grd_pcd.query((xc,yc)).crop(bbox)
+    
     
     # Removing Outlier by taking the minimum z value of Ground from CSF FILTER
     zmin = ground.get_min_bound()[2]
     zmin_tolerance = ground.get_max_bound()[2] - 2.0
     zmin = zmin_tolerance if zmin > zmin_tolerance else zmin
     bbox = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-l/2,yc-w/2,zmin),max_bound=(xc+l/2,yc+w/2,zmax))
-    tree = non_grd_pcd.crop(bbox) + ground
+    # tree = non_grd_pcd.crop(bbox) + ground
+    above = non_grd_pcd.query((xc,yc)).crop(bbox)
+    tree = above + ground
+    
     return tree
 
 class TreeGen():
@@ -261,7 +266,8 @@ class TreeGen():
     
     def loop_topView(self):
         try:
-            for i, value in enumerate(self.tph_items):
+            top_view_loop = tqdm(self.tph_items ,unit ="pcd", bar_format ='{desc:<16}{percentage:3.0f}%|{bar:25}{r_bar}')
+            for i, value in enumerate(top_view_loop):
                 self.pubsub.process_percentage(int(60+int(i/len(self.tph_items)*40)))
                 detected, mask_trunk, mask_crown, multi_tree_pcd = self.topViewCheckDir(i)
                 
