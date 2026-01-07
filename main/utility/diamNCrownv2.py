@@ -206,19 +206,15 @@ class SingleTreeSegmentation():
                 mask_2d  = mask_trunk,
                 min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, trunk_pcd.get_min_bound()[2]),
                 max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, trunk_pcd.get_max_bound()[2]),
-                axis='z', 
-                highest_first=True,
-                depth_weighting=True  
+                axis='z'
             )
             
             filtered_crown_pcd, raster_image, crown_img = rasterize_3dto2D(
-                pointcloud = torch.tensor(np.array(crown_pcd.points)).to(self.device), 
+                pointcloud = np.array(crown_pcd.points), 
                 mask_2d  = mask_crown,
                 min_xyz = (center_coord[0]-expansion[0]/2, -center_coord[1]-expansion[1]/2, crown_pcd.get_min_bound()[2]),
                 max_xyz = (center_coord[0]+expansion[0]/2, -center_coord[1]+expansion[1]/2, crown_pcd.get_max_bound()[2]),
-                axis='z', 
-                highest_first=True,
-                depth_weighting=True  
+                axis='z'
             )
             
 

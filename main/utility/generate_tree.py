@@ -20,6 +20,7 @@ def get_tree_from_coord(pcd, grd_pcd, coord:tuple, expand_x_y:list=[10.0,10.0], 
     # CAREFUL THE Y IS ACTUALLY NEGATIVE
     xc, yc = coord[0], -coord[1]
     
+    
     l,w = expand_x_y
     zmin, zmax = expand_z
     bbox = open3d.geometry.AxisAlignedBoundingBox(min_bound=(xc-l/2,yc-w/2,zmin),max_bound=(xc+l/2,yc+w/2,zmax))
@@ -263,7 +264,7 @@ def get_h_from_each_tree_slice2(tree, model_short, img_size:tuple, stepsize, img
             confi_lst.append(np.mean(uv_coords_pred[:,2]))
             if x_or_y == "x":
                 y_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[1], img.shape)
-                y_coord_ffb_lst.append(-y_ffb)
+                y_coord_ffb_lst.append(-y_ffb) 
             else:
                 x_ffb = return_coord_ffb_x_or_y(uv_coords_pred, stepsize, min_xyz[0], img.shape)
                 x_coord_ffb_lst.append(x_ffb)

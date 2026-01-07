@@ -39,6 +39,7 @@ def scale_pred_to_xy_point_cloud(pred:np.ndarray, stepsize, min_x:float=0.0, max
     rtn_arr[:,2] = xy_gpu[:,4]
     #print(xy_gpu[:,4])
     rtn_arr = rtn_arr.cpu().numpy()
+
     return rtn_arr
 
 

@@ -124,6 +124,8 @@ class TreeGen():
     def create_pd_dataframe(self, list_Oitems:List[tph.Oitems]):
         dfs=[]
         for item in list_Oitems:
+            item:tph.Oitems = item
+            item.y = -item.y
             dfs.append(item.asdict())
         combined_df = pd.DataFrame(dfs, columns=["i","x","y","h","detected_trunk","diam","detected_crown"])
         return combined_df
@@ -276,12 +278,14 @@ class TreeGen():
                 if len(multi_tree_pcd.points) < 1:
                     raise Exception(f"num_pcd_pts is [{len(multi_tree_pcd.points)}]")
 
+                # o3d.io.write_point_cloud(f"{self.pcdOut}/{i}.ply",multi_tree_pcd, format="ply", write_ascii=False, print_progress=False)
+                
                 loadedSuccess, trunk_pcd, crown_pcd, trunk_img = self.single_tree_seg.split_Tree_to_trunkNCrown(multi_tree_pcd, mask_crown=mask_crown, mask_trunk=mask_trunk, tphinit=self.tph_items[i])
                 if loadedSuccess:
                     trunk_img_drawn, diam = self.perform_stem_analysis(trunk_pcd, trunk_img)
                     self.tph_items[i].diam = diam
-                    pcd_of_segmented_tree  = crown_pcd+trunk_pcd
-                    self.save_data(i, trunk_img=trunk_img_drawn, segmented_tree=pcd_of_segmented_tree)
+                    crown_pcd  = crown_pcd+trunk_pcd
+                    self.save_data(i, trunk_img=trunk_img_drawn, segmented_tree=crown_pcd)
                     
         except Exception as e:
             self.pubsub.process_error(f"Error found at loop_topView, {e}")

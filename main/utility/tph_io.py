@@ -57,7 +57,7 @@ class TPH_IO:
         
         file_dir = os.path.join(load_dir, f"{filename}.ply")
         pcd = o3d.io.read_point_cloud(file_dir)
-        print(len(pcd.points))
+        # print(len(pcd.points))
         return pcd
     
     

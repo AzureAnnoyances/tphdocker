@@ -169,8 +169,9 @@ class CSFandImageStitcher:
         # 3. Create Dictionary Pointcloud Query
         query_non_grd, query_grd = self._create_pcd_query_obj(
             pcd_non_grd, pcd_grd, stride_ratio, int(min_pct+div_op_pct*2), max_pct)
+        
         pcd_grd.clear()
-        pcd_grd.clear()
+        pcd_non_grd.clear()
         release_memory()
         return final_image, query_non_grd, query_grd 
     

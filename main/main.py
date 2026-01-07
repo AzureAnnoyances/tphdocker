@@ -182,27 +182,6 @@ def main(pub_obj:DBManager):
     non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
     del pcd
     
-    
-    # # 2. Create img from CSF
-    # grd, non_grd = csf_py(
-    #     pcd, 
-    #     return_non_ground = "both", 
-    #     bsloopSmooth = True, 
-    #     cloth_res = 1.0, 
-    #     threshold= 2.0, 
-    #     rigidness=1,
-    #     iterations=1500
-    # )
-    # logger.info("Step 2.2: Creating Rasterized Image")
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # _, non_ground_img_color, _  = rasterize_3dto2D(
-    #         pointcloud = torch.tensor(np.array(non_grd.points)).to(device),
-    #         stepsize=topViewStepsize,
-    #         axis="z",
-    #         highest_first=True,
-    #         depth_weighting=True
-    #     )
-    # non_ground_img = numpy_to_bw_3channel(non_ground_img_color)
     ############################################
     ######## END CSF and Rasterize #############
     ############################################  

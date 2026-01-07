@@ -55,7 +55,7 @@ RUN apt-get remove python3-blinker -y && \
 
 # Clone Git -> Install CSF py module -> Model Weights
 WORKDIR /root
-ARG CACHE_BUST=1813
+ARG CACHE_BUST=1697
 RUN git clone --recursive https://github.com/AzureAnnoyances/tphdocker.git -b main sdp_tph && \
     cd /root/sdp_tph/submodules/CSF && python3 setup.py build && python3 setup.py install && \
     python3 -m pip install --no-cache-dir --ignore-installed -r /root/sdp_tph/main/azure_helpers/requirements.txt && \
@@ -119,9 +119,10 @@ ENV IS_LOCAL="false"
 ENV LOCAL_PCD_NAME="Tangkak_1.laz"
 
 ### Comment this if u want to debug in real time
-ARG CACHE_BUST=1813
+ARG CACHE_BUST=1819
 WORKDIR /
 COPY /main /root/sdp_tph/main
+COPY /submodules /root/sdp_tph/submodules
 
 ### Workaround to azure piece of shit
 # WORKDIR /
